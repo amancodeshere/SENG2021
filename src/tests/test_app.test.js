@@ -1,3 +1,4 @@
+/* eslint-disable */
 const { add, isEven } = require("../test_app");
 
 describe("Utility Function Tests", () => {
