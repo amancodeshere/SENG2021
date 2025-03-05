@@ -1,21 +1,26 @@
-name: Unit Tests
+name: CI Tests
 
-on: push
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
 jobs:
-  tests:
+  test:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [18.x, 16.x, 14.x]
-
     steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node-version }}
-      - name: npm install
-        run: npm ci
-      - name: tests
-        run: npm test
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm run ci-test
