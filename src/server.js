@@ -3,7 +3,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import bodyParser from 'body-parser';
 
-import { inputOrder, getOrderBySalesOrderID } from "./databaseFunctions.js";
+import { inputOrder, getOrderBySalesOrderID, getOrderIdsByPartyName } from "./databaseFunctions.js";
 
 const app = express();
 // Middleware to access the JSON body of requests
@@ -54,6 +54,18 @@ app.get('/api/orders/:SalesOrderID', (req, res) => {
     });
 });
 
+// Get the list of orders placed by a company given the party name (also not secure.)
+app.get('/api/orders/party/:partyName', (req, res) => {
+    const { partyName } = req.params;
+
+    getOrderIdsByPartyName(partyName, (err, result) => {
+        res.set('Content-Type', 'application/json');
+        if (err) {
+            return res.status(400).json({ error: err.message });
+        }
+        res.status(200).json({ SalesOrderIDs: result });
+    });
+});
 
 // ===========================================================================
 // ============================= ROUTES ABOVE ================================
