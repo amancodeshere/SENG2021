@@ -3,7 +3,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import bodyParser from 'body-parser';
 
-import { inputOrder, getOrderBySalesOrderID, getOrderIdsByPartyName } from "./databaseFunctions.js";
+import { inputOrder, getOrderBySalesOrderID, getOrderIdsByPartyName, deleteOrderById } from "./databaseFunctions.js";
 
 const app = express();
 // Middleware to access the JSON body of requests
@@ -19,6 +19,18 @@ const HOST = process.env.IP || '127.0.0.1';
 // ===========================================================================
 // ============================= ROUTES BELOW ================================
 // ===========================================================================
+
+app.delete('/api/orders/delete/:orderId', (req, res) => {
+    const { orderId } = req.params;
+
+    deleteOrderById(orderId, (err, result) => {
+        res.set('Content-Type', 'application/json');
+        if (err) {
+            return res.status(400).json({ error: err.message });
+        }
+        res.status(200).json(result);
+    });
+});
 
 // Add order from ubl doc to database
 app.post('/api/orders/input', (req, res) => {
