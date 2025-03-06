@@ -174,6 +174,13 @@ export function inputOrder(SalesOrderID, UUID, IssueDate, PartyName,
     });
 }
 
+
+/**
+ * Get the full order details from SalesOrderID
+ *
+ * @param {String} SalesOrderID
+ * @param {function} callback - callback function to handle the result
+ **/
 export function getOrderBySalesOrderID(SalesOrderID, callback) {
     console.log(`Fetching order with SalesOrderID: ${SalesOrderID}`);
 
@@ -181,8 +188,9 @@ export function getOrderBySalesOrderID(SalesOrderID, callback) {
 
     db.get(sqlQuery, [SalesOrderID], (err, row) => {
         if (err) {
-            console.error("SQL Error while fetching order:", err.message);
-            return callback(new CustomInputError('Database error while fetching order.'));
+            console.error("SQL Error while fetching  order:", err.message);
+            return callback(new CustomInputError('Database error while fetching' +
+                ' order.'));
         }
         if (!row) {
             return callback(new CustomInputError('Order not found.'));
