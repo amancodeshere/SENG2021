@@ -220,3 +220,26 @@ export function getOrderIdsByPartyName(PartyName, callback) {
         callback(null, rows.map(row => row.SalesOrderID));
     });
 }
+
+/**
+ * Delete an order from database given SalesOrderIDs
+ *
+ * @param {String} SalesOrderID
+ * @param {function} callback - callback function to handle the result
+ **/
+export function deleteOrderById(SalesOrderID, callback) {
+    console.log(`Deleting order with SalesOrderID: ${SalesOrderID}`);
+
+    const sqlQuery = `DELETE FROM orders WHERE SalesOrderID = ?;`;
+
+    db.run(sqlQuery, [SalesOrderID], function (err) {
+        if (err) {
+            console.error("SQL Error while deleting order:", err.message);
+            return callback(new CustomInputError('Database error while deleting order.'));
+        }
+        if (this.changes === 0) {
+            return callback(new CustomInputError('Order not found.'));
+        }
+        callback(null, { success: true, message: 'Order deleted successfully.' });
+    });
+}
