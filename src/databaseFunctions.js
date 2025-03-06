@@ -189,8 +189,7 @@ export function getOrderBySalesOrderID(SalesOrderID, callback) {
     db.get(sqlQuery, [SalesOrderID], (err, row) => {
         if (err) {
             console.error("SQL Error while fetching  order:", err.message);
-            return callback(new CustomInputError('Database error while fetching' +
-                ' order.'));
+            return callback(new CustomInputError('Database error while fetching order.'));
         }
         if (!row) {
             return callback(new CustomInputError('Order not found.'));
@@ -199,7 +198,12 @@ export function getOrderBySalesOrderID(SalesOrderID, callback) {
     });
 }
 
-
+/**
+ * Get a list of SalesOrderIDs from a party's name
+ *
+ * @param {String} PartyName
+ * @param {function} callback - callback function to handle the result
+ **/
 export function getOrderIdsByPartyName(PartyName, callback) {
     console.log(`Fetching order IDs for PartyName: ${PartyName}`);
 
