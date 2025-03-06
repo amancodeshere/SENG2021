@@ -3,7 +3,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import bodyParser from 'body-parser';
 
-import { inputOrder, getOrderBySalesOrderID, getOrderIdsByPartyName, deleteOrderById } from "./databaseFunctions.js";
+import { inputOrder, getOrderBySalesOrderID, getOrderIdsByPartyName, deleteOrderById } from "./orderToDB.js";
 
 const app = express();
 // Middleware to access the JSON body of requests

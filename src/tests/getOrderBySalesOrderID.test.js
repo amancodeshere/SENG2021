@@ -1,4 +1,4 @@
-import { getOrderBySalesOrderID } from '../databaseFunctions.js';
+import { getOrderBySalesOrderID } from '../orderToDB.js';
 import { db } from '../connect.js';
 import { CustomInputError } from '../errors.js';
 

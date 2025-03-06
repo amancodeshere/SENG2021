@@ -1,4 +1,4 @@
-import { inputOrder } from '../databaseFunctions.js';
+import { inputOrder } from '../orderToDB.js';
 import { db } from '../connect.js';
 import { CustomInputError } from '../errors.js';
 

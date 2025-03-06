@@ -1,4 +1,4 @@
-import { deleteOrderById } from '../databaseFunctions.js';
+import { deleteOrderById } from '../orderToDB.js';
 import { db } from '../connect.js';
 import { CustomInputError } from '../errors.js';
 

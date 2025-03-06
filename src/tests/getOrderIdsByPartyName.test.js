@@ -1,4 +1,4 @@
-import { getOrderIdsByPartyName } from '../databaseFunctions.js';
+import { getOrderIdsByPartyName } from '../orderToDB.js';
 import { db } from '../connect.js';
 import { CustomInputError } from '../errors.js';
 
