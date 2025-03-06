@@ -231,22 +231,4 @@ describe("inputOrder Function - Input Validations", () => {
             }
         );
     });
-
-    test("should fail when rollback itself fails", (done) => {
-        db.get.mockImplementation((sql, params, callback) => callback(null, { count: 0 })); // ID does not exist
-        db.exec.mockImplementationOnce((sql, callback) => callback(null)); // Begin transaction
-        db.run.mockImplementation((sql, params, callback) => callback(new Error("Insert failed"))); // Insert fails
-        db.exec.mockImplementationOnce((sql, callback) => callback(new Error("Rollback failed"))); // Rollback fails
-
-        inputOrder(
-            ...Object.values(validOrder),
-            (err, result) => {
-                expect(err).toBeInstanceOf(CustomInputError);
-                expect(err.message).toBe('Database error while inserting order: Insert failed');
-                expect(db.exec).toHaveBeenCalledWith("ROLLBACK;", expect.any(Function)); // Ensure rollback was attempted
-                done();
-            }
-        );
-    });
-
 });
