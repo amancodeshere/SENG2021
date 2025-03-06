@@ -199,3 +199,20 @@ export function getOrderBySalesOrderID(SalesOrderID, callback) {
     });
 }
 
+
+export function getOrderIdsByPartyName(PartyName, callback) {
+    console.log(`Fetching order IDs for PartyName: ${PartyName}`);
+
+    const sqlQuery = `SELECT SalesOrderID FROM orders WHERE PartyName = ?;`;
+
+    db.all(sqlQuery, [PartyName], (err, rows) => {
+        if (err) {
+            console.error("SQL Error while fetching order IDs:", err.message);
+            return callback(new CustomInputError('Database error while fetching order IDs.'));
+        }
+        if (!rows || rows.length === 0) {
+            return callback(new CustomInputError('No orders found for this Party Name.'));
+        }
+        callback(null, rows.map(row => row.SalesOrderID));
+    });
+}
