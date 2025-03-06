@@ -3,7 +3,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import bodyParser from 'body-parser';
 
-import { inputOrder } from "./databaseFunctions.js";
+import { inputOrder, getOrderBySalesOrderID } from "./databaseFunctions.js";
 
 const app = express();
 // Middleware to access the JSON body of requests
@@ -40,6 +40,20 @@ app.post('/api/orders/input', (req, res) => {
         }
     );
 });
+
+// Get orders by SalesOrderId (oh it is security concern ==> not considered as we are only cover the mvp)
+app.get('/api/orders/:SalesOrderID', (req, res) => {
+    const { SalesOrderID } = req.params;
+
+    getOrderBySalesOrderID(SalesOrderID, (err, result) => {
+        res.set('Content-Type', 'application/json');
+        if (err) {
+            return res.status(400).json({ error: err.message });
+        }
+        res.status(200).json(result);
+    });
+});
+
 
 // ===========================================================================
 // ============================= ROUTES ABOVE ================================
