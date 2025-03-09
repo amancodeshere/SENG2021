@@ -68,7 +68,7 @@ function isValidItemID(itemID) {
 // ===========================================================================
 
 /**
- * Inserts an order into the database after performing input validation.
+ * Inserts an order and its items into the database after validation.
  *
  * @param {string} SalesOrderID - identifier for sales order.
  * @param {string} UUID - identifier the order
@@ -76,17 +76,11 @@ function isValidItemID(itemID) {
  * @param {string} PartyName - party name placing order
  * @param {number} PayableAmount - amount payable for order
  * @param {string} PayableCurrencyCode - currency code of payable amount
- * @param {string} ItemDescription - description of item.
- * @param {string|number} BuyersItemIdentification - buyers item id number
- * @param {string|number} SellersItemIdentification - sellers item id number.
- * @param {number} ItemAmount - quantity of item
- * @param {string} ItemUnitCode - unit code for item.
+ * @param {Array} Items - Array of items (each item is an object)
  * @param {function} callback - callback function to handle the result
  */
 export function inputOrder(SalesOrderID, UUID, IssueDate, PartyName,
-                           PayableAmount, PayableCurrencyCode, ItemDescription,
-                           BuyersItemIdentification, SellersItemIdentification,
-                           ItemAmount, ItemUnitCode, callback) {
+                           PayableAmount, PayableCurrencyCode, Items, callback) {
 
     db.get('SELECT COUNT(*) AS count FROM orders WHERE SalesOrderID = ?', [SalesOrderID], (err, row) => {
         if (err) {
@@ -97,7 +91,7 @@ export function inputOrder(SalesOrderID, UUID, IssueDate, PartyName,
             return callback(new CustomInputError('SalesOrderID already exists.'));
         }
 
-        // input validations
+        // Validate order
         if (!validateUUID(UUID)) {
             return callback(new CustomInputError('Invalid UUID.'));
         }
@@ -105,39 +99,26 @@ export function inputOrder(SalesOrderID, UUID, IssueDate, PartyName,
         if (!isValidIssueDate(IssueDate)) {
             return callback(new CustomInputError('Invalid Issue Date.'));
         }
-
         if (!isValidPartyName(PartyName)) {
             return callback(new CustomInputError('Invalid Party Name.'));
         }
-
         if (typeof PayableAmount !== 'number' || PayableAmount < 0) {
             return callback(new CustomInputError('Invalid Payable Amount.'));
         }
-
         if (!isValidCurrencyCode(PayableCurrencyCode)) {
             return callback(new CustomInputError('Invalid Payable Currency Code.'));
         }
-
-        if (typeof ItemAmount !== 'number' || ItemAmount < 0) {
-            return callback(new CustomInputError('Invalid Item Amount.'));
+        if (!Array.isArray(Items) || Items.length === 0) {
+            return callback(new CustomInputError('Invalid Items list.'));
         }
-
-        if (!isValidUnitCode(ItemUnitCode)) {
-            return callback(new CustomInputError('Invalid Item Unit Code.'));
+        // validate item(s) in Items array
+        for (const item of Items) {
+            if (!isValidItemID(item.SellersItemIdentification)) return callback(new CustomInputError('Invalid Sellers Item ID.'));
+            if (!isValidItemID(item.BuyersItemIdentification)) return callback(new CustomInputError('Invalid Buyers Item ID.'));
+            if (typeof item.ItemAmount !== 'number' || item.ItemAmount < 0) return callback(new CustomInputError('Invalid Item Amount.'));
+            if (!isValidUnitCode(item.ItemUnitCode)) return callback(new CustomInputError('Invalid Item Unit Code.'));
+            if (typeof item.ItemDescription !== 'string' || !item.ItemDescription.trim()) return callback(new CustomInputError('Invalid Item Description.'));
         }
-
-        if (!isValidItemID(SellersItemIdentification)) {
-            return callback(new CustomInputError('Invalid Sellers Item ID.'));
-        }
-
-        if (!isValidItemID(BuyersItemIdentification)) {
-            return callback(new CustomInputError('Invalid Buyers Item ID.'));
-        }
-
-        if (typeof ItemDescription !== 'string' || !ItemDescription.trim()) {
-            return callback(new CustomInputError('Invalid Item Description.'));
-        }
-
 
         db.exec("BEGIN TRANSACTION;", (beginErr) => {
             if (beginErr) {
@@ -145,30 +126,45 @@ export function inputOrder(SalesOrderID, UUID, IssueDate, PartyName,
                 return callback(new CustomInputError('Error starting transaction.'));
             }
 
-            const sqlStatement2 = `
-                INSERT INTO orders (SalesOrderID, UUID, IssueDate, PartyName,
-                                    PayableAmount, PayableCurrencyCode, ItemDescription,
-                                    BuyersItemIdentification, SellersItemIdentification,
-                                    ItemAmount, ItemUnitCode)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+            const sqlOrderInsert = `
+                INSERT INTO orders (SalesOrderID, UUID, IssueDate, PartyName, PayableAmount, PayableCurrencyCode)
+                VALUES (?, ?, ?, ?, ?, ?);
             `;
 
-            db.run(sqlStatement2, [SalesOrderID, UUID, IssueDate, PartyName, PayableAmount, PayableCurrencyCode,
-                ItemDescription, BuyersItemIdentification, SellersItemIdentification, ItemAmount, ItemUnitCode], function (err) {
+            db.run(sqlOrderInsert, [SalesOrderID, UUID, IssueDate, PartyName, PayableAmount, PayableCurrencyCode], function (err) {
                 if (err) {
                     console.error('SQL Error while inserting order:', err.message);
-                    db.exec("ROLLBACK;", () => {}); // Rollback if insertion fails
+                    db.exec("ROLLBACK;", () => {});
                     return callback(new CustomInputError(`Database error while inserting order: ${err.message}`));
                 }
 
-                db.exec("COMMIT;", (commitErr) => {
-                    if (commitErr) {
-                        console.error("Error committing transaction:", commitErr.message);
-                        db.exec("ROLLBACK;", () => {}); // Rollback if commit fails
-                        return callback(new CustomInputError('Error committing order transaction.'));
-                    }
-                    callback(null, { success: true, message: 'Order inserted successfully.' });
-                });
+                // item insertion is handled separately now
+                const sqlItemInsert = `
+                    INSERT INTO order_items (SalesOrderID, ItemDescription, BuyersItemIdentification, SellersItemIdentification, ItemAmount, ItemUnitCode)
+                    VALUES (?, ?, ?, ?, ?, ?);
+                `;
+
+                let pendingItems = Items.length;
+                for (const item of Items) {
+                    db.run(sqlItemInsert, [SalesOrderID, item.ItemDescription, item.BuyersItemIdentification, item.SellersItemIdentification, item.ItemAmount, item.ItemUnitCode], function (err) {
+                        if (err) {
+                            console.error('SQL Error while inserting order item:', err.message);
+                            db.exec("ROLLBACK;", () => {});
+                            return callback(new CustomInputError(`Database error while inserting order item: ${err.message}`));
+                        }
+                        pendingItems--;
+                        if (pendingItems === 0) {
+                            db.exec("COMMIT;", (commitErr) => {
+                                if (commitErr) {
+                                    console.error("Error committing transaction:", commitErr.message);
+                                    db.exec("ROLLBACK;", () => {});
+                                    return callback(new CustomInputError('Error committing order transaction.'));
+                                }
+                                callback(null, { success: true, message: 'Order and items inserted successfully.' });
+                            });
+                        }
+                    });
+                }
             });
         });
     });
@@ -228,18 +224,71 @@ export function getOrderIdsByPartyName(PartyName, callback) {
  * @param {function} callback - callback function to handle the result
  **/
 export function deleteOrderById(SalesOrderID, callback) {
-    console.log(`Deleting order with SalesOrderID: ${SalesOrderID}`);
+    console.log(`Deleting order and associated items with SalesOrderID: ${SalesOrderID}`);
 
-    const sqlQuery = `DELETE FROM orders WHERE SalesOrderID = ?;`;
+    db.exec("BEGIN TRANSACTION;", (beginErr) => {
+        if (beginErr) {
+            console.error("Error starting transaction:", beginErr.message);
+            return callback(new CustomInputError('Error starting transaction.'));
+        }
 
-    db.run(sqlQuery, [SalesOrderID], function (err) {
+        // delete items from order_items table first
+        const sqlDeleteItems = `DELETE FROM order_items WHERE SalesOrderID = ?;`;
+        db.run(sqlDeleteItems, [SalesOrderID], function (err) {
+            if (err) {
+                console.error("SQL Error while deleting order items:", err.message);
+                db.exec("ROLLBACK;", () => {}); // Rollback if deletion fails
+                return callback(new CustomInputError('Database error while deleting order items.'));
+            }
+
+            // delete order
+            const sqlDeleteOrder = `DELETE FROM orders WHERE SalesOrderID = ?;`;
+            db.run(sqlDeleteOrder, [SalesOrderID], function (err) {
+                if (err) {
+                    console.error("SQL Error while deleting order:", err.message);
+                    db.exec("ROLLBACK;", () => {}); // Rollback if deletion fails
+                    return callback(new CustomInputError('Database error while deleting order.'));
+                }
+
+                if (this.changes === 0) {
+                    db.exec("ROLLBACK;", () => {});
+                    return callback(new CustomInputError('Order not found.'));
+                }
+
+                // commit after both deletions
+                db.exec("COMMIT;", (commitErr) => {
+                    if (commitErr) {
+                        console.error("Error committing transaction:", commitErr.message);
+                        db.exec("ROLLBACK;", () => {});
+                        return callback(new CustomInputError('Error committing delete transaction.'));
+                    }
+                    callback(null, { success: true, message: 'Order and related items deleted successfully.' });
+                });
+            });
+        });
+    });
+}
+
+
+/**
+ * Get items from an order given a SalesOrderID.
+ *
+ * @param {String} SalesOrderID - The order ID to fetch items for.
+ * @param {function} callback - Callback function to handle the result.
+ **/
+export function getItemsBySalesOrderID(SalesOrderID, callback) {
+    console.log(`Fetching items for SalesOrderID: ${SalesOrderID}`);
+
+    const sqlQuery = `SELECT * FROM order_items WHERE SalesOrderID = ?;`;
+
+    db.all(sqlQuery, [SalesOrderID], (err, rows) => {
         if (err) {
-            console.error("SQL Error while deleting order:", err.message);
-            return callback(new CustomInputError('Database error while deleting order.'));
+            console.error("SQL Error while fetching order items:", err.message);
+            return callback(new CustomInputError('Database error while fetching order items.'));
         }
-        if (this.changes === 0) {
-            return callback(new CustomInputError('Order not found.'));
+        if (!rows || rows.length === 0) {
+            return callback(new CustomInputError('No items found for this SalesOrderID.'));
         }
-        callback(null, { success: true, message: 'Order deleted successfully.' });
+        callback(null, rows);
     });
 }

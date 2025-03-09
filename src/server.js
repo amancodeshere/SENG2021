@@ -3,7 +3,13 @@ import cors from 'cors';
 import morgan from 'morgan';
 import bodyParser from 'body-parser';
 
-import { inputOrder, getOrderBySalesOrderID, getOrderIdsByPartyName, deleteOrderById } from "./orderToDB.js";
+import {
+    inputOrder,
+    getOrderBySalesOrderID,
+    getOrderIdsByPartyName,
+    deleteOrderById,
+    getItemsBySalesOrderID
+} from "./orderToDB.js";
 
 const app = express();
 // Middleware to access the JSON body of requests
@@ -20,6 +26,7 @@ const HOST = process.env.IP || '127.0.0.1';
 // ============================= ROUTES BELOW ================================
 // ===========================================================================
 
+// Delete order based on orderId
 app.delete('/api/orders/delete/:orderId', (req, res) => {
     const { orderId } = req.params;
 
@@ -35,15 +42,18 @@ app.delete('/api/orders/delete/:orderId', (req, res) => {
 // Add order from ubl doc to database
 app.post('/api/orders/input', (req, res) => {
     const {
-        SalesOrderId, UUID, IssueDate, PartyName, PayableAmount, PayableCurrencyCode,
-        ItemDescription, BuyersItemIdentification, SellersItemIdentification, ItemAmount, ItemUnitCode
+        SalesOrderId, UUID, IssueDate, PartyName, PayableAmount, PayableCurrencyCode, Items
     } = req.body;
+
+    // items === array
+    if (!Array.isArray(Items) || Items.length === 0) {
+        return res.status(400).json({ error: 'Invalid or missing Items array.' });
+    }
 
     res.set('content-type', 'application/json');
 
     inputOrder(
-        SalesOrderId, UUID, IssueDate, PartyName, PayableAmount, PayableCurrencyCode,
-        ItemDescription, BuyersItemIdentification, SellersItemIdentification, ItemAmount, ItemUnitCode,
+        SalesOrderId, UUID, IssueDate, PartyName, PayableAmount, PayableCurrencyCode, Items,
         (err, result) => {
             if (err) {
                 return res.status(400).json({ error: err.message });
@@ -53,7 +63,7 @@ app.post('/api/orders/input', (req, res) => {
     );
 });
 
-// Get orders by SalesOrderId (oh it is security concern ==> not considered as we are only cover the mvp)
+// Get orders by SalesOrderId
 app.get('/api/orders/:SalesOrderID', (req, res) => {
     const { SalesOrderID } = req.params;
 
@@ -66,7 +76,7 @@ app.get('/api/orders/:SalesOrderID', (req, res) => {
     });
 });
 
-// Get the list of orders placed by a company given the party name (also not secure.)
+// Get the list of orders placed by a company given the party name
 app.get('/api/orders/party/:partyName', (req, res) => {
     const { partyName } = req.params;
 
@@ -76,6 +86,19 @@ app.get('/api/orders/party/:partyName', (req, res) => {
             return res.status(400).json({ error: err.message });
         }
         res.status(200).json({ SalesOrderIDs: result });
+    });
+});
+
+// Get items by SalesOrderID
+app.get('/api/orders/:SalesOrderID/items', (req, res) => {
+    const { SalesOrderID } = req.params;
+
+    getItemsBySalesOrderID(SalesOrderID, (err, result) => {
+        res.set('Content-Type', 'application/json');
+        if (err) {
+            return res.status(400).json({ error: err.message });
+        }
+        res.status(200).json({ items: result });
     });
 });
 
