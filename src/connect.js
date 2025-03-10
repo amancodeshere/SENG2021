@@ -1,6 +1,9 @@
 import sqlite3 from 'sqlite3';
 import fs from 'fs';
 
+// Check for testing
+const isTestEnv = process.env.NODE_ENV === 'test';
+
 const dbPath = './database.db';
 
 // Ensure database file exists before opening
@@ -33,7 +36,7 @@ db.run(sql_orders_table, (err) => {
     if (err) {
         console.error('Error while creating orders table:', err.message);
     } else {
-        console.log('Orders table is a go!');
+        if (!isTestEnv) console.log('Orders table is a go!');
     }
 });
 
@@ -55,7 +58,7 @@ db.run(sql_order_items_table, (err) => {
     if (err) {
         console.error('Error while creating order items table:', err.message);
     } else {
-        console.log('Order items table is a go!');
+        if (!isTestEnv) console.log('Order items table is a go!');
     }
 });
 

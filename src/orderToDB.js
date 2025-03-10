@@ -13,7 +13,7 @@ import { parse, isValid, format } from "date-fns";
  * @param {string} date - date string to validate.
  * @returns {boolean} True if valid, false otherwise.
  */
-function isValidIssueDate(date) {
+export function isValidIssueDate(date) {
     if (typeof date !== 'string') return false;
     const parsedDate = parse(date, 'yyyy-MM-dd', new Date());
     return isValid(parsedDate) && format(parsedDate, 'yyyy-MM-dd') === date;
@@ -25,7 +25,7 @@ function isValidIssueDate(date) {
  * @param {string} partyName - party name to validate.
  * @returns {boolean} True if valid, false otherwise.
  */
-function isValidPartyName(partyName) {
+export function isValidPartyName(partyName) {
     if (typeof partyName !== 'string' || !partyName.trim()) {
         return false;
     }
@@ -39,7 +39,7 @@ function isValidPartyName(partyName) {
  * @param {string} currencyCode - currency code to validate.
  * @returns {boolean} true if valid, false otherwise.
  */
-function isValidCurrencyCode(currencyCode) {
+export function isValidCurrencyCode(currencyCode) {
     return typeof currencyCode === 'string' && /^[A-Z]{3}$/.test(currencyCode);
 }
 
@@ -49,7 +49,7 @@ function isValidCurrencyCode(currencyCode) {
  * @param {string} unitCode - unit code to validate.
  * @returns {boolean} true if valid, false otherwise.
  */
-function isValidUnitCode(unitCode) {
+export function isValidUnitCode(unitCode) {
     return typeof unitCode === 'string' && /^[A-Z]{2,3}$/.test(unitCode);
 }
 
@@ -59,7 +59,7 @@ function isValidUnitCode(unitCode) {
  * @param {string|number} itemID - item ID to validate.
  * @returns {boolean} true if valid, false otherwise.
  */
-function isValidItemID(itemID) {
+export function isValidItemID(itemID) {
     return typeof itemID === 'string' && /^\d{8}$/.test(itemID);
 }
 
@@ -113,11 +113,21 @@ export function inputOrder(SalesOrderID, UUID, IssueDate, PartyName,
         }
         // validate item(s) in Items array
         for (const item of Items) {
-            if (!isValidItemID(item.SellersItemIdentification)) return callback(new CustomInputError('Invalid Sellers Item ID.'));
-            if (!isValidItemID(item.BuyersItemIdentification)) return callback(new CustomInputError('Invalid Buyers Item ID.'));
-            if (typeof item.ItemAmount !== 'number' || item.ItemAmount < 0) return callback(new CustomInputError('Invalid Item Amount.'));
-            if (!isValidUnitCode(item.ItemUnitCode)) return callback(new CustomInputError('Invalid Item Unit Code.'));
-            if (typeof item.ItemDescription !== 'string' || !item.ItemDescription.trim()) return callback(new CustomInputError('Invalid Item Description.'));
+            if (!isValidItemID(item.SellersItemIdentification)) {
+                return callback(new CustomInputError('Invalid Sellers Item ID.'));
+            }
+            if (!isValidItemID(item.BuyersItemIdentification)) {
+                return callback(new CustomInputError('Invalid Buyers Item ID.'));
+            }
+            if (typeof item.ItemAmount !== 'number' || item.ItemAmount < 0) {
+                return callback(new CustomInputError('Invalid Item Amount.'));
+            }
+            if (!isValidUnitCode(item.ItemUnitCode)) {
+                return callback(new CustomInputError('Invalid Item Unit Code.'));
+            }
+            if (typeof item.ItemDescription !== 'string' || !item.ItemDescription.trim()) {
+                return callback(new CustomInputError('Invalid Item Description.'));
+            }
         }
 
         db.exec("BEGIN TRANSACTION;", (beginErr) => {

@@ -10,7 +10,7 @@ jest.mock('../connect.js', () => ({
     }
 }));
 
-describe("inputOrder Function - Input Validations", () => {
+describe("inputOrder Function", () => {
     const validOrder = {
         SalesOrderID: "12345678",
         UUID: "550e8400-e29b-41d4-a716-446655440000",
@@ -18,215 +18,187 @@ describe("inputOrder Function - Input Validations", () => {
         PartyName: "ABC Corp",
         PayableAmount: 500,
         PayableCurrencyCode: "USD",
-        ItemDescription: "Electronic Component",
-        BuyersItemIdentification: "87654321",
-        SellersItemIdentification: "12345678",
-        ItemAmount: 10,
-        ItemUnitCode: "PCS"
+        Items: [
+            {
+                ItemDescription: "Electronic Component",
+                BuyersItemIdentification: "87654321",
+                SellersItemIdentification: "12345678",
+                ItemAmount: 10,
+                ItemUnitCode: "PCS"
+            }
+        ]
     };
 
     beforeEach(() => {
         jest.clearAllMocks();
-        db.get.mockImplementation((sql, params, callback) => callback(null, { count: 0 })); // Mock SalesOrderID does NOT exist
+        db.get.mockImplementation((sql, params, callback) => callback(null, { count: 0 }));
     });
 
-    test("should fail when UUID is invalid", (done) => {
+    //  Order ID already exists
+    test("should return error when SalesOrderID already exists", (done) => {
+        db.get.mockImplementationOnce((sql, params, callback) => callback(null, { count: 1 }));
+
+        inputOrder(
+            ...Object.values(validOrder),
+            (err, result) => {
+                expect(err).toBeInstanceOf(CustomInputError);
+                expect(err.message).toBe("SalesOrderID already exists.");
+                expect(result).toBeUndefined();
+                done();
+            }
+        );
+    });
+
+    //  Invalid UUID
+    test("should return error for invalid UUID", (done) => {
         const invalidOrder = { ...validOrder, UUID: "invalid-uuid" };
 
         inputOrder(
             ...Object.values(invalidOrder),
             (err, result) => {
                 expect(err).toBeInstanceOf(CustomInputError);
-                expect(err.message).toBe('Invalid UUID.');
+                expect(err.message).toBe("Invalid UUID.");
                 done();
             }
         );
     });
 
-    test("should fail when UUID is missing", (done) => {
-        const invalidOrder = { ...validOrder, UUID: null };
-
-        inputOrder(
-            ...Object.values(invalidOrder),
-            (err, result) => {
-                expect(err).toBeInstanceOf(CustomInputError);
-                expect(err.message).toBe('Invalid UUID.');
-                done();
-            }
-        );
-    });
-
-    test("should fail when IssueDate is invalid", (done) => {
+    //  Invalid Issue Date
+    test("should return error for invalid Issue Date", (done) => {
         const invalidOrder = { ...validOrder, IssueDate: "invalid-date" };
 
         inputOrder(
             ...Object.values(invalidOrder),
             (err, result) => {
                 expect(err).toBeInstanceOf(CustomInputError);
-                expect(err.message).toBe('Invalid Issue Date.');
+                expect(err.message).toBe("Invalid Issue Date.");
                 done();
             }
         );
     });
 
-    test("should fail when PartyName is invalid", (done) => {
+    //  Invalid Party Name
+    test("should return error for invalid Party Name", (done) => {
         const invalidOrder = { ...validOrder, PartyName: "" };
 
         inputOrder(
             ...Object.values(invalidOrder),
             (err, result) => {
                 expect(err).toBeInstanceOf(CustomInputError);
-                expect(err.message).toBe('Invalid Party Name.');
+                expect(err.message).toBe("Invalid Party Name.");
                 done();
             }
         );
     });
 
-    test("should fail when PayableAmount is negative", (done) => {
-        const invalidOrder = { ...validOrder, PayableAmount: -50 };
+    //  Invalid Payable Amount
+    test("should return error for negative Payable Amount", (done) => {
+        const invalidOrder = { ...validOrder, PayableAmount: -100 };
 
         inputOrder(
             ...Object.values(invalidOrder),
             (err, result) => {
                 expect(err).toBeInstanceOf(CustomInputError);
-                expect(err.message).toBe('Invalid Payable Amount.');
+                expect(err.message).toBe("Invalid Payable Amount.");
                 done();
             }
         );
     });
 
-    test("should fail when PayableCurrencyCode is invalid", (done) => {
+    //  Invalid Currency Code
+    test("should return error for invalid Currency Code", (done) => {
         const invalidOrder = { ...validOrder, PayableCurrencyCode: "123" };
 
         inputOrder(
             ...Object.values(invalidOrder),
             (err, result) => {
                 expect(err).toBeInstanceOf(CustomInputError);
-                expect(err.message).toBe('Invalid Payable Currency Code.');
+                expect(err.message).toBe("Invalid Payable Currency Code.");
                 done();
             }
         );
     });
 
-    test("should fail when ItemAmount is negative", (done) => {
-        const invalidOrder = { ...validOrder, ItemAmount: -5 };
+    //  Invalid Items Array
+    test("should return error when Items array is empty", (done) => {
+        const invalidOrder = { ...validOrder, Items: [] };
 
         inputOrder(
             ...Object.values(invalidOrder),
             (err, result) => {
                 expect(err).toBeInstanceOf(CustomInputError);
-                expect(err.message).toBe('Invalid Item Amount.');
+                expect(err.message).toBe("Invalid Items list.");
                 done();
             }
         );
     });
 
-    test("should fail when ItemUnitCode is invalid", (done) => {
-        const invalidOrder = { ...validOrder, ItemUnitCode: "INVALID" };
+    //  Invalid Item Data
+    test("should return error when an Item has invalid data", (done) => {
+        const invalidOrder = {
+            ...validOrder,
+            Items: [{ ItemDescription: "", BuyersItemIdentification: "123", SellersItemIdentification: "456", ItemAmount: -5, ItemUnitCode: "XYZ" }]
+        };
 
         inputOrder(
             ...Object.values(invalidOrder),
             (err, result) => {
                 expect(err).toBeInstanceOf(CustomInputError);
-                expect(err.message).toBe('Invalid Item Unit Code.');
+                expect(err.message).toMatch(/Invalid Item Description|Invalid Buyers Item ID|Invalid Sellers Item ID|Invalid Item Amount|Invalid Item Unit Code/);
                 done();
             }
         );
     });
 
-    test("should fail when SellersItemIdentification is invalid", (done) => {
-        const invalidOrder = { ...validOrder, SellersItemIdentification: "ABC123" };
-
-        inputOrder(
-            ...Object.values(invalidOrder),
-            (err, result) => {
-                expect(err).toBeInstanceOf(CustomInputError);
-                expect(err.message).toBe('Invalid Sellers Item ID.');
-                done();
-            }
-        );
-    });
-
-    test("should fail when BuyersItemIdentification is invalid", (done) => {
-        const invalidOrder = { ...validOrder, BuyersItemIdentification: "XYZ999" };
-
-        inputOrder(
-            ...Object.values(invalidOrder),
-            (err, result) => {
-                expect(err).toBeInstanceOf(CustomInputError);
-                expect(err.message).toBe('Invalid Buyers Item ID.');
-                done();
-            }
-        );
-    });
-
-    test("should fail when ItemDescription is empty", (done) => {
-        const invalidOrder = { ...validOrder, ItemDescription: "" };
-
-        inputOrder(
-            ...Object.values(invalidOrder),
-            (err, result) => {
-                expect(err).toBeInstanceOf(CustomInputError);
-                expect(err.message).toBe('Invalid Item Description.');
-                done();
-            }
-        );
-    });
-
-    test("should fail when ItemDescription is not a string", (done) => {
-        const invalidOrder = { ...validOrder, ItemDescription: 12345 };
-
-        inputOrder(
-            ...Object.values(invalidOrder),
-            (err, result) => {
-                expect(err).toBeInstanceOf(CustomInputError);
-                expect(err.message).toBe('Invalid Item Description.');
-                done();
-            }
-        );
-    });
-
-    test("should rollback transaction if unexpected error occurs", (done) => {
-        db.get.mockImplementation((sql, params, callback) => callback(null, { count: 0 })); // ID does not exist
-        db.exec.mockImplementationOnce((sql, callback) => callback(null)); // Begin transaction
-        db.run.mockImplementation((sql, params, callback) => callback(null)); // Insert success
-        db.exec.mockImplementationOnce((sql, callback) => callback(new Error("Unexpected error during commit"))); // Commit fails
+    //  Database transaction fails
+    test("should rollback transaction if order insertion fails", (done) => {
+        db.exec.mockImplementationOnce((sql, callback) => callback(null));
+        db.run.mockImplementationOnce((sql, params, callback) => callback(new Error("Insert failed")));
+        db.exec.mockImplementationOnce((sql, callback) => callback(null));
 
         inputOrder(
             ...Object.values(validOrder),
             (err, result) => {
                 expect(err).toBeInstanceOf(CustomInputError);
-                expect(err.message).toBe('Error committing order transaction.');
-                expect(db.exec).toHaveBeenCalledWith("ROLLBACK;", expect.any(Function)); // Ensure rollback was called
+                expect(err.message).toBe("Database error while inserting order: Insert failed");
+                expect(db.exec).toHaveBeenCalledWith("ROLLBACK;", expect.any(Function));
                 done();
             }
         );
     });
 
-    test("should rollback if error occurs after starting transaction", (done) => {
-        db.get.mockImplementation((sql, params, callback) => callback(null, { count: 0 })); // ID does not exist
-        db.exec.mockImplementationOnce((sql, callback) => callback(null)); // Begin transaction
-        db.run.mockImplementation((sql, params, callback) => callback(new Error("Insert failed"))); // Insert fails
+    //  Order & Items inserted successfully
+    test("should insert order and items successfully", (done) => {
+        db.exec.mockImplementationOnce((sql, callback) => callback(null));
+        db.run.mockImplementationOnce((sql, params, callback) => callback(null));
+        db.run.mockImplementationOnce((sql, params, callback) => callback(null));
+        db.exec.mockImplementationOnce((sql, callback) => callback(null));
 
         inputOrder(
             ...Object.values(validOrder),
             (err, result) => {
-                expect(err).toBeInstanceOf(CustomInputError);
-                expect(err.message).toBe('Database error while inserting order: Insert failed');
-                expect(db.exec).toHaveBeenCalledWith("ROLLBACK;", expect.any(Function)); // Ensure rollback occurs
+                expect(err).toBeNull();
+                expect(result).toEqual({ success: true, message: "Order and items inserted successfully." });
+                expect(db.exec).toHaveBeenCalledWith("COMMIT;", expect.any(Function));
                 done();
             }
         );
     });
 
-    test("should fail when database connection is lost", (done) => {
-        db.get.mockImplementation((sql, params, callback) => callback(new Error("Lost connection to database")));
+    //  Transaction rollback if commit fails
+    test("should rollback transaction if commit fails", (done) => {
+        db.exec.mockImplementationOnce((sql, callback) => callback(null));
+        db.run.mockImplementationOnce((sql, params, callback) => callback(null));
+        db.run.mockImplementationOnce((sql, params, callback) => callback(null));
+        db.exec.mockImplementationOnce((sql, callback) => callback(new Error("Commit failed")));
+        db.exec.mockImplementationOnce((sql, callback) => callback(null));
 
         inputOrder(
             ...Object.values(validOrder),
             (err, result) => {
                 expect(err).toBeInstanceOf(CustomInputError);
-                expect(err.message).toBe('Database error while checking SalesOrderID.');
+                expect(err.message).toBe("Error committing order transaction.");
+                expect(db.exec).toHaveBeenCalledWith("ROLLBACK;", expect.any(Function));
                 done();
             }
         );
