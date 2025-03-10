@@ -151,3 +151,30 @@ export function getInvoiceByID(InvoiceID, callback) {
         });
     });
 }
+
+
+/**
+ * Gets a list of full invoices excluding its items by Buyers Name
+ *
+ * @param {string} PartyNameBuyer
+ * @param {Function} callback - callback to handle the result
+ */
+export function getInvoicesByCompanyName(PartyNameBuyer, callback) {
+    console.log(`Fetching invoices for company: ${PartyNameBuyer}`);
+
+    const sqlQuery = `
+        SELECT * FROM invoices 
+        WHERE PartyNameBuyer = ?;
+    `;
+
+    db.all(sqlQuery, [PartyNameBuyer], (err, rows) => {
+        if (err) {
+            console.error("SQL Error while fetching invoices:", err.message);
+            return callback(new CustomInputError("Database error while fetching invoices."));
+        }
+        if (!rows || rows.length === 0) {
+            return callback(new CustomInputError("No invoices found for this company."));
+        }
+        callback(null, rows);
+    });
+}
