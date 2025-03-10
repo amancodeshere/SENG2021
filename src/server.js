@@ -11,6 +11,8 @@ import {
     getItemsBySalesOrderID
 } from "./orderToDB.js";
 
+import { inputInvoice } from "./invoiceToDB.js";
+
 const app = express();
 // Middleware to access the JSON body of requests
 app.use(bodyParser.json());
@@ -99,6 +101,20 @@ app.get('/api/orders/:SalesOrderID/items', (req, res) => {
             return res.status(400).json({ error: err.message });
         }
         res.status(200).json({ items: result });
+    });
+});
+
+// input an invoice into the database
+app.post('/api/invoices/input/:SalesOrderID', (req, res) => {
+    const { SalesOrderID } = req.params;
+
+    res.set('Content-Type', 'application/json');
+
+    inputInvoice(SalesOrderID, (err, result) => {
+        if (err) {
+            return res.status(400).json({ error: err.message });
+        }
+        res.status(200).json(result);
     });
 });
 
