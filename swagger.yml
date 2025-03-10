@@ -1,0 +1,352 @@
+openapi: 3.0.0
+info:
+  title: Invoice Generation API
+  description: |
+    API for generating invoices in UBL 2.1 XML format and validating them
+  version: 1.0.0
+ 
+servers:
+  - url: http://localhost:3000/v1/api
+    description: Local development server
+  - url:
+    description: Deployed server
+
+paths:
+  /health:
+    get:
+      summary: Indicates the aliveness of the service
+      operationId: getHealth
+      responses:
+        "200":
+          description: Service is running successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  serviceUptime:
+                    type: string
+                  memoryUsage:
+                    type: string
+                  database:
+                    type: string
+                example:
+                  status: "ok"
+                  serviceUptime: "1 hour, 12 minutes"
+                  memoryUsage: "30MB"
+                  database: "connected"
+        "500":
+          description: Service is unavailable and there was an internal error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+                example:
+                  status: "error"
+                  message: "The database is unreachable"    
+  /invoice:
+    post:
+      summary: Add new invoice
+      description: Use data from a document (e.g. order document) to create an invoice resource
+      operationId: addInvoice
+      requestBody:
+        description: Order used to create invoice resource
+        required: true
+        content:
+          application/xml:
+            schema:
+              $ref: "#/components/schemas/Order"
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Order"
+      responses:
+        "201":
+          description: Invoice resource created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  invoiceId:
+                    type: integer
+                example:
+                  invoiceId: 28746393
+        "400":
+          description: Invalid input provided - not in the correct format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /invoice/{invoiceid}/xml:
+    get:
+      summary: Converts an invoice resource into UBL XML
+      description: Converts invoice with the given invoiceid to UBL XML format and returns it. Returns the stored copy of the invoice in XML if it already exists.
+      operationId: invoiceToXml
+      parameters:
+        - name: invoiceid
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The id used to identify invoice resource
+      responses:
+        "200":
+          description: Invoice in XML successfully generated
+          content:
+            application/xml:
+              schema:
+                $ref: "#/components/schemas/InvoiceXml"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /invoice/validate:
+    post:
+      summary: Submits an invoice for validation
+      description: Validates that invoice in XML matches UBL formatting and schema
+      operationId: invoiceValidate
+      requestBody:
+        description: Invoice in xml to validate
+        required: true
+        content:
+          application/xml:
+            schema:
+              $ref: "#/components/schemas/InvoiceXml"
+      responses:
+        "200":
+          description: Invoice successfully received for validation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  validated:
+                    type: boolean
+                  message:
+                    type: string
+                example:
+                  validated: true
+                  message:  "Invoice is in valid UBL 2.1 XML format"
+        "400":
+          description: Invalid input provided - not in the correct format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error" 
+  /invoice/list:
+    get:
+      summary: Lists all invoices for a selling party
+      description: View all invoices created by a certain selling party
+      operationId: findInvoicesBySellingParty
+      parameters:
+        - name: sellingParty
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The selling party whose invoices are being viewed
+      responses:
+        "200":
+          description: Successful retrieval
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  invoices:
+                    type: array
+                    items: 
+                      $ref: "#/components/schemas/Invoice"
+        "400":
+          description: Invalid input provided - party name has invalid characters, valid characters are alphanumeric, spaces and special characters including [.,'-&()]
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /invoice/{invoiceid}:
+    get:
+      summary: View an invoice
+      description:  View an invoice using its invoiceid
+      operationId: viewInvoice
+      parameters:
+        - name: invoiceid
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The id used to identify invoice resource
+      responses:
+        "200":
+          description: Successful retrieval
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      summary: Update information in an invoice
+      description: Update provided information about an invoice resource
+      operationId: updateInvoice
+      parameters:
+        - name: invoiceid
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The id used to identify invoice resource
+      requestBody:
+        description: Details for updating an invoice resource
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                toUpdate:
+                  type: string
+                  enum:
+                    - payableAmount
+                    - itemAmount
+                    - itemDescription
+                    - buyerContact
+                newData:
+                  type: string
+              example:
+                toUpdate: payableAmount
+                newData: "$130.00"
+      responses:
+        "200":
+          description: Invoice successfully updated
+        "400":
+          description: Invalid input provided - newData is the same as current data, newData is an empty string or invalid (e.g. negative), toUpdate value is not part of Enum
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+      example:
+        error: "message to describe the error"
+    Order:
+      type: object
+      properties:
+        orderId:
+          type: integer
+        issueDate:
+          type: integer
+        sellerParty:
+          type: object
+          properties:
+            name:
+              type: string
+            contact:
+              type: string
+        buyerParty:
+          type: object
+          properties:
+            name:
+              type: string
+            contact:
+              type: string
+        deliveryAddress:
+          type: string
+        deliveryPeriod:
+          type: string
+        deliveryTerms:
+          type: string
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              itemId:
+                type: integer
+              description:
+                type: string
+              unitPrice:
+                type: number
+              amount:
+                type: integer
+        totalPayableAmount:
+          type: number
+    InvoiceXml:
+      type: object
+      xml:
+        name: invoice
+      properties:
+        invoiceId:
+          type: integer
+        type:
+          type: string
+          enum:
+            - "original"
+            - "copy"
+        issueDate:
+          type: integer
+        sellerParty:
+          type: object
+          properties:
+            name:
+              type: string
+            contact:
+              type: string
+        buyerParty:
+          type: object
+          properties:
+            name:
+              type: string
+            contact:
+              type: string
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              itemId:
+                type: integer
+              description:
+                type: string
+              unitPrice:
+                type: number
+              amount:
+                type: integer
+        totalPayableAmount:
+          type: number
+    Invoice:
+      type: object
+      properties:
+        invoiceId:
+          type: integer
+        issueDate:
+          type: string
+        buyerParty:
+          type: string
+        payableAmount:
+          type: string
+      example:
+        invoiceId: 28746393
+        issueDate: "27.02.25"
+        buyerParty: "Candlecraft Pty Ltd"
+        payableAmount: “$1200.00”
+
+  responses:
+    NotFound:
+      description: An invoice with the given invoiceid was not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
