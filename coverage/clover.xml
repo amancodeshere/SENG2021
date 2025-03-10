@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1741610470115" clover="3.2.0">
-  <project timestamp="1741610470115" name="All files">
-    <metrics statements="183" coveredstatements="163" conditionals="112" coveredconditionals="96" methods="50" coveredmethods="40" elements="345" coveredelements="299" complexity="0" loc="183" ncloc="183" packages="1" files="4" classes="4"/>
+<coverage generated="1741611087944" clover="3.2.0">
+  <project timestamp="1741611087944" name="All files">
+    <metrics statements="192" coveredstatements="172" conditionals="118" coveredconditionals="102" methods="52" coveredmethods="42" elements="362" coveredelements="316" complexity="0" loc="192" ncloc="192" packages="1" files="4" classes="4"/>
     <file name="errors.js" path="/Users/aman/Desktop/Engineering UNSW/COMP Subjects/Seng2021/src/errors.js">
       <metrics statements="2" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
-      <line num="3" count="30" type="stmt"/>
-      <line num="4" count="30" type="stmt"/>
+      <line num="3" count="32" type="stmt"/>
+      <line num="4" count="32" type="stmt"/>
     </file>
     <file name="invoiceToDB.js" path="/Users/aman/Desktop/Engineering UNSW/COMP Subjects/Seng2021/src/invoiceToDB.js">
-      <metrics statements="60" coveredstatements="60" conditionals="28" coveredconditionals="27" methods="17" coveredmethods="10"/>
+      <metrics statements="69" coveredstatements="69" conditionals="34" coveredconditionals="33" methods="19" coveredmethods="12"/>
       <line num="12" count="9" type="stmt"/>
       <line num="14" count="9" type="stmt"/>
       <line num="15" count="9" type="cond" truecount="2" falsecount="0"/>
@@ -69,6 +69,15 @@
       <line num="146" count="1" type="stmt"/>
       <line num="147" count="1" type="stmt"/>
       <line num="150" count="1" type="stmt"/>
+      <line num="163" count="3" type="stmt"/>
+      <line num="165" count="3" type="stmt"/>
+      <line num="170" count="3" type="stmt"/>
+      <line num="171" count="3" type="cond" truecount="2" falsecount="0"/>
+      <line num="172" count="1" type="stmt"/>
+      <line num="173" count="1" type="stmt"/>
+      <line num="175" count="2" type="cond" truecount="4" falsecount="0"/>
+      <line num="176" count="1" type="stmt"/>
+      <line num="178" count="1" type="stmt"/>
     </file>
     <file name="orderToDB.js" path="/Users/aman/Desktop/Engineering UNSW/COMP Subjects/Seng2021/src/orderToDB.js">
       <metrics statements="118" coveredstatements="98" conditionals="84" coveredconditionals="69" methods="30" coveredmethods="27"/>
