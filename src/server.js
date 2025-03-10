@@ -1,8 +1,16 @@
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
+import swaggerUi from "swagger-ui-express";
+import YAML from "yamljs";
 
 const app = express();
+
+// Load Swagger YAML file
+const swaggerDocument = YAML.load("./swagger.yml");
+
+// Middleware to serve Swagger UI
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 // Middleware to access the JSON body of requests
 app.use(express.json());
 // Middleware to allow access from other domains
