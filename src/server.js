@@ -14,7 +14,8 @@ import {
 import {
     inputInvoice,
     getInvoiceByID,
-    getInvoicesByCompanyName
+    getInvoicesByCompanyName,
+    deleteInvoiceById
 } from "./invoiceToDB.js";
 
 const app = express();
@@ -135,6 +136,7 @@ app.get("/api/invoices/:invoiceID", (req, res) => {
     });
 });
 
+// get list of invoices given party name
 app.get('/api/invoices/company/:PartyNameBuyer', (req, res) => {
     const { PartyNameBuyer } = req.params;
 
@@ -144,6 +146,19 @@ app.get('/api/invoices/company/:PartyNameBuyer', (req, res) => {
             return res.status(400).json({ error: err.message });
         }
         res.status(200).json({ invoices: result });
+    });
+});
+
+// delete an invoice given invoiceID
+app.delete('/api/invoices/delete/:invoiceId', (req, res) => {
+    const { invoiceId } = req.params;
+
+    deleteInvoiceById(invoiceId, (err, result) => {
+        res.set("Content-Type", "application/json");
+        if (err) {
+            return res.status(400).json({ error: err.message });
+        }
+        res.status(200).json(result);
     });
 });
 
