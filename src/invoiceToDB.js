@@ -1,6 +1,7 @@
 import { db } from './connect.js';
 import { CustomInputError } from './errors.js';
 
+
 /**
  * Inserts an invoice based on an existing order.
  *
@@ -102,6 +103,51 @@ export function inputInvoice(SalesOrderID, callback) {
                     }
                 });
             });
+        });
+    });
+}
+
+
+/**
+ * Gets a full invoice including its items by InvoiceID
+ *
+ * @param {String} InvoiceID - unique id of the invoice
+ * @param {Function} callback - callback to handle the result
+ */
+export function getInvoiceByID(InvoiceID, callback) {
+    console.log(`Fetching invoice with InvoiceID: ${InvoiceID}`);
+
+    // get invoice from invoice table
+    const sqlGetInvoice = `
+        SELECT InvoiceID, IssueDate, PartyNameBuyer, PayableAmount, CurrencyCode, SalesOrderID
+        FROM invoices
+        WHERE InvoiceID = ?;
+    `;
+
+    db.get(sqlGetInvoice, [InvoiceID], (invoiceErr, invoiceRow) => {
+        if (invoiceErr) {
+            console.error("SQL Error while fetching invoice:", invoiceErr.message);
+            return callback(new CustomInputError("Database error while fetching invoice."));
+        }
+
+        if (!invoiceRow) {
+            return callback(new CustomInputError("Invoice not found."));
+        }
+
+        // get invoice items from invoice_items table
+        const sqlGetInvoiceItems = `
+            SELECT ItemDescription, BuyersItemIdentification, SellersItemIdentification, ItemAmount, ItemUnitCode
+            FROM invoice_items
+            WHERE InvoiceID = ?;
+        `;
+
+        db.all(sqlGetInvoiceItems, [InvoiceID], (itemsErr, itemsRows) => {
+            if (itemsErr) {
+                console.error("SQL Error while fetching invoice items:", itemsErr.message);
+                return callback(new CustomInputError("Database error while fetching invoice items."));
+            }
+
+            callback(null, { ...invoiceRow, Items: itemsRows });
         });
     });
 }
