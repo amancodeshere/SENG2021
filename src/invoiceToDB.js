@@ -178,3 +178,56 @@ export function getInvoicesByCompanyName(PartyNameBuyer, callback) {
         callback(null, rows);
     });
 }
+
+
+/**
+ * deletes invoice by invoiceId
+ *
+ * @param {number} InvoiceID
+ * @param {Function} callback - callback to handle the result
+ */
+export function deleteInvoiceById(InvoiceID, callback) {
+    console.log(`Deleting invoice and associated items with InvoiceID: ${InvoiceID}`);
+
+    db.exec("BEGIN TRANSACTION;", (beginErr) => {
+        if (beginErr) {
+            console.error("Error starting transaction:", beginErr.message);
+            return callback(new CustomInputError("Error starting delete transaction."));
+        }
+
+        // delete items in invoice_items table
+        const sqlDeleteInvoiceItems = `DELETE FROM invoice_items WHERE InvoiceID = ?;`;
+        db.run(sqlDeleteInvoiceItems, [InvoiceID], function (err) {
+            if (err) {
+                console.error("SQL Error while deleting invoice items:", err.message);
+                db.exec("ROLLBACK;", () => {});
+                return callback(new CustomInputError("Database error while deleting invoice items."));
+            }
+
+            // delete invoice from invoices
+            const sqlDeleteInvoice = `DELETE FROM invoices WHERE InvoiceID = ?;`;
+            db.run(sqlDeleteInvoice, [InvoiceID], function (err) {
+                if (err) {
+                    console.error("SQL Error while deleting invoice:", err.message);
+                    db.exec("ROLLBACK;", () => {});
+                    return callback(new CustomInputError("Database error while deleting invoice."));
+                }
+
+                if (this.changes === 0) {
+                    db.exec("ROLLBACK;", () => {});
+                    return callback(new CustomInputError("Invoice not found."));
+                }
+
+                // commit both deletions
+                db.exec("COMMIT;", (commitErr) => {
+                    if (commitErr) {
+                        console.error("Error committing delete transaction:", commitErr.message);
+                        db.exec("ROLLBACK;", () => {});
+                        return callback(new CustomInputError("Error committing delete transaction."));
+                    }
+                    callback(null, { success: true, message: "Invoice and related items deleted successfully." });
+                });
+            });
+        });
+    });
+}
