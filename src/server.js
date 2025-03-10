@@ -11,7 +11,11 @@ import {
     getItemsBySalesOrderID
 } from "./orderToDB.js";
 
-import { inputInvoice, getInvoiceByID } from "./invoiceToDB.js";
+import {
+    inputInvoice,
+    getInvoiceByID,
+    getInvoicesByCompanyName
+} from "./invoiceToDB.js";
 
 const app = express();
 // Middleware to access the JSON body of requests
@@ -128,6 +132,18 @@ app.get("/api/invoices/:invoiceID", (req, res) => {
             return res.status(400).json({ error: err.message });
         }
         res.status(200).json(result);
+    });
+});
+
+app.get('/api/invoices/company/:PartyNameBuyer', (req, res) => {
+    const { PartyNameBuyer } = req.params;
+
+    getInvoicesByCompanyName(PartyNameBuyer, (err, result) => {
+        res.set("Content-Type", "application/json");
+        if (err) {
+            return res.status(400).json({ error: err.message });
+        }
+        res.status(200).json({ invoices: result });
     });
 });
 
