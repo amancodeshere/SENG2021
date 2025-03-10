@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1741612162767" clover="3.2.0">
-  <project timestamp="1741612162768" name="All files">
+<coverage generated="1741612601391" clover="3.2.0">
+  <project timestamp="1741612601391" name="All files">
     <metrics statements="218" coveredstatements="192" conditionals="128" coveredconditionals="110" methods="61" coveredmethods="49" elements="407" coveredelements="351" complexity="0" loc="218" ncloc="218" packages="1" files="4" classes="4"/>
     <file name="errors.js" path="/Users/aman/Desktop/Engineering UNSW/COMP Subjects/Seng2021/src/errors.js">
       <metrics statements="2" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
