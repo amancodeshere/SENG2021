@@ -62,4 +62,49 @@ db.run(sql_order_items_table, (err) => {
     }
 });
 
+// create an invoices table
+const sql_invoices_table = `
+    CREATE TABLE IF NOT EXISTS invoices (
+        InvoiceID INTEGER PRIMARY KEY AUTOINCREMENT,
+        IssueDate TEXT NOT NULL,
+        PartyNameBuyer TEXT NOT NULL,
+        PayableAmount REAL NOT NULL,
+        CurrencyCode TEXT NOT NULL,
+        InvoiceStartDate TEXT DEFAULT NULL,
+        InvoiceEndDate TEXT DEFAULT NULL,
+        SalesOrderID TEXT NOT NULL,
+        FOREIGN KEY (SalesOrderID) REFERENCES orders(SalesOrderID) ON DELETE CASCADE
+    );
+`;
+
+db.run(sql_invoices_table, (err) => {
+    if (err) {
+        console.error('Error while creating invoices table:', err.message);
+    } else {
+        if (!isTestEnv) console.log('Invoices table is a go!');
+    }
+});
+
+// create an invoice items table
+const sql_invoice_items_table = `
+    CREATE TABLE IF NOT EXISTS invoice_items (
+        InvoiceItemID INTEGER PRIMARY KEY AUTOINCREMENT,
+        InvoiceID INTEGER NOT NULL,
+        ItemDescription TEXT NOT NULL,
+        BuyersItemIdentification INTEGER NOT NULL,
+        SellersItemIdentification INTEGER NOT NULL,
+        ItemAmount INTEGER NOT NULL,
+        ItemUnitCode TEXT NOT NULL,
+        FOREIGN KEY (InvoiceID) REFERENCES invoices(InvoiceID) ON DELETE CASCADE
+    );
+`;
+
+db.run(sql_invoice_items_table, (err) => {
+    if (err) {
+        console.error('Error while creating invoice items table:', err.message);
+    } else {
+        if (!isTestEnv) console.log('Invoice items table is a go!');
+    }
+});
+
 export { db };
