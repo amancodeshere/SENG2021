@@ -266,16 +266,29 @@ paths:
           $ref: "#/components/responses/Unauthorised"
   /invoice/filter:
     get:
-      summary: Filter invoices created by the user by date
-      description: View invoices created by the user, filtered by invoiceEndDate
+      summary: View invoices filtered by invoiceEndDate
+      description: Lists invoices created by the user with specified invoiceEndDate
       tags:
         - In progress routes
       security:
         - Authentication: []
       operationId: filterInvoices
+      parameters:
+        - name: invoiceEndDate
+          in: query
+          required: true
+          schema:
+            type: string
+          description: invoiceEndDate to search for invoices in "YYYY-MM-DD" format
       responses:
         "200":
           $ref: "#/components/responses/InvoiceList"
+        "400":
+          description: Invalid input provided - invoiceEndDate not in correct format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         "401":
           $ref: "#/components/responses/Unauthorised"
   /invoice/{invoiceid}:
