@@ -474,8 +474,9 @@ components:
           type: string
       example:
         invoiceId: 28746393
-        issueDate: "27.02.25"
-        buyerParty: "Candlecraft Pty Ltd"
+        invoiceStartDate: "2025-01-22"
+        invoiceEndDate: "2025-02-22"
+        buyerPartyName: "Candlecraft Pty Ltd"
         payableAmount: “$1200.00”
 
   responses:
