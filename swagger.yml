@@ -11,10 +11,105 @@ servers:
   - url:
     description: Deployed server
 
+tags:
+  - name: Working routes
+    description: Routes for the API which are functioning
+  - name: In progress routes
+    description: Routes for the API which are still under development
+
 paths:
+  /admin/register:
+    post:
+      summary: Register a new business account
+      description: Subscribe to the invoice generation service by registering a business account
+      tags:
+        - Working routes
+      operationId: adminRegister
+      requestBody:
+        description: Business details and password for the account
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                businessName:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+              example:
+                businessName: "Candlecraft Pty Ltd"
+                email: "candle.craft@gmail.com"
+                password: "candles123"
+      responses:
+        "200":
+          $ref: "#/components/responses/SessionId"
+        "400":
+          description: Invalid input provided - email is not valid, account for this business already exists, businessName has invalid characters (valid characters are alphanumeric, spaces and special characters including [.,'-&()])
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/login:
+    post:
+      summary: Login to the business account
+      tags:
+        - Working routes
+      operationId: adminLogin
+      requestBody:
+        description: Email and password to login to business account
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+              example:
+                email: "candle.craft@gmail.com"
+                password: "candles123"
+      responses:
+        "200":
+          $ref: "#/components/responses/SessionId"
+        "400":
+          description: Invalid input provided - no account with this email exists, password is incorrect
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/logout:
+    post:
+      summary: Logout from an active session
+      tags:
+        - Working routes
+      operationId: adminLogout
+      requestBody:
+        description: sessionId of the active session to logout from
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sessionId:
+                  type: integer
+              example:
+                sessionId: 53896565
+      responses:
+        "200":
+          description: User successfully logged out
+        "401":
+          $ref: "#/components/responses/Unauthorised"
   /health:
     get:
       summary: Indicates the aliveness of the service
+      tags:
+        - Working routes
       operationId: getHealth
       responses:
         "200":
@@ -55,6 +150,10 @@ paths:
     post:
       summary: Add new invoice
       description: Use data from a document (e.g. order document) to create an invoice resource
+      tags:
+        - Working routes
+      security:
+        - Authentication: []
       operationId: addInvoice
       requestBody:
         description: Order used to create invoice resource
@@ -84,10 +183,16 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "401":
+          $ref: "#/components/responses/Unauthorised"
   /invoice/{invoiceid}/xml:
     get:
       summary: Converts an invoice resource into UBL XML
-      description: Converts invoice with the given invoiceid to UBL XML format and returns it. Returns the stored copy of the invoice in XML if it already exists.
+      description: Converts invoice with the given invoiceid to UBL XML format and returns it
+      tags:
+        - Working routes
+      security:
+        - Authentication: []
       operationId: invoiceToXml
       parameters:
         - name: invoiceid
@@ -105,10 +210,16 @@ paths:
                 $ref: "#/components/schemas/InvoiceXml"
         "404":
           $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorised"
   /invoice/validate:
     post:
       summary: Submits an invoice for validation
       description: Validates that invoice in XML matches UBL formatting and schema
+      tags:
+        - Working routes
+      security:
+        - Authentication: []
       operationId: invoiceValidate
       requestBody:
         description: Invoice in xml to validate
@@ -133,45 +244,48 @@ paths:
                   validated: true
                   message:  "Invoice is in valid UBL 2.1 XML format"
         "400":
-          description: Invalid input provided - not in the correct format
+          description: Invalid input provided - not in XML format
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error" 
+        "401":
+          $ref: "#/components/responses/Unauthorised"
   /invoice/list:
     get:
-      summary: Lists all invoices for a selling party
-      description: View all invoices created by a certain selling party
-      operationId: findInvoicesBySellingParty
-      parameters:
-        - name: sellingParty
-          in: query
-          required: true
-          schema:
-            type: string
-          description: The selling party whose invoices are being viewed
+      summary: Lists all invoices created by the user
+      tags:
+        - Working routes
+      security:
+        - Authentication: []
+      operationId: listInvoices
       responses:
         "200":
-          description: Successful retrieval
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  invoices:
-                    type: array
-                    items: 
-                      $ref: "#/components/schemas/Invoice"
-        "400":
-          description: Invalid input provided - party name has invalid characters, valid characters are alphanumeric, spaces and special characters including [.,'-&()]
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
+          $ref: "#/components/responses/InvoiceList"
+        "401":
+          $ref: "#/components/responses/Unauthorised"
+  /invoice/filter:
+    get:
+      summary: Filter invoices created by the user by date
+      description: View invoices created by the user, filtered by invoiceEndDate
+      tags:
+        - In progress routes
+      security:
+        - Authentication: []
+      operationId: filterInvoices
+      responses:
+        "200":
+          $ref: "#/components/responses/InvoiceList"
+        "401":
+          $ref: "#/components/responses/Unauthorised"
   /invoice/{invoiceid}:
     get:
       summary: View an invoice
       description:  View an invoice using its invoiceid
+      tags:
+        - Working routes
+      security:
+        - Authentication: []
       operationId: viewInvoice
       parameters:
         - name: invoiceid
@@ -189,9 +303,15 @@ paths:
                 $ref: "#/components/schemas/Invoice"
         "404":
           $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorised"
     put:
       summary: Update information in an invoice
       description: Update provided information about an invoice resource
+      tags:
+        - Working routes
+      security:
+        - Authentication: []
       operationId: updateInvoice
       parameters:
         - name: invoiceid
@@ -214,7 +334,8 @@ paths:
                     - payableAmount
                     - itemAmount
                     - itemDescription
-                    - buyerContact
+                    - invoiceStartDate
+                    - invoiceEndDate
                 newData:
                   type: string
               example:
@@ -231,8 +352,15 @@ paths:
                 $ref: "#/components/schemas/Error"
         "404":
           $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorised"
 
 components:
+  securitySchemes:
+    Authentication:
+      type: apiKey
+      in: header
+      name: sessionid
   schemas:
     Error:
       type: object
@@ -244,7 +372,7 @@ components:
     Order:
       type: object
       properties:
-        orderId:
+        salesOrderId:
           type: integer
         issueDate:
           type: integer
@@ -296,21 +424,15 @@ components:
             - "original"
             - "copy"
         issueDate:
-          type: integer
-        sellerParty:
-          type: object
-          properties:
-            name:
-              type: string
-            contact:
-              type: string
-        buyerParty:
-          type: object
-          properties:
-            name:
-              type: string
-            contact:
-              type: string
+          type: string
+        invoiceStartDate:
+          type: string
+        invoiceEndDate:
+          type: string
+        sellerPartyName:
+          type: string
+        buyerPartyName:
+          type: string
         items:
           type: array
           items:
@@ -350,3 +472,31 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/Error"
+    SessionId:
+      description: Id for the user's current logged in session
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              sessionId:
+                type: integer
+            example:
+              sessionId: 53896565
+    Unauthorised:
+      description: Unauthorised - sessionId is not valid
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    InvoiceList:
+      description: Successful retrieval of invoices list
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              invoices:
+                type: array
+                items: 
+                  $ref: "#/components/schemas/Invoice"
