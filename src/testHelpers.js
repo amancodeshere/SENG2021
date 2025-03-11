@@ -5,7 +5,7 @@ const SERVER_URL = ` http://${HOST}:${PORT}`;
 const TIMEOUT_MS = 5 * 1000;
 
 // Helper functions for making requests to the server in tests
-export const getRequest = (route, query) => {
+export const getRequest = (route, query, headers) => {
     const res = request(
       'GET',
       SERVER_URL + route,
@@ -20,12 +20,13 @@ export const getRequest = (route, query) => {
     };
 };
 
-export const deleteRequest = (route, query) => {
+export const deleteRequest = (route, query, headers) => {
     const res = request(
       'DELETE',
       SERVER_URL + route,
       {
         qs: query,
+        headers: headers,
         timeout: TIMEOUT_MS,
       }
     );
@@ -35,12 +36,13 @@ export const deleteRequest = (route, query) => {
     };
 };
   
-export const postRequest = (route, body) => {
+export const postRequest = (route, body, headers) => {
     const res = request(
       'POST',
       SERVER_URL + route,
       {
         json: body,
+        headers: headers,
         timeout: TIMEOUT_MS,
       }
     );
@@ -50,12 +52,13 @@ export const postRequest = (route, body) => {
     };
 };
 
-export const putRequest = (route, body) => {
+export const putRequest = (route, body, headers) => {
     const res = request(
       'PUT',
       SERVER_URL + route,
       {
         json: body,
+        headers: headers,
         timeout: TIMEOUT_MS,
       }
     );
