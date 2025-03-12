@@ -2,21 +2,22 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import bodyParser from 'body-parser';
-
+import {
+    adminRegister
+} from './admin.js';
 import {
     inputOrder,
     getOrderBySalesOrderID,
     getOrderIdsByPartyName,
     deleteOrderById,
     getItemsBySalesOrderID
-} from "./orderToDB.js";
-
+} from './orderToDB.js';
 import {
     inputInvoice,
     getInvoiceByID,
     getInvoicesByCompanyName,
     deleteInvoiceById
-} from "./invoiceToDB.js";
+} from './invoiceToDB.js';
 
 const app = express();
 // Middleware to access the JSON body of requests
@@ -32,6 +33,17 @@ const HOST = process.env.IP || '127.0.0.1';
 // ===========================================================================
 // ============================= ROUTES BELOW ================================
 // ===========================================================================
+
+app.post('/v1/admin/register', (req, res) => {
+    const { businessName, email, password } = req.body;
+  
+    try {
+      const result = adminRegister(businessName, email, password);
+      res.json(result);
+    } catch (error) {
+      return res.status(400).json({ error: error.message });
+    }
+  });
 
 // Delete order based on orderId
 app.delete('/api/orders/delete/:orderId', (req, res) => {
