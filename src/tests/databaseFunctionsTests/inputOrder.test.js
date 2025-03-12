@@ -2,7 +2,7 @@ import { inputOrder } from '../../orderToDB.js';
 import { db } from '../../connect.js';
 import { CustomInputError } from '../../errors.js';
 
-jest.mock('../connect.js', () => ({
+jest.mock('../../connect.js', () => ({
     db: {
         get: jest.fn(),
         run: jest.fn(),

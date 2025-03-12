@@ -2,7 +2,7 @@ import { getInvoicesByCompanyName } from "../../invoiceToDB.js";
 import { db } from "../../connect.js";
 import { CustomInputError } from "../../errors.js";
 
-jest.mock("../connect.js", () => ({
+jest.mock("../../connect.js", () => ({
     db: {
         all: jest.fn(),
     },

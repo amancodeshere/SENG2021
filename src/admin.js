@@ -1,4 +1,5 @@
 import { isValidPartyName, randomNumber } from './helperFunctions.js';
+import { getData } from './userData.js';
 import validator from 'validator';
 import crypto from 'crypto';
 
@@ -127,6 +128,8 @@ function hashPassword(password) {
  * @returns {{ sessionId: number }}
  */
 export function adminRegister(businessName, email, password) {
+    const data = getData();
+    
     if (getUserFromEmail(data.users, email) !== undefined) {
         throw new Error("This email is already registered.");
     }

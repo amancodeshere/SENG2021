@@ -18,6 +18,7 @@ import {
     getInvoicesByCompanyName,
     deleteInvoiceById
 } from './invoiceToDB.js';
+import { save, load } from './userData.js';
 
 const app = express();
 // Middleware to access the JSON body of requests
@@ -34,11 +35,12 @@ const HOST = process.env.IP || '127.0.0.1';
 // ============================= ROUTES BELOW ================================
 // ===========================================================================
 
-app.post('/v1/admin/register', (req, res) => {
+app.post('/v1/api/admin/register', (req, res) => {
     const { businessName, email, password } = req.body;
   
     try {
       const result = adminRegister(businessName, email, password);
+      save();
       res.json(result);
     } catch (error) {
       return res.status(400).json({ error: error.message });
@@ -180,6 +182,7 @@ app.delete('/api/invoices/delete/:invoiceId', (req, res) => {
 
 const server = app.listen(PORT, HOST, () => {
     console.log(`Server is running on http://${HOST}:${PORT}`);
+    load();
 });
 
 process.on('SIGINT', () => {
