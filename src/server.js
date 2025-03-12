@@ -18,6 +18,8 @@ import {
     deleteInvoiceById
 } from "./invoiceToDB.js";
 
+import { userInput } from "./UsersToDB.js";
+
 const app = express();
 // Middleware to access the JSON body of requests
 app.use(bodyParser.json());
@@ -159,6 +161,20 @@ app.delete('/api/invoices/delete/:invoiceId', (req, res) => {
             return res.status(400).json({ error: err.message });
         }
         res.status(200).json(result);
+    });
+});
+
+// user input to db
+app.post('/api/users/register/db', (req, res) => {
+    const { email, password, company } = req.body;
+
+    res.set('Content-Type', 'application/json');
+
+    userInput(email, password, company, (err, result) => {
+        if (err) {
+            return res.status(400).json({ error: err.message });
+        }
+        res.status(201).json(result);
     });
 });
 
