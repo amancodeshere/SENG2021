@@ -178,6 +178,24 @@ app.post('/api/users/register/db', (req, res) => {
     });
 });
 
+// update session after login
+app.post('/api/users/session/update', (req, res) => {
+    const { userId } = req.body;
+
+    if (!userId) {
+        return res.status(400).json({ error: "User ID is required." });
+    }
+
+    res.set("Content-Type", "application/json");
+
+    updateUserSession(userId, (err, result) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        res.status(200).json(result);
+    });
+});
+
 // ===========================================================================
 // ============================= ROUTES ABOVE ================================
 // ===========================================================================
