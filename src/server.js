@@ -18,11 +18,10 @@ import {
     getInvoicesByCompanyName,
     deleteInvoiceById
 } from './invoiceToDB.js';
-import { save, load } from './userData.js';
 
 import { userInput } from "./UsersToDB.js";
 
-const app = express();
+export const app = express();
 // Middleware to access the JSON body of requests
 app.use(bodyParser.json());
 // Middleware to allow access from other domains
@@ -42,12 +41,11 @@ app.post('/v1/api/admin/register', (req, res) => {
   
     try {
       const result = adminRegister(businessName, email, password);
-      save();
-      res.json(result);
+      res.status(200).json(result);
     } catch (error) {
       return res.status(400).json({ error: error.message });
     }
-  });
+});
 
 // Delete order based on orderId
 app.delete('/api/orders/delete/:orderId', (req, res) => {
@@ -216,7 +214,6 @@ app.post('/api/users/session/update', (req, res) => {
 
 const server = app.listen(PORT, HOST, () => {
     console.log(`Server is running on http://${HOST}:${PORT}`);
-    load();
 });
 
 process.on('SIGINT', () => {
