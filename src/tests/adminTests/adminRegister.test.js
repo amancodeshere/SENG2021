@@ -18,6 +18,16 @@ const PASSWORD_NO_LETTERS = '12345678';
 beforeEach(() => {
     clear();
 });
+
+let server;
+
+beforeAll(() => {
+    server = app.listen(3000); // Start test server
+});
+
+afterAll(async () => {
+    server.close(); // Close server after tests
+});
   
 describe('adminRegister route - Comprehensive Tests', () => {
     const user = {
