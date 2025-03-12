@@ -190,5 +190,5 @@ export function adminRegister(businessName, email, password) {
     
     return {
         sessionId
-    }
+    };
 }

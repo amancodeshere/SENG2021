@@ -1,4 +1,4 @@
-import { clear } from '../../userData.js'
+import { clear } from '../../userData.js';
 import { postRequest } from '../../testHelpers.js';
 import {
     VALID_BUSINESS_NAME,
