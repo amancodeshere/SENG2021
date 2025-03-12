@@ -1,4 +1,5 @@
-import { postRequest } from "../../testHelpers.js";
+import { clear } from '../../userData.js'
+import { postRequest } from '../../testHelpers.js';
 import {
     VALID_BUSINESS_NAME,
     VALID_EMAIL,
@@ -10,7 +11,11 @@ import {
     SHORT_PASSWORD,
     PASSWORD_NO_NUMBERS,
     PASSWORD_NO_LETTERS
-} from "../../requestParameterConstants.js";
+} from '../../requestParameterConstants.js';
+
+beforeEach(() => {
+    clear();
+});
   
 describe('adminRegister route - Comprehensive Tests', () => {
     describe('Testing successful adminRegister', () => {
