@@ -1,0 +1,4 @@
+
+function validate_invoice() {
+    
+}
