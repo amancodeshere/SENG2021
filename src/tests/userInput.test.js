@@ -44,7 +44,7 @@ describe("userInput Function - User Registration", () => {
         });
     });
 
-    test("should fail when database insertion fails", (done) => {
+    test("should fail when user insertion into database fails", (done) => {
         bcrypt.hash.mockImplementation((password, saltRounds, callback) => {
             callback(null, "hashedpassword");
         });
@@ -68,7 +68,7 @@ describe("userInput Function - User Registration", () => {
 
         db.run
             .mockImplementationOnce((sql, params, callback) => {
-                callback.call({ lastID: 1 }, null); // Simulate user insertion success
+                callback.call({ lastID: 1 }, null); // Simulate successful user insertion
             })
             .mockImplementationOnce((sql, params, callback) => {
                 callback(new Error("Session Initialization Failed"));
@@ -89,10 +89,10 @@ describe("userInput Function - User Registration", () => {
 
         db.run
             .mockImplementationOnce((sql, params, callback) => {
-                callback.call({ lastID: 1 }, null); // Simulate user insertion success
+                callback.call({ lastID: 1 }, null); // Simulate user insertion
             })
             .mockImplementationOnce((sql, params, callback) => {
-                callback(null); // Simulate session insertion success
+                callback.call({ lastID: 100 }, null); // Simulate session insertion (SessionID = 100)
             });
 
         userInput(validUser.email, validUser.password, validUser.company, (err, result) => {
@@ -100,7 +100,8 @@ describe("userInput Function - User Registration", () => {
             expect(result).toEqual({
                 success: true,
                 message: "User registered.",
-                userID: 1
+                userID: 1,
+                sessionID: 100
             });
             done();
         });

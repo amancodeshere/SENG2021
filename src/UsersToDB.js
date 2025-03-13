@@ -20,6 +20,7 @@ export function userInput(email, password, company, callback) {
             console.error("Error hashing password:", hashErr);
             return callback(new CustomInputError("Error processing password."));
         }
+
         const sqlUserInsert = `INSERT INTO users (Email, Password, CompanyName) VALUES (?, ?, ?);`;
 
         db.run(sqlUserInsert, [email, hash, company], function (err) {
@@ -30,14 +31,15 @@ export function userInput(email, password, company, callback) {
 
             const userID = this.lastID;
 
-            // Initialize session for the user
             const sqlSessionInsert = `INSERT INTO sessions (UserID, NumLogins) VALUES (?, 1);`;
             db.run(sqlSessionInsert, [userID], function (sessionErr) {
                 if (sessionErr) {
                     console.error("SQL Error while creating session:", sessionErr.message);
                     return callback(new CustomInputError("Database error while creating session."));
                 }
-                callback(null, { success: true, message: "User registered.", userID });
+
+                const sessionID = this.lastID; // get inserted SessionID
+                callback(null, { success: true, message: "User registered.", userID, sessionID });
             });
         });
     });
@@ -89,32 +91,32 @@ export function updateUserSession(userId, callback) {
         return callback(new Error("User ID is required."));
     }
 
-    // Check if the user already has a session entry
+    // check if the user already has a session entry
     const sqlCheckSession = `SELECT NumLogins FROM sessions WHERE UserID = ?;`;
 
     db.get(sqlCheckSession, [userId], (err, row) => {
         if (err) {
             console.error("SQL Error while checking session:", err.message);
-            return callback(new Error("Database error while checking session."));
+            return callback(new CustomInputError("Database error while checking session."));
         }
 
         if (!row) {
-            // If session doesn't exist, create one
+            // session doesn't exist, make session
             const sqlInsertSession = `INSERT INTO sessions (UserID, NumLogins) VALUES (?, 1);`;
             db.run(sqlInsertSession, [userId], function (insertErr) {
                 if (insertErr) {
                     console.error("SQL Error while creating session:", insertErr.message);
-                    return callback(new Error("Database error while creating session."));
+                    return callback(new CustomInputError("Database error while creating session."));
                 }
                 callback(null, { success: true, message: "Session initialized." });
             });
         } else {
-            // If session exists, increment NumLogins
+            // session exists, increment NumLogins
             const sqlUpdateSession = `UPDATE sessions SET NumLogins = NumLogins + 1 WHERE UserID = ?;`;
             db.run(sqlUpdateSession, [userId], function (updateErr) {
                 if (updateErr) {
                     console.error("SQL Error while updating session:", updateErr.message);
-                    return callback(new Error("Database error while updating session."));
+                    return callback(new CustomInputError("Database error while updating session."));
                 }
                 callback(null, { success: true, message: "Session updated successfully." });
             });
@@ -133,7 +135,7 @@ export function getSessionsByEmail(email, callback) {
         return callback(new CustomInputError("Email is required."));
     }
 
-    // get UserID by Email
+    // get UserID using Email
     const sqlGetUserID = `SELECT UserID FROM users WHERE Email = ?;`;
     db.get(sqlGetUserID, [email], (err, userRow) => {
         if (err) {
@@ -160,6 +162,55 @@ export function getSessionsByEmail(email, callback) {
             }
 
             callback(null, { userID, sessions: sessionRows });
+        });
+    });
+}
+
+
+/**
+ * Gets user details based on session ID.
+ *
+ * @param {number} sessionId - The session ID.
+ * @param {function} callback - Callback to return user details.
+ */
+export function getUserBySessionId(sessionId, callback) {
+    if (typeof sessionId !== "number") {
+        return callback(new CustomInputError("Invalid session ID."));
+    }
+
+    // userID from sessions table
+    const sqlGetUserId = `SELECT UserID FROM sessions WHERE SessionID = ?;`;
+
+    db.get(sqlGetUserId, [sessionId], (sessionErr, sessionRow) => {
+        if (sessionErr) {
+            console.error("SQL Error while fetching session:", sessionErr.message);
+            return callback(new CustomInputError("Database error while fetching session."));
+        }
+
+        if (!sessionRow) {
+            return callback(new CustomInputError("Session not found."));
+        }
+
+        const userId = sessionRow.UserID;
+
+        const sqlGetUserDetails = `
+            SELECT Email, CompanyName 
+            FROM users 
+            WHERE UserID = ?;
+        `;
+
+        db.get(sqlGetUserDetails, [userId], (userErr, userRow) => {
+            if (userErr) {
+                console.error("SQL Error while fetching user details:", userErr.message);
+                return callback(new CustomInputError("Database error while fetching user details."));
+            }
+
+            if (!userRow) {
+                return callback(new CustomInputError("User not found."));
+            }
+
+            // user details
+            callback(null, { userId, email: userRow.Email, company: userRow.CompanyName });
         });
     });
 }

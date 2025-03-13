@@ -128,12 +128,13 @@ db.run(sql_users_table, (err) => {
 // create sessions table
 const sql_sessions_table = `
     CREATE TABLE IF NOT EXISTS sessions (
-        SessionID TEXT PRIMARY KEY,
+        SessionID INTEGER PRIMARY KEY AUTOINCREMENT,
         UserID INTEGER NOT NULL,
         NumLogins INTEGER DEFAULT 0 NOT NULL,
         CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (UserID) REFERENCES users(UserID) ON DELETE CASCADE
     );
+
 `;
 
 db.run(sql_sessions_table, (err) => {
