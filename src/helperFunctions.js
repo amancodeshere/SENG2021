@@ -11,10 +11,3 @@ export function isValidPartyName(partyName) {
     const allowedRegex = /^[a-zA-Z0-9\s.,'\-&()]+$/;
     return allowedRegex.test(partyName.trim());
 }
-
-/**
- * @returns {number} a random number from a range upto MAX_SAFE_INTEGER
- */
-export function randomNumber() {
-    return Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
-}
