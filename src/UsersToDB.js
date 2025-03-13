@@ -123,7 +123,7 @@ export function updateUserSession(userId, callback) {
 }
 
 /**
- * Retrieves session details for a user given their email.
+ * Gets session details for a user given their email.
  *
  * @param {string} email - The user's email address.
  * @param {function} callback - Callback function to handle the result.
@@ -133,7 +133,7 @@ export function getSessionsByEmail(email, callback) {
         return callback(new CustomInputError("Email is required."));
     }
 
-    // First query: Get UserID by Email
+    // get UserID by Email
     const sqlGetUserID = `SELECT UserID FROM users WHERE Email = ?;`;
     db.get(sqlGetUserID, [email], (err, userRow) => {
         if (err) {
@@ -147,7 +147,7 @@ export function getSessionsByEmail(email, callback) {
 
         const userID = userRow.UserID;
 
-        // Second query: Get all sessions for the found UserID
+        // get all sessions for the found UserID
         const sqlGetSessions = `SELECT SessionID, CreatedAt FROM sessions WHERE UserID = ?;`;
         db.all(sqlGetSessions, [userID], (sessionErr, sessionRows) => {
             if (sessionErr) {
