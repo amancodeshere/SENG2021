@@ -121,3 +121,45 @@ export function updateUserSession(userId, callback) {
         }
     });
 }
+
+/**
+ * Retrieves session details for a user given their email.
+ *
+ * @param {string} email - The user's email address.
+ * @param {function} callback - Callback function to handle the result.
+ */
+export function getSessionsByEmail(email, callback) {
+    if (!email) {
+        return callback(new CustomInputError("Email is required."));
+    }
+
+    // First query: Get UserID by Email
+    const sqlGetUserID = `SELECT UserID FROM users WHERE Email = ?;`;
+    db.get(sqlGetUserID, [email], (err, userRow) => {
+        if (err) {
+            console.error("SQL Error while fetching user by email:", err.message);
+            return callback(new CustomInputError("Database error while fetching user."));
+        }
+
+        if (!userRow) {
+            return callback(new CustomInputError("User not found."));
+        }
+
+        const userID = userRow.UserID;
+
+        // Second query: Get all sessions for the found UserID
+        const sqlGetSessions = `SELECT SessionID, CreatedAt FROM sessions WHERE UserID = ?;`;
+        db.all(sqlGetSessions, [userID], (sessionErr, sessionRows) => {
+            if (sessionErr) {
+                console.error("SQL Error while fetching sessions:", sessionErr.message);
+                return callback(new CustomInputError("Database error while fetching sessions."));
+            }
+
+            if (!sessionRows || sessionRows.length === 0) {
+                return callback(new CustomInputError("No sessions found for this user."));
+            }
+
+            callback(null, { userID, sessions: sessionRows });
+        });
+    });
+}
