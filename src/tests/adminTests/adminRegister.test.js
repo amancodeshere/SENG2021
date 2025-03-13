@@ -1,37 +1,30 @@
 import request from 'supertest';
-import { app } from '../../server.js';
-import { clear } from '../../userData.js';
+import { app } from '../../app.js';
+import fs from 'fs';
 
 // constants for request parameters
 const VALID_EMAIL = 'valid@gmail.com';
-const VALID_BUSINESS_NAME = 'Valid Pty Ltd';
+const VALID_COMPANY_NAME = 'Valid Pty Ltd';
 const VALID_PASSWORD = 'Password123';
 const SECOND_EMAIL = 'candle.craft@gmail.com'
-const SECOND_BUSINESS_NAME = 'Candlecraft Pty Ltd';
+const SECOND_COMPANY_NAME = 'Candlecraft Pty Ltd';
 const INVALID_EMAIL = 'invalid email';
-const INVALID_BUSINESS_NAME = 'Candlecr@ft Pty Ltd!';
-const SHORT_BUSINESS_NAME = '';
+const INVALID_COMPANY_NAME = 'Candlecr@ft Pty Ltd!';
+const SHORT_COMPANY_NAME = '';
 const SHORT_PASSWORD = 'pgh32';
 const PASSWORD_NO_NUMBERS = 'asdfghJGF';
 const PASSWORD_NO_LETTERS = '12345678';
 
-beforeEach(() => {
-    clear();
-});
-
-let server;
-
-beforeAll(() => {
-    server = app.listen(3000); // Start test server
-});
-
-afterAll(async () => {
-    server.close(); // Close server after tests
+const dbPath = '../../../database.db';
+beforeEach(async () => {
+    if (fs.existsSync(dbPath)) {
+        fs.unlinkSync(dbPath);
+    }
 });
   
 describe('adminRegister route - Comprehensive Tests', () => {
     const user = {
-        businessName: VALID_BUSINESS_NAME,
+        companyName: VALID_COMPANY_NAME,
         email: VALID_EMAIL,
         password: VALID_PASSWORD
     };
@@ -55,7 +48,7 @@ describe('adminRegister route - Comprehensive Tests', () => {
             expect(res1.status).toBe(200);
 
             const user2 = {
-                businessName: SECOND_BUSINESS_NAME,
+                companyName: SECOND_COMPANY_NAME,
                 email: SECOND_EMAIL,
                 password: VALID_PASSWORD
             };
@@ -93,8 +86,8 @@ describe('adminRegister route - Comprehensive Tests', () => {
             expect(res.statusCode).toBe(400);
         });
   
-        test('businessName contains invalid characters', async () => {
-            user.businessName = INVALID_BUSINESS_NAME;
+        test('companyName contains invalid characters', async () => {
+            user.companyName = INVALID_COMPANY_NAME;
             const res = await request(app)
                 .post('/v1/api/admin/register')
                 .set('Content-Type', 'application/json')
@@ -103,8 +96,8 @@ describe('adminRegister route - Comprehensive Tests', () => {
             expect(res.statusCode).toBe(400);
         });
   
-        test('businessName is less than 2 characters', async () => {
-            user.businessName = SHORT_BUSINESS_NAME;
+        test('companyName is less than 2 characters', async () => {
+            user.companyName = SHORT_COMPANY_NAME;
             const res = await request(app)
                 .post('/v1/api/admin/register')
                 .set('Content-Type', 'application/json')
