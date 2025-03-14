@@ -1,4 +1,4 @@
-jest.mock("../connect.js", () => ({
+jest.mock("../../connect.js", () => ({
     db: {
         get: jest.fn(),
         all: jest.fn(),

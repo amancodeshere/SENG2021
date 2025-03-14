@@ -3,7 +3,7 @@ import { db } from '../connect.js';
 import { CustomInputError } from '../errors.js';
 import bcrypt from 'bcrypt';
 
-jest.mock('../connect.js', () => ({
+jest.mock('../../connect.js', () => ({
     db: {
         run: jest.fn(),
     }
