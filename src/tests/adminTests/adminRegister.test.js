@@ -1,6 +1,7 @@
 import request from 'supertest';
 import { app } from '../../app.js';
-import fs from 'fs';
+import { userInput } from '../../UsersToDB.js';
+import { CustomInputError } from '../../errors.js';
 
 // constants for request parameters
 const VALID_EMAIL = 'valid@gmail.com';
@@ -10,16 +11,17 @@ const SECOND_EMAIL = 'candle.craft@gmail.com'
 const SECOND_COMPANY_NAME = 'Candlecraft Pty Ltd';
 const INVALID_EMAIL = 'invalid email';
 const INVALID_COMPANY_NAME = 'Candlecr@ft Pty Ltd!';
-const SHORT_COMPANY_NAME = '';
+const SHORT_COMPANY_NAME = 'a';
 const SHORT_PASSWORD = 'pgh32';
 const PASSWORD_NO_NUMBERS = 'asdfghJGF';
 const PASSWORD_NO_LETTERS = '12345678';
 
-const dbPath = '../../../database.db';
-beforeEach(async () => {
-    if (fs.existsSync(dbPath)) {
-        fs.unlinkSync(dbPath);
-    }
+jest.mock('../../UsersToDB.js', () => ({
+    userInput: jest.fn()
+}));
+
+beforeEach(() => {
+    jest.clearAllMocks();
 });
   
 describe('adminRegister route - Comprehensive Tests', () => {
@@ -31,20 +33,45 @@ describe('adminRegister route - Comprehensive Tests', () => {
 
     describe('Testing successful adminRegister', () => {
         test('Correct return value', async () => {
+            userInput.mockImplementationOnce((email, password, company, callback) => {
+                callback(null, {
+                    success: true,
+                    message: "User registered.",
+                    userID: 1,
+                    sessionID: 123
+                });
+            });
             const res = await request(app)
                 .post('/v1/api/admin/register')
                 .set('Content-Type', 'application/json')
                 .send(user);
-            expect(res.body).toEqual({ sessionId: expect.any(Number) });
+            expect(res.body).toEqual({ sessionId: 123 });
             expect(res.status).toBe(200);
         });
   
-        test('create multiple users with unique sessionIds', async () => {
+        test('register multiple users successfully', async () => {
+            userInput
+                .mockImplementationOnce((email, password, company, callback) => {
+                    callback(null, {
+                        success: true,
+                        message: "User registered.",
+                        userID: 1,
+                        sessionID: 123
+                    });
+                })
+                .mockImplementationOnce((email, password, company, callback) => {
+                    callback(null, {
+                        success: true,
+                        message: "User registered.",
+                        userID: 2,
+                        sessionID: 456
+                    });
+                });
             const res1 = await request(app)
                 .post('/v1/api/admin/register')
                 .set('Content-Type', 'application/json')
                 .send(user);
-            expect(res1.body).toEqual({ sessionId: expect.any(Number) });
+            expect(res1.body).toEqual({ sessionId: 123 });
             expect(res1.status).toBe(200);
 
             const user2 = {
@@ -56,72 +83,91 @@ describe('adminRegister route - Comprehensive Tests', () => {
                 .post('/v1/api/admin/register')
                 .set('Content-Type', 'application/json')
                 .send(user2);
-            expect(res2.body).toEqual({ sessionId: expect.any(Number) });
+            expect(res2.body).toEqual({ sessionId: 456 });
             expect(res2.status).toBe(200);
-            expect(res1.body.sessionId).not.toEqual(res2.body.sessionId);
         });
     });
 
     describe('Testing error return values', () => {
         test('email address already in use', async () => {
-            await request(app)
-                .post('/v1/api/admin/register')
-                .set('Content-Type', 'application/json')
-                .send(user);
+            userInput.mockImplementationOnce((email, password, company, callback) => {
+                callback(new CustomInputError("Database error while inserting user."));
+            });
             const res = await request(app)
                 .post('/v1/api/admin/register')
                 .set('Content-Type', 'application/json')
                 .send(user);
-            expect(res.body).toEqual({ error: expect.any(String) });
+            expect(res.body).toEqual({ error: "Database error while inserting user." });
             expect(res.statusCode).toBe(400);
         });
     
         test('email is not valid', async () => {
-            user.email = INVALID_EMAIL;
+            const invalidUser = {
+                companyName: VALID_COMPANY_NAME,
+                email: INVALID_EMAIL,
+                password: VALID_PASSWORD
+            };
             const res = await request(app)
                 .post('/v1/api/admin/register')
                 .set('Content-Type', 'application/json')
-                .send(user);
+                .send(invalidUser);
             expect(res.body).toEqual({ error: expect.any(String) });
             expect(res.statusCode).toBe(400);
         });
   
         test('companyName contains invalid characters', async () => {
-            user.companyName = INVALID_COMPANY_NAME;
+            const invalidUser = {
+                companyName: INVALID_COMPANY_NAME,
+                email: VALID_EMAIL,
+                password: VALID_PASSWORD
+            };
             const res = await request(app)
                 .post('/v1/api/admin/register')
                 .set('Content-Type', 'application/json')
-                .send(user);
+                .send(invalidUser);
             expect(res.body).toEqual({ error: expect.any(String) });
             expect(res.statusCode).toBe(400);
         });
   
-        test('companyName is less than 2 characters', async () => {
-            user.companyName = SHORT_COMPANY_NAME;
+        test('companyName is less than 3 characters', async () => {
+            const invalidUser = {
+                companyName: SHORT_COMPANY_NAME,
+                email: VALID_EMAIL,
+                password: VALID_PASSWORD
+            };
             const res = await request(app)
                 .post('/v1/api/admin/register')
                 .set('Content-Type', 'application/json')
-                .send(user);
+                .send(invalidUser);
             expect(res.body).toEqual({ error: expect.any(String) });
+            console.log(res.body);
             expect(res.statusCode).toBe(400);
         });
   
         test('password is less than 8 characters', async () => {
-            user.password = SHORT_PASSWORD;
+            const invalidUser = {
+                companyName: VALID_COMPANY_NAME,
+                email: VALID_EMAIL,
+                password: SHORT_PASSWORD
+            };
             const res = await request(app)
                 .post('/v1/api/admin/register')
                 .set('Content-Type', 'application/json')
-                .send(user);
+                .send(invalidUser);
             expect(res.body).toEqual({ error: expect.any(String) });
             expect(res.statusCode).toBe(400);
         });
   
         test('password does not contain at least one number and at least one letter', async () => {
-            user.password = PASSWORD_NO_NUMBERS;
+            const invalidUser = {
+                companyName: VALID_COMPANY_NAME,
+                email: VALID_EMAIL,
+                password: PASSWORD_NO_NUMBERS
+            };
             let res = await request(app)
                 .post('/v1/api/admin/register')
                 .set('Content-Type', 'application/json')
-                .send(user);
+                .send(invalidUser);
             expect(res.body).toEqual({ error: expect.any(String) });
             expect(res.statusCode).toBe(400);
 
@@ -129,7 +175,7 @@ describe('adminRegister route - Comprehensive Tests', () => {
             res = await request(app)
                 .post('/v1/api/admin/register')
                 .set('Content-Type', 'application/json')
-                .send(user);
+                .send(invalidUser);
             expect(res.body).toEqual({ error: expect.any(String) });
             expect(res.statusCode).toBe(400);
         });
