@@ -59,8 +59,8 @@ app.get('/v1/api/invoice/:invoiceid/xml', (req, res) => {
                 return res.status(404).json({ error: invoiceErr.message });
             }
             res.status(200)
-            res.set('Content-Type', 'application/xml');
-            res.send(invoiceResult);
+                .set('Content-Type', 'application/xml')
+                .send(invoiceResult);
         });
     });
 });

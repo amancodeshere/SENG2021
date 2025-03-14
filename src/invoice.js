@@ -1,5 +1,10 @@
+import { MonetaryTotal } from 'ubl-builder/lib/ubl21/CommonAggregateComponents/MonetaryTotalTypeGroup.js';
 import { getInvoiceByID } from './invoiceToDB.js';
 import { Invoice } from 'ubl-builder';
+import { PartyName } from 'ubl-builder/lib/ubl21/CommonAggregateComponents/PartyName.js';
+import { Party } from 'ubl-builder/lib/ubl21/CommonAggregateComponents/PartyTypeGroup.js';
+import { AccountingSupplierParty } from 'ubl-builder/lib/ubl21/CommonAggregateComponents/SupplierPartyTypeGroup.js';
+import { AccountingCustomerParty } from 'ubl-builder/lib/ubl21/CommonAggregateComponents/CustomerPartyTypeGroup.js';
 
 export function invoiceToXml(invoiceId, companyName, callback) {
     getInvoiceByID(invoiceId, (err, invoiceData) => {
@@ -15,13 +20,21 @@ export function invoiceToXml(invoiceId, companyName, callback) {
         invoice.setIssueDate(invoiceData.IssueDate);
         invoice.setDocumentCurrencyCode(invoiceData.CurrencyCode);
         invoice.setOrderReference({ salesOrderID: invoiceData.SalesOrderID });
-        // const supplierPartyName = new PartyName({ companyName });
-        // const supplierParty = new Party({ partyNames: [supplierPartyName] });
-        // const accountingSupplierParty = new AccountingSupplierParty({ party: supplierParty });
-        // invoice.setAccountingSupplierParty(accountingSupplierParty);
-        // invoice.setAccountingCustomerParty(invoiceData.PartyNameBuyer);
-        // invoice.setLegalMonetaryTotal(invoiceData.PayableAmount);
-        // invoice.addInvoiceLine
+
+        const supplierPartyName = new PartyName({ name: companyName });
+        const supplierParty = new Party({ partyNames: [supplierPartyName] });
+        const accountingSupplierParty = new AccountingSupplierParty({ party: supplierParty })
+        invoice.setAccountingSupplierParty(accountingSupplierParty);
+
+        const customerPartyName = new PartyName({ name: invoiceData.PartyNameBuyer });
+        const customerParty = new Party({ partyNames: [customerPartyName] });
+        const accountingCustomerParty = new AccountingCustomerParty({ party: customerParty })
+        invoice.setAccountingCustomerParty(accountingCustomerParty);
+
+        const monetaryTotal = new MonetaryTotal({ payableAmount: invoiceData.PayableAmount });
+        invoice.setLegalMonetaryTotal(monetaryTotal);
+
+        
 
         const xmlInvoice = invoice.getXml();
 
