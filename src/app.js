@@ -40,7 +40,7 @@ app.post('/v1/api/admin/register', (req, res) => {
             return res.status(400).json({ error: err.message });
         }
 
-        res.status(200).json({ sessionId: result.sessionId });
+        res.status(200).json(result);
     });
 });
 
