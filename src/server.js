@@ -18,6 +18,13 @@ import {
     deleteInvoiceById
 } from "./invoiceToDB.js";
 
+import {
+    getSessionsByEmail,
+    getUserBySessionId,
+    updateUserSession,
+    userInput
+} from "./UsersToDB.js";
+
 const app = express();
 // Middleware to access the JSON body of requests
 app.use(bodyParser.json());
@@ -161,6 +168,65 @@ app.delete('/api/invoices/delete/:invoiceId', (req, res) => {
         res.status(200).json(result);
     });
 });
+
+// user input to db
+app.post('/api/users/register/db', (req, res) => {
+    const { email, password, company } = req.body;
+
+    res.set('Content-Type', 'application/json');
+
+    userInput(email, password, company, (err, result) => {
+        if (err) {
+            return res.status(400).json({ error: err.message });
+        }
+        res.status(201).json(result);
+    });
+});
+
+// update session after login
+app.post('/api/users/session/update/', (req, res) => {
+    const { userId } = req.body;
+
+    if (!userId) {
+        return res.status(400).json({ error: "User ID is required." });
+    }
+
+    res.set("Content-Type", "application/json");
+
+    updateUserSession(userId, (err, result) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        res.status(200).json(result);
+    });
+});
+
+// get user details from sessionId
+app.get("/api/users/session/:sessionId", (req, res) => {
+    const sessionId = parseInt(req.params.sessionId, 10);
+
+    getUserBySessionId(sessionId, (err, result) => {
+        res.set("Content-Type", "application/json");
+        if (err) {
+            return res.status(400).json({ error: err.message });
+        }
+        res.status(200).json(result);
+    });
+});
+
+
+app.get("/api/users/sessions/:email", (req, res) => {
+    const email = decodeURIComponent(req.params.email).toLowerCase();
+
+    getSessionsByEmail(email, (err, result) => {
+        res.set("Content-Type", "application/json");
+        if (err) {
+            return res.status(400).json({ error: err.message });
+        }
+        res.status(200).json({ sessions: result });
+    });
+});
+
 
 // ===========================================================================
 // ============================= ROUTES ABOVE ================================
