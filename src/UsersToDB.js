@@ -81,48 +81,46 @@ export function validateUser(email, password, callback) {
 }
 
 /**
- * Updates the user's session count upon successful login.
+ * Updates the user's session upon successful login.
  *
- * @param {number} userId - The ID of the user logging in.
+ * @param {string} email - The email of the user logging in.
  * @param {function} callback - The callback function to handle results.
  */
-export function updateUserSession(userId, callback) {
-    if (!userId) {
-        return callback(new Error("User ID is required."));
+export function updateUserSession(email, callback) {
+    if (!email) {
+        return callback(new Error("Email is required."));
     }
 
-    // check if the user already has a session entry
-    const sqlCheckSession = `SELECT NumLogins FROM sessions WHERE UserID = ?;`;
-
-    db.get(sqlCheckSession, [userId], (err, row) => {
-        if (err) {
-            console.error("SQL Error while checking session:", err.message);
-            return callback(new CustomInputError("Database error while checking session."));
+    // get the User ID given email
+    const sqlGetUserID = `SELECT UserID FROM users WHERE Email = ?;`;
+    db.get(sqlGetUserID, [email], (userErr, userRow) => {
+        if (userErr) {
+            console.error("SQL Error while fetching user ID:", userErr.message);
+            return callback(new Error("Database error while fetching user ID."));
         }
 
-        if (!row) {
-            // session doesn't exist, make session
-            const sqlInsertSession = `INSERT INTO sessions (UserID, NumLogins) VALUES (?, 1);`;
-            db.run(sqlInsertSession, [userId], function (insertErr) {
-                if (insertErr) {
-                    console.error("SQL Error while creating session:", insertErr.message);
-                    return callback(new CustomInputError("Database error while creating session."));
-                }
-                callback(null, { success: true, message: "Session initialized." });
-            });
-        } else {
-            // session exists, increment NumLogins
-            const sqlUpdateSession = `UPDATE sessions SET NumLogins = NumLogins + 1 WHERE UserID = ?;`;
-            db.run(sqlUpdateSession, [userId], function (updateErr) {
-                if (updateErr) {
-                    console.error("SQL Error while updating session:", updateErr.message);
-                    return callback(new CustomInputError("Database error while updating session."));
-                }
-                callback(null, { success: true, message: "Session updated successfully." });
-            });
-        }
+        if (!userRow) return callback(new Error("User not found."));
+
+        const userID = userRow.UserID;
+
+        // mmake a new session for user
+        const sqlInsertSession = `
+            INSERT INTO sessions (UserID, NumLogins)
+            VALUES (?, 1);
+        `;
+        db.run(sqlInsertSession, [userID], function (insertErr) {
+            if (insertErr) {
+                console.error("SQL Error while creating session:", insertErr.message);
+                return callback(new Error("Database error while creating session."));
+            }
+
+            // get the last session ID
+            const sessionID = this.lastID;
+            callback(null, { success: true, message: "New session created.", userID, sessionID });
+        });
     });
 }
+
 
 /**
  * Gets session details for a user given their email.
