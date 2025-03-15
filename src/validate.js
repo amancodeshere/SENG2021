@@ -1,23 +1,32 @@
 import xsdValidator from 'xsd-schema-validator';
-import validator from 'schematron-runner'
+import schValidator from 'schematron-runner';
+import { CustomInputError } from './errors';
 
-async function validate_invoice() {
+/**
+ * Submits an invoice for validation. Validates that invoice in XML matches UBL formatting and schema.
+ * 
+ * @param {String} invoice - The XML invoice to validate
+ * @param {Function} callback - Callback function to handle the result.
+ */
+export async function validateInvoice(invoice, callback) {
     try {
-      const result = await xsdValidator.validateXML({ file: 'schemas/ubl/xml/AU Invoice Energy Bill Example_1.xml' }, 'schemas/ubl/xsd/maindoc/UBL-Invoice-2.1.xsd');
-      console.log(result.valid);
+        // Validates against the UBL Invoice XSD schema
+        const xsdResult = await xsdValidator.validateXML(invoice, 'schemas/ubl/xsd/maindoc/UBL-Invoice-2.1.xsd');
+        if (!xsdResult.valid) {
+            return callback(null, { validated: false, message: xsdResult.messages});
+        }
 
-      // const other_result = await validator.validate('schemas/ubl/xml/AU Invoice Energy Bill Example_1.xml', 'schemas/ANZ-PEPPOL/AUNZ-UBL-validation.sch');
-      // conslole.log(other_result);
+        // Validates against the AUNZ-PEPPOL schematron
+        const schResult = await schValidator.validate(invoice, 'schemas/ANZ-PEPPOL/AUNZ-PEPPOL-validation.sch');
+        if (schResult.errors.length != 0) {
+            var message = "";
+            schResult.errors.forEach(error => {message += error.xml + "\n";});
+            return callback(null, { validated: false, message: message});
+        }
 
-      const results = await validator.validate('schemas/ubl/xml/AU Invoice Energy Bill Example_1.xml', 'schemas/ANZ-PEPPOL/AUNZ-PEPPOL-validation.sch');
-      console.log(results);
-
-      
-
-    } catch (err) {
-      console.error(err);
+        return callback(null, { validated: true, message: ""});
+    } catch (error) {
+        console.error("Error validating invoice: ", error);
+        return callback(new CustomInputError("Error validating invoice"));
     }
 }
-
-
-validate_invoice();

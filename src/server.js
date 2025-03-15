@@ -18,6 +18,10 @@ import {
     deleteInvoiceById
 } from "./invoiceToDB.js";
 
+import {
+    validateInvoice
+} from "./validate.js";
+
 const app = express();
 // Middleware to access the JSON body of requests
 app.use(bodyParser.json());
@@ -160,6 +164,20 @@ app.delete('/api/invoices/delete/:invoiceId', (req, res) => {
         }
         res.status(200).json(result);
     });
+});
+
+// validate a given XML invoice
+app.get('/api/invoice/validate', (req, res) => {
+    const { invoice } = req.body;
+
+    validateInvoice(invoice, (err, result) => {
+        res.set("Content-Type", "application/json");
+        if (err) {
+            return res.status(400).json({ error: err.message });
+        }
+        res.status(200).json(result);
+    });
+
 });
 
 // ===========================================================================
