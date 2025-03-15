@@ -5,6 +5,9 @@ import { PartyName } from 'ubl-builder/lib/ubl21/CommonAggregateComponents/Party
 import { Party } from 'ubl-builder/lib/ubl21/CommonAggregateComponents/PartyTypeGroup.js';
 import { AccountingSupplierParty } from 'ubl-builder/lib/ubl21/CommonAggregateComponents/SupplierPartyTypeGroup.js';
 import { AccountingCustomerParty } from 'ubl-builder/lib/ubl21/CommonAggregateComponents/CustomerPartyTypeGroup.js';
+import { InvoiceLine } from 'ubl-builder/lib/ubl21/CommonAggregateComponents/InvoiceLineTypeGroup.js';
+import { Item } from 'ubl-builder/lib/ubl21/CommonAggregateComponents/ItemTypeGroup.js';
+import { Price } from 'ubl-builder/lib/ubl21/CommonAggregateComponents/PriceTypeGroup.js';
 
 export function invoiceToXml(invoiceId, companyName, callback) {
     getInvoiceByID(invoiceId, (err, invoiceData) => {
@@ -34,7 +37,15 @@ export function invoiceToXml(invoiceId, companyName, callback) {
         const monetaryTotal = new MonetaryTotal({ payableAmount: invoiceData.PayableAmount });
         invoice.setLegalMonetaryTotal(monetaryTotal);
 
-        
+        const numItems = invoiceData.Items.length
+        let id = 1;
+        invoiceData.Items.forEach((item) => {
+            const invoiceItem = new Item({ name: item.ItemDescription });
+            const lineExtensionAmount = invoiceData.PayableAmount / numItems;
+            const invoiceLine = new InvoiceLine({ id, invoicedQuantity: item.ItemAmount, lineExtensionAmount, item: invoiceItem });
+            invoice.addInvoiceLine(invoiceLine);
+            id++;
+        });
 
         const xmlInvoice = invoice.getXml();
 
