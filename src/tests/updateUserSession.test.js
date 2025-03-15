@@ -9,94 +9,83 @@ jest.mock('../connect.js', () => ({
 }));
 
 describe("updateUserSession Function - Session Management", () => {
-    const userId = 1;
+    const validEmail = "testuser@example.com";
+    const validUserID = 5;
+    const newSessionID = 23;
 
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
-    test("should initialize a new session if the user has no session", (done) => {
-        db.get.mockImplementation((sql, params, callback) => callback(null, null)); // No session found
-        db.run.mockImplementation((sql, params, callback) => callback(null)); // Insert success
-
-        updateUserSession(userId, (err, result) => {
-            expect(err).toBeNull();
-            expect(result).toEqual({ success: true, message: "Session initialized." });
-
-            expect(db.get).toHaveBeenCalledTimes(1);
-            expect(db.run).toHaveBeenCalledTimes(1);
-            expect(db.run).toHaveBeenCalledWith(expect.stringMatching(/INSERT INTO sessions/), [userId], expect.any(Function));
-
-            done();
-        });
-    });
-
-    test("should increment session count if the user already has a session", (done) => {
-        db.get.mockImplementation((sql, params, callback) => callback(null, { NumLogins: 2 })); // Session found
-        db.run.mockImplementation((sql, params, callback) => callback(null)); // Update success
-
-        updateUserSession(userId, (err, result) => {
-            expect(err).toBeNull();
-            expect(result).toEqual({ success: true, message: "Session updated successfully." });
-
-            expect(db.get).toHaveBeenCalledTimes(1);
-            expect(db.run).toHaveBeenCalledTimes(1);
-            expect(db.run).toHaveBeenCalledWith(expect.stringMatching(/UPDATE sessions/), [userId], expect.any(Function));
-
-            done();
-        });
-    });
-
-    test("should return error if database fails when checking session", (done) => {
-        db.get.mockImplementation((sql, params, callback) => callback(new Error("Database error")));
-
-        updateUserSession(userId, (err, result) => {
+    test("should fail when email is missing", (done) => {
+        updateUserSession(null, (err, result) => {
             expect(err).toBeInstanceOf(Error);
-            expect(err.message).toBe("Database error while checking session.");
+            expect(err.message).toBe("Email is required.");
             expect(result).toBeUndefined();
-
-            expect(db.get).toHaveBeenCalledTimes(1);
-            expect(db.run).not.toHaveBeenCalled();
-
             done();
         });
     });
 
-    test("should return error if database fails when creating session", (done) => {
-        db.get.mockImplementation((sql, params, callback) => callback(null, null)); // No session found
-        db.run.mockImplementation((sql, params, callback) => callback(new Error("Insert failed"))); // Insert fails
+    test("should fail when user is not found in the database", (done) => {
+        db.get.mockImplementationOnce((sql, params, callback) => {
+            callback(null, null); // no user found
+        });
 
-        updateUserSession(userId, (err, result) => {
+        updateUserSession(validEmail, (err, result) => {
+            expect(err).toBeInstanceOf(Error);
+            expect(err.message).toBe("User not found.");
+            expect(result).toBeUndefined();
+            done();
+        });
+    });
+
+    test("should fail when database error occurs while fetching user ID", (done) => {
+        db.get.mockImplementationOnce((sql, params, callback) => {
+            callback(new Error("Database fetch error"), null);
+        });
+
+        updateUserSession(validEmail, (err, result) => {
+            expect(err).toBeInstanceOf(Error);
+            expect(err.message).toBe("Database error while fetching user ID.");
+            expect(result).toBeUndefined();
+            done();
+        });
+    });
+
+    test("should fail when database error occurs while creating session", (done) => {
+        db.get.mockImplementationOnce((sql, params, callback) => {
+            callback(null, { UserID: validUserID });
+        });
+
+        db.run.mockImplementationOnce((sql, params, callback) => {
+            callback(new Error("Database insertion error"));
+        });
+
+        updateUserSession(validEmail, (err, result) => {
             expect(err).toBeInstanceOf(Error);
             expect(err.message).toBe("Database error while creating session.");
             expect(result).toBeUndefined();
-
-            expect(db.get).toHaveBeenCalledTimes(1);
-            expect(db.run).toHaveBeenCalledTimes(1);
             done();
         });
     });
 
-    test("should return error if database fails when updating session", (done) => {
-        db.get.mockImplementation((sql, params, callback) => callback(null, { NumLogins: 2 })); // Session found
-        db.run.mockImplementation((sql, params, callback) => callback(new Error("Update failed"))); // Update fails
-
-        updateUserSession(userId, (err, result) => {
-            expect(err).toBeInstanceOf(Error);
-            expect(err.message).toBe("Database error while updating session.");
-            expect(result).toBeUndefined();
-
-            expect(db.get).toHaveBeenCalledTimes(1);
-            expect(db.run).toHaveBeenCalledTimes(1);
-            done();
+    test("should successfully create a new session and return session details", (done) => {
+        db.get.mockImplementationOnce((sql, params, callback) => {
+            callback(null, { UserID: validUserID });
         });
-    });
 
-    test("should return error if userId is not provided", (done) => {
-        updateUserSession(null, (err, result) => {
-            expect(err).toBeInstanceOf(Error);
-            expect(err.message).toBe("User ID is required.");
-            expect(result).toBeUndefined();
+        db.run.mockImplementationOnce((sql, params, callback) => {
+            callback.call({ lastID: newSessionID }, null); // session creation
+        });
+
+        updateUserSession(validEmail, (err, result) => {
+            expect(err).toBeNull();
+            expect(result).toEqual({
+                success: true,
+                message: "New session created.",
+                userID: validUserID,
+                sessionID: newSessionID
+            });
             done();
         });
     });
