@@ -1,5 +1,5 @@
 import xsdValidator from 'xsd-schema-validator';
-import schValidator from 'schematron-runner';
+import { validate } from 'schematron-runner';
 import { CustomInputError } from './errors';
 
 /**
@@ -17,14 +17,14 @@ export async function validateInvoice(invoice, callback) {
         }
 
         // Validates against the AUNZ-PEPPOL schematron
-        const schResult = await schValidator.validate(invoice, 'schemas/ANZ-PEPPOL/AUNZ-PEPPOL-validation.sch');
+        const schResult = await validate(invoice, 'schemas/ANZ-PEPPOL/AUNZ-PEPPOL-validation.sch');
         if (schResult.errors.length != 0) {
             var message = "";
             schResult.errors.forEach(error => {message += error.xml + "\n";});
             return callback(null, { validated: false, message: message});
         }
 
-        return callback(null, { validated: true, message: ""});
+        return callback(null, { validated: true, message: "Valid invoice"});
     } catch (error) {
         console.error("Error validating invoice: ", error);
         return callback(new CustomInputError("Error validating invoice"));
