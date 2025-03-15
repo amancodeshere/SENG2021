@@ -1,8 +1,8 @@
-import { deleteOrderById } from '../orderToDB.js';
-import { db } from '../connect.js';
-import { CustomInputError } from '../errors.js';
+import { deleteOrderById } from '../../orderToDB.js';
+import { db } from '../../connect.js';
+import { CustomInputError } from '../../errors.js';
 
-jest.mock('../connect.js', () => ({
+jest.mock('../../connect.js', () => ({
     db: {
         exec: jest.fn(),
         run: jest.fn(),

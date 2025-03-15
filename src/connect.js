@@ -107,4 +107,42 @@ db.run(sql_invoice_items_table, (err) => {
     }
 });
 
+// create users table
+const sql_users_table = `
+    CREATE TABLE IF NOT EXISTS users (
+        UserID INTEGER PRIMARY KEY AUTOINCREMENT,
+        Email TEXT UNIQUE NOT NULL,
+        Password TEXT NOT NULL,
+        CompanyName TEXT NOT NULL
+    );
+`;
+
+db.run(sql_users_table, (err) => {
+    if (err) {
+        console.error('Error while creating users table:', err.message);
+    } else {
+        if (!isTestEnv) console.log('Users table is a go!');
+    }
+});
+
+// create sessions table
+const sql_sessions_table = `
+    CREATE TABLE IF NOT EXISTS sessions (
+        SessionID INTEGER PRIMARY KEY AUTOINCREMENT,
+        UserID INTEGER NOT NULL,
+        NumLogins INTEGER DEFAULT 0 NOT NULL,
+        CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (UserID) REFERENCES users(UserID) ON DELETE CASCADE
+    );
+
+`;
+
+db.run(sql_sessions_table, (err) => {
+    if (err) {
+        console.error('Error while creating sessions table:', err.message);
+    } else {
+        if (!isTestEnv) console.log('Sessions table is a go!');
+    }
+})
+
 export { db };
