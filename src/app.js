@@ -41,7 +41,7 @@ app.use(morgan('dev'));
 app.get('/api/health', healthCheck);
 
 // Get an invoice list given suer session
-app.get('/api/invoices/session/:sessionId', (req, res) => {
+app.get('/api/v1/invoices/session/:sessionId', (req, res) => {
     const sessionId = parseInt(req.params.sessionId, 10);
 
     getInvoicesBySession(sessionId, (err, result) => {
