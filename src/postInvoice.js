@@ -93,7 +93,7 @@ export async function handlePostInvoice(req, res) {
     try {
         const sessionId = req.headers['sessionid'];
         if (!sessionId) {
-            return res.status(400).json({ error: 'Invalid session ID' });
+            return res.status(401).json({ error: 'Invalid session ID' });
         }
 
         try {

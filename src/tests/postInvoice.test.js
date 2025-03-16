@@ -41,7 +41,7 @@ jest.mock('ubl-builder', () => {
 });
 
 describe('POST /api/invoice', () => {
-  const validSessionId = 'valid-session-id';
+  const validSessionId = '123456';
   
   const validXMLDocument = `<?xml version="1.0" encoding="UTF-8"?>
 <Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
@@ -126,7 +126,7 @@ describe('POST /api/invoice', () => {
       .set('Content-Type', 'application/json')
       .send(validJSONDocument);
 
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(401);
     expect(response.body).toEqual({ error: 'Invalid session ID' });
   });
 
