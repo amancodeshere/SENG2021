@@ -1,6 +1,6 @@
 import request from 'supertest';
 import { app } from '../../app.js';
-import { validateUser, updateUserSession, getSessionsByEmail } from '../../UsersToDB.js';
+import { validateUser, updateUserSession } from '../../UsersToDB.js';
 
 // constants for request parameters
 const VALID_EMAIL = 'valid@gmail.com';
@@ -8,11 +8,14 @@ const VALID_PASSWORD = 'Password123';
 const SECOND_EMAIL = 'candle.craft@gmail.com'
 const INCORRECT_EMAIL = 'incorrect@gmail.com';
 const INCORRECT_PASSWORD = 'incorrect123';
+const USERID1 = 123;
+const SESSIONID1 = 456;
+const USERID2 = 789;
+const SESSIONID2 = 101;
 
 jest.mock('../../UsersToDB.js', () => ({
     validateUser: jest.fn(),
-    updateUserSession: jest.fn(),
-    getSessionsByEmail: jest.fn()
+    updateUserSession: jest.fn()
 }));
 
 beforeEach(() => {
@@ -24,29 +27,25 @@ describe('adminLogin route - Comprehensive Tests', () => {
         email: VALID_EMAIL,
         password: VALID_PASSWORD
     };
-    const sessions = [
-        {
-            SessionID: 123,
-            CreatedAt: "2025-01-01"
-        }
-    ]
 
     describe('Testing successful adminLogin', () => {
         test('Correct return value', async () => {
             validateUser.mockImplementationOnce((email, password, callback) => {
                 callback(null, true);
             });
-            updateUserSession.mockImplementationOnce((userId, callback) => {
-                callback(null, { success: true, message: "Session initialized." });
-            });
-            getSessionsByEmail.mockImplementationOnce((email, callback) => {
-                callback(null, { userID, sessions });
+            updateUserSession.mockImplementationOnce((email, callback) => {
+                callback(null, {
+                    success: true,
+                    message: "New session created.",
+                    userID: USERID1,
+                    sessionID: SESSIONID1
+                });
             });
             const res = await request(app)
-                .post('/v1/api/admin/login')
+                .post('/api/v1/admin/login')
                 .set('Content-Type', 'application/json')
                 .send(user);
-            expect(res.body).toEqual({ sessionId: 123 });
+            expect(res.body).toEqual({ sessionId: SESSIONID1 });
             expect(res.status).toBe(200);
         });
   
@@ -55,38 +54,38 @@ describe('adminLogin route - Comprehensive Tests', () => {
                 email: SECOND_EMAIL,
                 password: VALID_PASSWORD
             };
-            const sessions2 = [
-                {
-                    SessionID: 456,
-                    CreatedAt: "2025-01-01"
-                }
-            ]
-
             validateUser.mockImplementation((email, password, callback) => {
                 callback(null, true);
             });
-            updateUserSession.mockImplementation((userId, callback) => {
-                callback(null, { success: true, message: "Session initialized." });
-            });
-            getSessionsByEmail
+            updateUserSession
                 .mockImplementationOnce((email, callback) => {
-                    callback(null, { userID, sessions });
+                    callback(null, {
+                        success: true,
+                        message: "New session created.",
+                        userID: USERID1,
+                        sessionID: SESSIONID1
+                    });
                 })
                 .mockImplementationOnce((email, callback) => {
-                    callback(null, { userID, sessions2 });
+                    callback(null, {
+                        success: true,
+                        message: "New session created.",
+                        userID: USERID2,
+                        sessionID: SESSIONID2
+                    });
                 });
             const res = await request(app)
-                .post('/v1/api/admin/login')
+                .post('/api/v1/admin/login')
                 .set('Content-Type', 'application/json')
                 .send(user);
-            expect(res.body).toEqual({ sessionId: 123 });
+            expect(res.body).toEqual({ sessionId: SESSIONID1 });
             expect(res.status).toBe(200);
 
             const res2 = await request(app)
-                .post('/v1/api/admin/register')
+                .post('/api/v1/admin/login')
                 .set('Content-Type', 'application/json')
                 .send(user2);
-            expect(res2.body).toEqual({ sessionId: 456 });
+            expect(res2.body).toEqual({ sessionId: SESSIONID2 });
             expect(res2.status).toBe(200);
         });
     });
@@ -101,7 +100,7 @@ describe('adminLogin route - Comprehensive Tests', () => {
                 callback(new Error("Database error while validating user."), false);
             });
             const res = await request(app)
-                .post('/v1/api/admin/login')
+                .post('/api/v1/admin/login')
                 .set('Content-Type', 'application/json')
                 .send(invalidUser);
             expect(res.body).toEqual({ error: "Database error while validating user." });
@@ -117,7 +116,7 @@ describe('adminLogin route - Comprehensive Tests', () => {
                 callback(new Error("Error processing password validation."), false);
             });
             const res = await request(app)
-                .post('/v1/api/admin/login')
+                .post('/api/v1/admin/login')
                 .set('Content-Type', 'application/json')
                 .send(invalidUser);
             expect(res.body).toEqual({ error: "Error processing password validation." });

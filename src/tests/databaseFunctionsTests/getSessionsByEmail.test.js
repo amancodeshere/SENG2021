@@ -5,9 +5,9 @@ jest.mock("../../connect.js", () => ({
     }
 }));
 
-import { getSessionsByEmail } from "../UsersToDB.js";
-import { db } from "../connect.js";
-import { CustomInputError } from "../errors.js";
+import { getSessionsByEmail } from "../../UsersToDB.js";
+import { db } from "../../connect.js";
+import { CustomInputError } from "../../errors.js";
 
 describe("getSessionsByEmail Function", () => {
     afterEach(() => {

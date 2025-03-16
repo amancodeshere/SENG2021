@@ -1,6 +1,6 @@
-import { userInput } from '../UsersToDB.js';
-import { db } from '../connect.js';
-import { CustomInputError } from '../errors.js';
+import { userInput } from '../../UsersToDB.js';
+import { db } from '../../connect.js';
+import { CustomInputError } from '../../errors.js';
 import bcrypt from 'bcrypt';
 
 jest.mock('../../connect.js', () => ({

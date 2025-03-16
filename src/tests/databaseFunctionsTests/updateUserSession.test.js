@@ -1,5 +1,5 @@
-import { updateUserSession } from '../UsersToDB.js';
-import { db } from '../connect.js';
+import { updateUserSession } from '../../UsersToDB.js';
+import { db } from '../../connect.js';
 
 jest.mock('../../connect.js', () => ({
     db: {
