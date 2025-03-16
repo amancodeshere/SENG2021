@@ -32,7 +32,7 @@ app.use(morgan('dev'));
 // ============================= ROUTES BELOW ================================
 // ===========================================================================
 
-app.post('/v1/api/admin/register', (req, res) => {
+app.post('/api/v1/admin/register', (req, res) => {
     const { companyName, email, password } = req.body;
   
     adminRegister(email, password, companyName, (err, result) => {
