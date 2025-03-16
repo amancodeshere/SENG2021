@@ -14,7 +14,7 @@ describe("validateInvoice Function", () => {
     const notUBL = fs.readFileSync(path +"notUBL.xml", "utf-8");
     
     test("Validate Aus invoice successfully", async () => {
-        const res = await request(app).get('/api/v1/invoice/validate')
+        const res = await request(app).post('/api/v1/invoice/validate')
                                       .set("Content-Type", "application/json")
                                       .send({ invoice: validInvoice })
         expect(res.body).toEqual({ validated: true, message: "Valid invoice" });
@@ -22,7 +22,7 @@ describe("validateInvoice Function", () => {
     });
 
     test("Validate standard UBL invoice successfully", async () => {
-        const res = await request(app).get('/api/v1/invoice/validate')
+        const res = await request(app).post('/api/v1/invoice/validate')
                                       .set("Content-Type", "application/json")
                                       .send({ invoice: ublStandardInvoice })
         expect(res.body).toEqual({ validated: true, message: "Valid invoice" });
@@ -30,7 +30,7 @@ describe("validateInvoice Function", () => {
     });
 
     test("Invalid tags - repeated issue date", async () => {
-        const res = await request(app).get('/api/v1/invoice/validate')
+        const res = await request(app).post('/api/v1/invoice/validate')
                                       .set("Content-Type", "application/json")
                                       .send({ invoice: invalidUblTagsInvoice })
         expect(res.body).toEqual({ validated: false, message: expect.not.stringMatching("Valid invoice") });
@@ -38,7 +38,7 @@ describe("validateInvoice Function", () => {
     });
 
     test("Missing mandatory field - ID", async () => {
-        const res = await request(app).get('/api/v1/invoice/validate')
+        const res = await request(app).post('/api/v1/invoice/validate')
                                       .set("Content-Type", "application/json")
                                       .send({ invoice: invalidMissingField })
         expect(res.body).toEqual({ validated: false, message: expect.not.stringMatching("Valid invoice") });
@@ -46,7 +46,7 @@ describe("validateInvoice Function", () => {
     });
 
     test("Non UBL valid XML", async () => {
-        const res = await request(app).get('/api/v1/invoice/validate')
+        const res = await request(app).post('/api/v1/invoice/validate')
                                       .set("Content-Type", "application/json")
                                       .send({ invoice: notUBL })
         expect(res.body).toEqual({ validated: false, message: expect.not.stringMatching("Valid invoice") });

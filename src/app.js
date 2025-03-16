@@ -60,7 +60,7 @@ app.post('/api/v1/admin/login', (req, res) => {
 });
 
 // validate a given XML invoice
-app.get('/api/v1/invoice/validate', (req, res) => {
+app.post('/api/v1/invoice/validate', (req, res) => {
     const { invoice } = req.body;
 
     validateInvoice(invoice, (result) => {
