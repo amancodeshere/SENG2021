@@ -7,8 +7,13 @@ import { AccountingSupplierParty } from 'ubl-builder/lib/ubl21/CommonAggregateCo
 import { AccountingCustomerParty } from 'ubl-builder/lib/ubl21/CommonAggregateComponents/CustomerPartyTypeGroup.js';
 import { InvoiceLine } from 'ubl-builder/lib/ubl21/CommonAggregateComponents/InvoiceLineTypeGroup.js';
 import { Item } from 'ubl-builder/lib/ubl21/CommonAggregateComponents/ItemTypeGroup.js';
-import { Price } from 'ubl-builder/lib/ubl21/CommonAggregateComponents/PriceTypeGroup.js';
 
+/**
+ * @description Converts invoice with the given invoiceid to UBL 2.1 XML format and returns it.
+ * @param {number} invoiceId 
+ * @param {string} companyName 
+ * @param {function} callback 
+ */
 export function invoiceToXml(invoiceId, companyName, callback) {
     getInvoiceByID(invoiceId, (err, invoiceData) => {
         if (err) {
@@ -50,5 +55,35 @@ export function invoiceToXml(invoiceId, companyName, callback) {
         const xmlInvoice = invoice.getXml();
 
         callback(null, xmlInvoice);
+    });
+}
+
+/**
+ * @description Find an invoice using its invoiceId and return information about it.
+ * @param {number} invoiceId 
+ * @param {function} callback 
+ */
+export function viewInvoice(invoiceId, callback) {
+    getInvoiceByID(invoiceId, (err, invoice) => {
+        if (err) {
+            return callback(err);
+        }
+
+        const items = [];
+        invoice.Items.forEach((item) => {
+            items.push({
+                description: item.ItemDescription,
+                amount: `${item.ItemAmount} ${item.ItemUnitCode}`,
+            });
+        });
+
+        callback(null, {
+            invoiceId: invoice.InvoiceID,
+            salesOrderID: parseInt(invoice.SalesOrderID),
+            issueDate: invoice.IssueDate,
+            partyNameBuyer: invoice.PartyNameBuyer,
+            payableAmount: `${invoice.CurrencyCode} ${invoice.PayableAmount}`,
+            items: items
+        });
     });
 }
