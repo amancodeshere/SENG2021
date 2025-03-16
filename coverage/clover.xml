@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1742047361764" clover="3.2.0">
-  <project timestamp="1742047361764" name="All files">
+<coverage generated="1742099282342" clover="3.2.0">
+  <project timestamp="1742099282342" name="All files">
     <metrics statements="303" coveredstatements="244" conditionals="179" coveredconditionals="140" methods="77" coveredmethods="59" elements="559" coveredelements="443" complexity="0" loc="303" ncloc="303" packages="1" files="5" classes="5"/>
     <file name="UsersToDB.js" path="/Users/aman/Desktop/Engineering UNSW/COMP Subjects/Seng2021/src/UsersToDB.js">
       <metrics statements="85" coveredstatements="52" conditionals="51" coveredconditionals="30" methods="16" coveredmethods="10"/>
@@ -92,8 +92,8 @@
     </file>
     <file name="errors.js" path="/Users/aman/Desktop/Engineering UNSW/COMP Subjects/Seng2021/src/errors.js">
       <metrics statements="2" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
-      <line num="3" count="43" type="stmt"/>
-      <line num="4" count="43" type="stmt"/>
+      <line num="3" count="47" type="stmt"/>
+      <line num="4" count="47" type="stmt"/>
     </file>
     <file name="invoiceToDB.js" path="/Users/aman/Desktop/Engineering UNSW/COMP Subjects/Seng2021/src/invoiceToDB.js">
       <metrics statements="95" coveredstatements="89" conditionals="44" coveredconditionals="41" methods="28" coveredmethods="19"/>
