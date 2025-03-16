@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import bodyParser from 'body-parser';
+import { db } from './connect.js';
 import {
     adminRegister,
     adminLogin
@@ -13,6 +14,7 @@ import {
     deleteOrderById,
     getItemsBySalesOrderID
 } from './orderToDB.js';
+import { handlePostInvoice } from './postInvoice.js';
 import {
     inputInvoice,
     getInvoiceByID,
@@ -22,9 +24,13 @@ import {
 import { userInput } from "./UsersToDB.js";
 
 export const app = express();
-// Middleware to access the JSON body of requests
-app.use(bodyParser.json());
-app.use(bodyParser.text({ type: 'application/xml' }));
+app.use((req, res, next) => {
+    if (req.headers['content-type'] === 'application/xml') {
+        bodyParser.text({ type: 'application/xml' })(req, res, next);
+    } else {
+        bodyParser.json()(req, res, next);
+    }
+});
 // Middleware to allow access from other domains
 app.use(cors());
 // Middleware for logging errors
@@ -247,9 +253,6 @@ app.get("/api/users/sessions/:email", (req, res) => {
 
 // Create new invoice
 app.post('/api/invoice', (req, res) => {
-    if (req.headers['content-type'] === 'application/xml') {
-        req.body = req.rawBody;
-    }
     handlePostInvoice(req, res);
 });
 
