@@ -141,7 +141,7 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
                 return callback(new CustomInputError("Invoice not found."));
             });
             const res = await request(app)
-                .get('/api/v1/invoice/123/xml')
+                .get('/api/v1/invoice/123')
                 .set('sessionid', '1234');
             expect(res.body).toEqual({ error: "Invoice not found." });
             expect(res.status).toBe(404);
@@ -152,7 +152,7 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
                 return callback(new CustomInputError("Session not found."));
             });
             const res = await request(app)
-                .get('/api/v1/invoice/123/xml')
+                .get('/api/v1/invoice/123')
                 .set('sessionid', '1234');
             expect(res.body).toEqual({ error: "Session not found." });
             expect(res.status).toBe(401);

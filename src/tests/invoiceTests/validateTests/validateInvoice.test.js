@@ -5,7 +5,7 @@ import { app } from '../../../app.js';
 
 
 describe("validateInvoice Function", () => {
-    const path = "src/tests/validateTests/xmlInvoiceExamples/";
+    const path = "src/tests/invoiceTests/validateTests/xmlInvoiceExamples/";
     const validInvoice = fs.readFileSync(path +"AusInvoice.xml", "utf-8");
     const ublStandardInvoice = fs.readFileSync(path +"ublStandardInvoice.xml", "utf-8");
     const invalidUblTagsInvoice = fs.readFileSync(path +"AusInvoiceInvalidUBL.xml", "utf-8");
