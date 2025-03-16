@@ -45,7 +45,7 @@ app.post('/v1/api/admin/register', bodyParser.json(), (req, res) => {
     });
 });
 
-app.get('/v1/api/invoice/:invoiceid/xml', (req, res) => {
+app.get('/api/v1/invoice/:invoiceid/xml', (req, res) => {
     const sessionId = parseInt(req.headers.sessionid);
     const invoiceId = req.params.invoiceid;
 
