@@ -15,6 +15,10 @@ const SHORT_COMPANY_NAME = 'a';
 const SHORT_PASSWORD = 'pgh32';
 const PASSWORD_NO_NUMBERS = 'asdfghJGF';
 const PASSWORD_NO_LETTERS = '12345678';
+const USERID1 = 1;
+const USERID2 = 2;
+const SESSIONID1 = 123;
+const SESSIONID2 = 456;
 
 jest.mock('../../UsersToDB.js', () => ({
     userInput: jest.fn()
@@ -37,15 +41,15 @@ describe('adminRegister route - Comprehensive Tests', () => {
                 callback(null, {
                     success: true,
                     message: "User registered.",
-                    userID: 1,
-                    sessionID: 123
+                    userID: USERID1,
+                    sessionID: SESSIONID1
                 });
             });
             const res = await request(app)
-                .post('/v1/api/admin/register')
+                .post('/api/v1/admin/register')
                 .set('Content-Type', 'application/json')
                 .send(user);
-            expect(res.body).toEqual({ sessionId: 123 });
+            expect(res.body).toEqual({ sessionId: SESSIONID1 });
             expect(res.status).toBe(200);
         });
   
@@ -55,23 +59,23 @@ describe('adminRegister route - Comprehensive Tests', () => {
                     callback(null, {
                         success: true,
                         message: "User registered.",
-                        userID: 1,
-                        sessionID: 123
+                        userID: USERID1,
+                        sessionID: SESSIONID1
                     });
                 })
                 .mockImplementationOnce((email, password, company, callback) => {
                     callback(null, {
                         success: true,
                         message: "User registered.",
-                        userID: 2,
-                        sessionID: 456
+                        userID: USERID2,
+                        sessionID: SESSIONID2
                     });
                 });
             const res1 = await request(app)
-                .post('/v1/api/admin/register')
+                .post('/api/v1/admin/register')
                 .set('Content-Type', 'application/json')
                 .send(user);
-            expect(res1.body).toEqual({ sessionId: 123 });
+            expect(res1.body).toEqual({ sessionId: SESSIONID1 });
             expect(res1.status).toBe(200);
 
             const user2 = {
@@ -80,10 +84,10 @@ describe('adminRegister route - Comprehensive Tests', () => {
                 password: VALID_PASSWORD
             };
             const res2 = await request(app)
-                .post('/v1/api/admin/register')
+                .post('/api/v1/admin/register')
                 .set('Content-Type', 'application/json')
                 .send(user2);
-            expect(res2.body).toEqual({ sessionId: 456 });
+            expect(res2.body).toEqual({ sessionId: SESSIONID2 });
             expect(res2.status).toBe(200);
         });
     });
@@ -94,7 +98,7 @@ describe('adminRegister route - Comprehensive Tests', () => {
                 callback(new CustomInputError("Database error while inserting user."));
             });
             const res = await request(app)
-                .post('/v1/api/admin/register')
+                .post('/api/v1/admin/register')
                 .set('Content-Type', 'application/json')
                 .send(user);
             expect(res.body).toEqual({ error: "Database error while inserting user." });
@@ -108,7 +112,7 @@ describe('adminRegister route - Comprehensive Tests', () => {
                 password: VALID_PASSWORD
             };
             const res = await request(app)
-                .post('/v1/api/admin/register')
+                .post('/api/v1/admin/register')
                 .set('Content-Type', 'application/json')
                 .send(invalidUser);
             expect(res.body).toEqual({ error: expect.any(String) });
@@ -122,7 +126,7 @@ describe('adminRegister route - Comprehensive Tests', () => {
                 password: VALID_PASSWORD
             };
             const res = await request(app)
-                .post('/v1/api/admin/register')
+                .post('/api/v1/admin/register')
                 .set('Content-Type', 'application/json')
                 .send(invalidUser);
             expect(res.body).toEqual({ error: expect.any(String) });
@@ -136,7 +140,7 @@ describe('adminRegister route - Comprehensive Tests', () => {
                 password: VALID_PASSWORD
             };
             const res = await request(app)
-                .post('/v1/api/admin/register')
+                .post('/api/v1/admin/register')
                 .set('Content-Type', 'application/json')
                 .send(invalidUser);
             expect(res.body).toEqual({ error: expect.any(String) });
@@ -151,7 +155,7 @@ describe('adminRegister route - Comprehensive Tests', () => {
                 password: SHORT_PASSWORD
             };
             const res = await request(app)
-                .post('/v1/api/admin/register')
+                .post('/api/v1/admin/register')
                 .set('Content-Type', 'application/json')
                 .send(invalidUser);
             expect(res.body).toEqual({ error: expect.any(String) });
@@ -165,7 +169,7 @@ describe('adminRegister route - Comprehensive Tests', () => {
                 password: PASSWORD_NO_NUMBERS
             };
             let res = await request(app)
-                .post('/v1/api/admin/register')
+                .post('/api/v1/admin/register')
                 .set('Content-Type', 'application/json')
                 .send(invalidUser);
             expect(res.body).toEqual({ error: expect.any(String) });
@@ -173,7 +177,7 @@ describe('adminRegister route - Comprehensive Tests', () => {
 
             user.password = PASSWORD_NO_LETTERS;
             res = await request(app)
-                .post('/v1/api/admin/register')
+                .post('/api/v1/admin/register')
                 .set('Content-Type', 'application/json')
                 .send(invalidUser);
             expect(res.body).toEqual({ error: expect.any(String) });
