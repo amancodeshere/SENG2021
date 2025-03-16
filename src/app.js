@@ -24,6 +24,7 @@ import { userInput } from "./UsersToDB.js";
 export const app = express();
 // Middleware to access the JSON body of requests
 app.use(bodyParser.json());
+app.use(bodyParser.text({ type: 'application/xml' }));
 // Middleware to allow access from other domains
 app.use(cors());
 // Middleware for logging errors
@@ -242,6 +243,14 @@ app.get("/api/users/sessions/:email", (req, res) => {
         }
         res.status(200).json({ sessions: result });
     });
+});
+
+// Create new invoice
+app.post('/api/invoice', (req, res) => {
+    if (req.headers['content-type'] === 'application/xml') {
+        req.body = req.rawBody;
+    }
+    handlePostInvoice(req, res);
 });
 
 // ===========================================================================
