@@ -6,7 +6,7 @@ import {
     adminRegister,
     adminLogin
 } from './admin.js';
-import { invoiceToXml } from './invoice.js';
+import {getInvoicesBySession, invoiceToXml} from './invoice.js';
 import {
     inputOrder,
     getOrderBySalesOrderID,
@@ -39,6 +39,20 @@ app.use(morgan('dev'));
 
 // Health check route
 app.get('/api/health', healthCheck);
+
+// Get an invoice list given suer session
+app.get('/api/invoices/session/:sessionId', (req, res) => {
+    const sessionId = parseInt(req.params.sessionId, 10);
+
+    getInvoicesBySession(sessionId, (err, result) => {
+        res.set("Content-Type", "application/json");
+        if (err) {
+            return res.status(400).json({ error: err.message });
+        }
+        res.status(200).json(result);
+    });
+});
+
 
 // register a new user
 app.post('/api/v1/admin/register', bodyParser.json(), (req, res) => {

@@ -8,6 +8,8 @@ import { AccountingCustomerParty } from 'ubl-builder/lib/ubl21/CommonAggregateCo
 import { InvoiceLine } from 'ubl-builder/lib/ubl21/CommonAggregateComponents/InvoiceLineTypeGroup.js';
 import { Item } from 'ubl-builder/lib/ubl21/CommonAggregateComponents/ItemTypeGroup.js';
 import { Price } from 'ubl-builder/lib/ubl21/CommonAggregateComponents/PriceTypeGroup.js';
+import { db } from './connect.js';
+import { CustomInputError } from './errors.js';
 
 export function invoiceToXml(invoiceId, companyName, callback) {
     getInvoiceByID(invoiceId, (err, invoiceData) => {
@@ -50,5 +52,62 @@ export function invoiceToXml(invoiceId, companyName, callback) {
         const xmlInvoice = invoice.getXml();
 
         callback(null, xmlInvoice);
+    });
+}
+
+/**
+ * Fetches invoices for the company associated with the given session ID.
+ *
+ * @param {number} sessionId - The session ID to validate user access.
+ * @param {Function} callback - Callback function to handle the result.
+ */
+export function getInvoicesBySession(sessionId, callback) {
+    if (!sessionId || typeof sessionId !== 'number') {
+        return callback(new CustomInputError("Invalid session ID."));
+    }
+
+    // get UserID from session
+    const sqlGetUserId = `SELECT UserID FROM sessions WHERE SessionID = ?;`;
+    db.get(sqlGetUserId, [sessionId], (sessionErr, sessionRow) => {
+        if (sessionErr) {
+            console.error("SQL Error while fetching session:", sessionErr.message);
+            return callback(new CustomInputError("Database error while fetching session."));
+        }
+
+        if (!sessionRow) {
+            return callback(new CustomInputError("Invalid session. No user found."));
+        }
+
+        const userId = sessionRow.UserID;
+
+        // get the user's company name
+        const sqlGetCompany = `SELECT CompanyName FROM users WHERE UserID = ?;`;
+        db.get(sqlGetCompany, [userId], (userErr, userRow) => {
+            if (userErr) {
+                console.error("SQL Error while fetching company name:", userErr.message);
+                return callback(new CustomInputError("Database error while fetching company details."));
+            }
+
+            if (!userRow || !userRow.CompanyName) {
+                return callback(new CustomInputError("User does not belong to a valid company."));
+            }
+
+            const companyName = userRow.CompanyName;
+
+            // get invoices belonging to the users company
+            const sqlQuery = `SELECT * FROM invoices WHERE PartyNameBuyer = ?;`;
+            db.all(sqlQuery, [companyName], (invoiceErr, invoices) => {
+                if (invoiceErr) {
+                    console.error("SQL Error while fetching invoices:", invoiceErr.message);
+                    return callback(new CustomInputError("Database error while fetching invoices."));
+                }
+
+                if (!invoices || invoices.length === 0) {
+                    return callback(new CustomInputError("No invoices found for this company."));
+                }
+
+                callback(null, { companyName, invoices });
+            });
+        });
     });
 }
