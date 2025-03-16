@@ -54,7 +54,7 @@ export function userInput(email, password, company, callback) {
  */
 export function validateUser(email, password, callback) {
     if (!email || !password) {
-        return callback(new Error("Email and password are required."), false);
+        return callback(new CustomInputError("Email and password are required."), false);
     }
 
     const sqlQuery = `SELECT Password FROM users WHERE Email = ?;`;
@@ -62,7 +62,7 @@ export function validateUser(email, password, callback) {
     db.get(sqlQuery, [email], (err, row) => {
         if (err) {
             console.error("SQL Error while fetching user details:", err.message);
-            return callback(new Error("Database error while validating user."), false);
+            return callback(new CustomInputError("Database error while validating user."), false);
         }
 
         if (!row) {
@@ -73,7 +73,7 @@ export function validateUser(email, password, callback) {
         bcrypt.compare(password, row.Password, (compareErr, isMatch) => {
             if (compareErr) {
                 console.error("Error comparing passwords:", compareErr.message);
-                return callback(new Error("Error processing password validation."), false);
+                return callback(new CustomInputError("Error processing password validation."), false);
             }
             callback(null, isMatch);
         });
@@ -88,7 +88,7 @@ export function validateUser(email, password, callback) {
  */
 export function updateUserSession(email, callback) {
     if (!email) {
-        return callback(new Error("Email is required."));
+        return callback(new CustomInputError("Email is required."));
     }
 
     // get the User ID given email
@@ -96,10 +96,10 @@ export function updateUserSession(email, callback) {
     db.get(sqlGetUserID, [email], (userErr, userRow) => {
         if (userErr) {
             console.error("SQL Error while fetching user ID:", userErr.message);
-            return callback(new Error("Database error while fetching user ID."));
+            return callback(new CustomInputError("Database error while fetching user ID."));
         }
 
-        if (!userRow) return callback(new Error("User not found."));
+        if (!userRow) return callback(new CustomInputError("User not found."));
 
         const userID = userRow.UserID;
 
@@ -111,7 +111,7 @@ export function updateUserSession(email, callback) {
         db.run(sqlInsertSession, [userID], function (insertErr) {
             if (insertErr) {
                 console.error("SQL Error while creating session:", insertErr.message);
-                return callback(new Error("Database error while creating session."));
+                return callback(new CustomInputError("Database error while creating session."));
             }
 
             // get the last session ID
