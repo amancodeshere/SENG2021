@@ -8,10 +8,19 @@ import {
 } from './admin.js';
 import {invoiceToXml, viewInvoice, validateInvoice, getInvoicesBySession} from './invoice.js';
 import { getUserBySessionId } from "./UsersToDB.js";
-
+import { handlePostInvoice } from './postInvoice.js';
 import { healthCheck } from './health.js';
 
 export const app = express();
+
+app.use((req, res, next) => {
+    if (req.headers['content-type'] === 'application/xml') {
+        bodyParser.text({ type: 'application/xml' })(req, res, next);
+    } else {
+        bodyParser.json()(req, res, next);
+    }
+});
+
 // Middleware to access the JSON body of requests
 app.use(bodyParser.urlencoded({ extended: true }));
 // Middleware to allow access from other domains
@@ -114,6 +123,11 @@ app.post('/api/v1/invoice/validate', bodyParser.json(), (req, res) => {
         res.status(200).json(result);
     });
 
+});
+
+// Create new invoice
+app.post('/api/invoice', (req, res) => {
+    handlePostInvoice(req, res);
 });
 
 // ===========================================================================
