@@ -4,7 +4,7 @@ import { UBLBuilder } from 'ubl-builder';
 import { inputOrder } from './orderToDB.js';
 import { inputInvoice } from './invoiceToDB.js';
 import { v4 as uuidv4 } from 'uuid';
-
+import { XMLParser } from 'fast-xml-parser';
 
 /**
  * Validates the required fields in the document
@@ -25,28 +25,47 @@ function parseXMLDocument(xmlString) {
     console.log("🔹 Raw XML received:", xmlString);
 
     try {
-        const ubl = new UBLBuilder();
-        const invoice = ubl.parseInvoiceXML(xmlString);
+        // const ubl = new UBLBuilder();
+        // const invoice = ubl.parseInvoiceXML(xmlString);
 
-        // Fix: Get payable amount text properly
-        const payableAmountElement = invoice.getLegalMonetaryTotal().getPayableAmount();
-        const payableAmount = payableAmountElement && payableAmountElement._text 
-            ? parseFloat(payableAmountElement._text) 
-            : NaN;
+        // // Fix: Get payable amount text properly
+        // const payableAmountElement = invoice.getLegalMonetaryTotal().getPayableAmount();
+        // const payableAmount = payableAmountElement && payableAmountElement._text 
+        //     ? parseFloat(payableAmountElement._text) 
+        //     : NaN;
         
-        // Fix: Extract currency code properly
-        const currencyCode = payableAmountElement && payableAmountElement.currencyID
-            ? payableAmountElement.currencyID 
-            : undefined;
+        // // Fix: Extract currency code properly
+        // const currencyCode = payableAmountElement && payableAmountElement.currencyID
+        //     ? payableAmountElement.currencyID 
+        //     : undefined;
+
+        // const document = {
+        //     SalesOrderID: invoice.getOrderReference().getID(),
+        //     IssueDate: invoice.getIssueDate(),
+        //     PartyName: invoice.getAccountingCustomerParty().getParty().getPartyName().getName(),
+        //     PayableAmount: payableAmount,
+        //     CurrencyCode: currencyCode
+        // };
+        const options = {
+            ignoreAttributes : false
+        }; 
+        const parser = new XMLParser(options);
+        let orderObj = parser.parse(xmlString);
+        // console.log(orderObj.Invoice);
+        // for(var property in orderObj.Invoice) {
+        //     console.log(property, orderObj.Invoice[property]);
+        // }
+
+        let invoiceObj = orderObj.Invoice;
 
         const document = {
-            SalesOrderID: invoice.getOrderReference().getID(),
-            IssueDate: invoice.getIssueDate(),
-            PartyName: invoice.getAccountingCustomerParty().getParty().getPartyName().getName(),
-            PayableAmount: payableAmount,
-            CurrencyCode: currencyCode
-        };
-
+            SalesOrderID: invoiceObj['cac:OrderReference']['cbc:ID'],
+            IssueDate: invoiceObj['cbc:IssueDate'],
+            PartyName: invoiceObj['cac:AccountingCustomerParty']['cac:Party']['cac:PartyName']['cbc:Name'],
+            PayableAmount: invoiceObj['cac:LegalMonetaryTotal']['cbc:PayableAmount']['#text'],
+            CurrencyCode: invoiceObj['cac:LegalMonetaryTotal']['cbc:PayableAmount']['@_currencyID']
+        }
+        
         console.log("✅ Parsed XML document:", document);
 
         if (!validateDocument(document)) {
