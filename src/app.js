@@ -20,6 +20,9 @@ import {
     deleteInvoiceById
 } from './invoiceToDB.js';
 import { userInput } from "./UsersToDB.js";
+import { validateInvoice } from './validate.js';
+
+import { healthCheck } from './health.js';
 
 export const app = express();
 // Middleware to access the JSON body of requests
@@ -33,6 +36,10 @@ app.use(morgan('dev'));
 // ============================= ROUTES BELOW ================================
 // ===========================================================================
 
+// Health check route
+app.get('/api/health', healthCheck);
+
+// register a new user
 app.post('/api/v1/admin/register', (req, res) => {
     const { companyName, email, password } = req.body;
   
@@ -55,6 +62,17 @@ app.post('/api/v1/admin/login', (req, res) => {
 
         res.status(200).json(result);
     });
+});
+
+// validate a given XML invoice
+app.post('/api/v1/invoice/validate', (req, res) => {
+    const { invoice } = req.body;
+
+    validateInvoice(invoice, (result) => {
+        res.set("Content-Type", "application/json");
+        res.status(200).json(result);
+    });
+
 });
 
 // Delete order based on orderId
