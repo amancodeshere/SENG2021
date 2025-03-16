@@ -1,8 +1,7 @@
 import fs from "fs";
-import { validateInvoice } from "../../validate.js";
 import expect from "expect";
 import request from "supertest";
-import { app } from '../../app.js';
+import { app } from '../../../app.js';
 
 
 describe("validateInvoice Function", () => {

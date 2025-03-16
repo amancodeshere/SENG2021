@@ -6,9 +6,8 @@ import {
     adminRegister,
     adminLogin
 } from './admin.js';
-import { invoiceToXml, viewInvoice } from './invoice.js';
+import { invoiceToXml, viewInvoice, validateInvoice } from './invoice.js';
 import { getUserBySessionId } from "./UsersToDB.js";
-import { validateInvoice } from './validate.js';
 
 import { healthCheck } from './health.js';
 
