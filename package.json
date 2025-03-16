@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node src/server.js",
     "test": "jest --coverage",
-    "ci-test": "jest --ci",
+    "ci-test": "jest --ci --coverage",
     "lint": "eslint src"
   },
   "devDependencies": {
