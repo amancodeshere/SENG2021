@@ -40,11 +40,11 @@ export function adminRegister(email, password, companyName, callback) {
     }
 
     if(!isValidPartyName(companyName)) {
-        return callback(new CustomInputError("comapanyName contains invalid characters."));
+        return callback(new CustomInputError("companyName contains invalid characters."));
     }
 
     if (companyName.length < MIN_BUSINESS_NAME_LENGTH) {
-        return callback(new CustomInputError("comapanyName must be 2 or more characters in length."));
+        return callback(new CustomInputError("companyName must be 2 or more characters in length."));
     }
 
     if (password.length < MIN_PASSWORD_LENGTH) {

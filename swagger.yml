@@ -6,7 +6,7 @@ info:
   version: 1.0.0
  
 servers:
-  - url: http://localhost:3000/v1/api
+  - url: http://localhost:3000/api
     description: Local development server
   - url:
     description: Deployed server
@@ -18,48 +18,48 @@ tags:
     description: Routes for the API which are still under development
 
 paths:
-  /admin/register:
+  /v1/admin/register:
     post:
-      summary: Register a new business account
-      description: Subscribe to the invoice generation service by registering a business account
+      summary: Register a new company account
+      description: Subscribe to the invoice generation service by registering a company account
       tags:
         - Working routes
       operationId: adminRegister
       requestBody:
-        description: Business details and password for the account
+        description: Details and password for the account
         required: true
         content:
           application/json:
             schema:
               type: object
               properties:
-                businessName:
+                companyName:
                   type: string
                 email:
                   type: string
                 password:
                   type: string
               example:
-                businessName: "Candlecraft Pty Ltd"
+                companyName: "Candlecraft Pty Ltd"
                 email: "candle.craft@gmail.com"
                 password: "candles123"
       responses:
         "200":
           $ref: "#/components/responses/SessionId"
         "400":
-          description: Invalid input provided - email is not valid, account for this business already exists, businessName has invalid characters (valid characters are alphanumeric, spaces and special characters including [.,'-&()])
+          description: Invalid input provided - email is not valid, account with this email already exists, companyName has invalid characters or is less than 3 characters, password is less than 8 characters or does not contain atleast one number and one letter
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-  /admin/login:
+  /v1/admin/login:
     post:
-      summary: Login to the business account
+      summary: Login to an account
       tags:
         - Working routes
       operationId: adminLogin
       requestBody:
-        description: Email and password to login to business account
+        description: Email and password to login to account
         required: true
         content:
           application/json:
@@ -82,11 +82,11 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-  /admin/logout:
+  /v1/admin/logout:
     post:
       summary: Logout from an active session
       tags:
-        - Working routes
+        - In progress routes
       operationId: adminLogout
       requestBody:
         description: sessionId of the active session to logout from
@@ -105,7 +105,7 @@ paths:
           description: User successfully logged out
         "401":
           $ref: "#/components/responses/Unauthorised"
-  /health:
+  /v1/health:
     get:
       summary: Indicates the aliveness of the service
       tags:
@@ -121,17 +121,21 @@ paths:
                 properties:
                   status:
                     type: string
+                    enum:
+                      - success
                   serviceUptime:
                     type: string
                   memoryUsage:
                     type: string
                   database:
                     type: string
+                    enum:
+                      - connected
                 example:
-                  status: "ok"
-                  serviceUptime: "1 hour, 12 minutes"
-                  memoryUsage: "30MB"
-                  database: "connected"
+                  status: success
+                  serviceUptime: 1 hour, 12 minutes
+                  memoryUsage: 30MB
+                  database: connected
         "500":
           description: Service is unavailable and there was an internal error
           content:
@@ -141,20 +145,22 @@ paths:
                 properties:
                   status:
                     type: string
-                  message:
+                    enum:
+                      - fail
+                  errorMessage:
                     type: string
                 example:
-                  status: "error"
-                  message: "The database is unreachable"    
-  /invoice:
+                  status: fail
+                  errorMessage: "The database is not connected"    
+  /v1/invoice/create:
     post:
-      summary: Add new invoice
+      summary: Create new invoice
       description: Use data from a document (e.g. order document) to create an invoice resource
       tags:
         - Working routes
       security:
         - Authentication: []
-      operationId: addInvoice
+      operationId: createInvoice
       requestBody:
         description: Order used to create invoice resource
         required: true
@@ -166,7 +172,7 @@ paths:
             schema:
               $ref: "#/components/schemas/Order"
       responses:
-        "201":
+        "200":
           description: Invoice resource created successfully
           content:
             application/json:
@@ -185,10 +191,10 @@ paths:
                 $ref: "#/components/schemas/Error"
         "401":
           $ref: "#/components/responses/Unauthorised"
-  /invoice/{invoiceid}/xml:
+  /v1/invoice/{invoiceid}/xml:
     get:
-      summary: Converts an invoice resource into UBL XML
-      description: Converts invoice with the given invoiceid to UBL XML format and returns it
+      summary: Converts an invoice resource into UBL 2.1 XML
+      description: Converts invoice with the given invoiceid to UBL 2.1 XML format and returns it
       tags:
         - Working routes
       security:
@@ -212,25 +218,28 @@ paths:
           $ref: "#/components/responses/NotFound"
         "401":
           $ref: "#/components/responses/Unauthorised"
-  /invoice/validate:
+  /v1/invoice/validate:
     post:
       summary: Submits an invoice for validation
       description: Validates that invoice in XML matches UBL formatting and schema
       tags:
         - Working routes
-      security:
-        - Authentication: []
-      operationId: invoiceValidate
+      operationId: validateInvoice
       requestBody:
-        description: Invoice in xml to validate
+        description: Invoice in xml (as a UTF-8 encoded string) to validate
         required: true
         content:
-          application/xml:
+          application/json:
             schema:
-              $ref: "#/components/schemas/InvoiceXml"
+              type: object
+              properties:
+                invoice:
+                  type: string
+                  format: xml
+                  example: <?xml version="1.0" encoding="UTF-8"?><Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2" <cbc:UBLVersionID>2.1</cbc:UBLVersionID><cbc:ID>INV-12345</cbc:ID><cbc:IssueDate>2025-03-16</cbc:IssueDate> <cbc:DocumentCurrencyCode>USD</cbc:DocumentCurrencyCode><cac:AccountingSupplierParty><cac:Party><cbc:Name>Supplier Inc.</cbc:Name></cac:Party></cac:AccountingSupplierParty><cac:AccountingCustomerParty> <cac:Party><cbc:Name>Customer LLC</cbc:Name></cac:Party></cac:AccountingCustomerParty><cac:InvoiceLine><cbc:ID>1</cbc:ID><cbc:InvoicedQuantity unitCode="EA">10</cbc:InvoicedQuantity><cbc:LineExtensionAmount currencyID="USD">100.00</cbc:LineExtensionAmount> <cac:Item><cbc:Description>Office Chair</cbc:Description></cac:Item></cac:InvoiceLine><cac:LegalMonetaryTotal><cbc:PayableAmount currencyID="USD">110.00</cbc:PayableAmount></cac:LegalMonetaryTotal></Invoice>
       responses:
         "200":
-          description: Invoice successfully received for validation
+          description: Invoice successfully received and processed
           content:
             application/json:
               schema:
@@ -243,17 +252,9 @@ paths:
                 example:
                   validated: true
                   message:  "Invoice is in valid UBL 2.1 XML format"
-        "400":
-          description: Invalid input provided - not in XML format
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error" 
-        "401":
-          $ref: "#/components/responses/Unauthorised"
-  /invoice/list:
+  /v1/invoice/list:
     get:
-      summary: Lists all invoices created by the user
+      summary: Lists all invoices by customer party
       tags:
         - Working routes
       security:
@@ -261,37 +262,38 @@ paths:
       operationId: listInvoices
       responses:
         "200":
-          $ref: "#/components/responses/InvoiceList"
-        "401":
-          $ref: "#/components/responses/Unauthorised"
-  /invoice/filter:
-    get:
-      summary: View invoices filtered by invoiceEndDate
-      description: Lists invoices created by the user with specified invoiceEndDate
-      tags:
-        - In progress routes
-      security:
-        - Authentication: []
-      operationId: filterInvoices
-      parameters:
-        - name: invoiceEndDate
-          in: query
-          required: true
-          schema:
-            type: string
-          description: invoiceEndDate to search for invoices in "YYYY-MM-DD" format
-      responses:
-        "200":
-          $ref: "#/components/responses/InvoiceList"
-        "400":
-          description: Invalid input provided - invoiceEndDate not in correct format
+          description: Successful retrieval of invoices list
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                type: object
+                properties:
+                  invoices:
+                    type: array
+                    items: 
+                      type: object
+                      properties:
+                        invoiceId:
+                          type: integer
+                          example: 123456
+                        issueDate:
+                          type: string
+                          example: 2025-03-02
+                        partyNameBuyer:
+                          type: string
+                          example: Candlecraft Pty Ltd
+                        payableAmount:
+                          type: number
+                          example: 100
+                        currencyCode:
+                          type: string
+                          example: AUD
+                        salesOrderId:
+                          type: integer
+                          example: 765489
         "401":
           $ref: "#/components/responses/Unauthorised"
-  /invoice/{invoiceid}:
+  /v1/invoice/{invoiceid}:
     get:
       summary: View an invoice
       description:  View an invoice using its invoiceid
@@ -309,11 +311,44 @@ paths:
           description: The id used to identify invoice resource
       responses:
         "200":
-          description: Successful retrieval
+          description: Successful retrieval of invoice
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Invoice"
+                type: object
+                properties:
+                  invoiceId:
+                    type: integer
+                    example: 123456
+                  issueDate:
+                    type: string
+                    example: 2025-03-02
+                  partyNameBuyer:
+                    type: string
+                    example: Candlecraft Pty Ltd
+                  payableAmount:
+                    type: number
+                    example: 100
+                  currencyCode:
+                    type: string
+                    example: AUD
+                  salesOrderId:
+                    type: integer
+                    example: 765489
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        description:
+                          type: string
+                          example: Scented soy candle
+                        amount:
+                          type: integer
+                          example: 10
+                        unitCode:
+                          type: string
+                          example: PCS
         "404":
           $ref: "#/components/responses/NotFound"
         "401":
@@ -322,7 +357,7 @@ paths:
       summary: Update information in an invoice
       description: Update provided information about an invoice resource
       tags:
-        - Working routes
+        - In progress routes
       security:
         - Authentication: []
       operationId: updateInvoice
@@ -345,8 +380,6 @@ paths:
                   type: string
                   enum:
                     - payableAmount
-                    - itemAmount
-                    - itemDescription
                     - invoiceStartDate
                     - invoiceEndDate
                 newData:
@@ -387,43 +420,69 @@ components:
       properties:
         salesOrderId:
           type: integer
+          example: 123456
+        UUID:
+          type: string
+          example: 6E09886B
         issueDate:
-          type: integer
-        sellerParty:
+          type: string
+          example: 2025-01-14
+        documentCurrencyCode:
+          type: string
+          example: AUD
+        buyerCustomerParty:
           type: object
           properties:
             name:
               type: string
+              example: IYT Corporation
             contact:
-              type: string
-        buyerParty:
+              type: number
+              example: 01272653214
+        sellerSupplierParty:
           type: object
           properties:
             name:
               type: string
+              example: Consortial
             contact:
-              type: string
+              type: number
+              example: 01581233856
         deliveryAddress:
           type: string
+          example: 56A Avon Way, Sydney, Australia, 2345
         deliveryPeriod:
-          type: string
+          type: object
+          properties:
+            startDate:
+              type: string
+              example: 2025-01-24
+            endDate:
+              type: string
+              example: 2025-02-03
         deliveryTerms:
           type: string
-        items:
+          example: 1% deduction for late delivery
+        payableAmount:
+          type: number
+          example: 100
+        orderLine:
           type: array
           items:
             type: object
             properties:
               itemId:
                 type: integer
+                example: 9876
+              quantity:
+                type: string
+                example: 5
+              lineExtensionAmount:
+                type: number
+                example: 50
               description:
                 type: string
-              unitPrice:
-                type: number
-              amount:
-                type: integer
-        totalPayableAmount:
-          type: number
+                example: Battery component
     InvoiceXml:
       type: object
       xml:
@@ -431,21 +490,31 @@ components:
       properties:
         invoiceId:
           type: integer
-        type:
-          type: string
-          enum:
-            - "original"
-            - "copy"
+          example: 123456
+        salesOrderId:
+          type: integer
+          example: 98765
         issueDate:
           type: string
+          example: 2025-03-02
         invoiceStartDate:
           type: string
+          example: 2025-03-14
         invoiceEndDate:
           type: string
-        sellerPartyName:
+          example: 2025-04-02
+        documentCurrencyCode:
           type: string
-        buyerPartyName:
+          example: AUD
+        accountingSupplierParty:
           type: string
+          example: Candlecraft Pty Ltd
+        accountingCustomerParty:
+          type: string
+          example: Dusk
+        payableAmount:
+          type: number
+          example: 300
         items:
           type: array
           items:
@@ -453,31 +522,16 @@ components:
             properties:
               itemId:
                 type: integer
+                example: 8765
+              quantity:
+                type: integer
+                example: 50
+              lineExtensionAmount:
+                type: number
+                example: 300
               description:
                 type: string
-              unitPrice:
-                type: number
-              amount:
-                type: integer
-        totalPayableAmount:
-          type: number
-    Invoice:
-      type: object
-      properties:
-        invoiceId:
-          type: integer
-        issueDate:
-          type: string
-        buyerParty:
-          type: string
-        payableAmount:
-          type: string
-      example:
-        invoiceId: 28746393
-        invoiceStartDate: "2025-01-22"
-        invoiceEndDate: "2025-02-22"
-        buyerPartyName: "Candlecraft Pty Ltd"
-        payableAmount: “$1200.00”
+                example: Scented soy candles
 
   responses:
     NotFound:
@@ -503,14 +557,3 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/Error"
-    InvoiceList:
-      description: Successful retrieval of invoices list
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              invoices:
-                type: array
-                items: 
-                  $ref: "#/components/schemas/Invoice"
