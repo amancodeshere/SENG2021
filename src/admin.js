@@ -1,7 +1,7 @@
 import { isValidPartyName } from './helperFunctions.js';
 import validator from 'validator';
 import { CustomInputError } from './errors.js';
-import { userInput } from './UsersToDB.js';
+import { updateUserSession, validateUser, userInput } from './UsersToDB.js';
 
 // global constants
 const MIN_BUSINESS_NAME_LENGTH = 3;
@@ -60,8 +60,24 @@ export function adminRegister(email, password, companyName, callback) {
             return callback(err);
         }
 
-        callback(null, {
-            sessionId: result.sessionID
-        });
+        callback(null, { sessionId: result.sessionID });
+    });
+}
+
+export function adminLogin(email, password, callback) {
+    validateUser(email, password, (validateErr, validateResult) => {
+        if (validateErr) {
+            return callback(validateErr);
+        }
+
+        if (validateResult) {
+            updateUserSession(email, (sessionErr, sessionResult) => {
+                if (sessionErr) {
+                    return callback(sessionErr);
+                }
+
+                callback(null, { sessionId: sessionResult.sessionID });
+            });
+        }
     });
 }
