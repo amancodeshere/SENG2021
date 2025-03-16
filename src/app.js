@@ -3,7 +3,8 @@ import cors from 'cors';
 import morgan from 'morgan';
 import bodyParser from 'body-parser';
 import {
-    adminRegister
+    adminRegister,
+    adminLogin
 } from './admin.js';
 import {
     inputOrder,
@@ -36,6 +37,18 @@ app.post('/v1/api/admin/register', (req, res) => {
     const { companyName, email, password } = req.body;
   
     adminRegister(email, password, companyName, (err, result) => {
+        if (err) {
+            return res.status(400).json({ error: err.message });
+        }
+
+        res.status(200).json(result);
+    });
+});
+
+app.post('/api/v1/admin/login', (req, res) => {
+    const { email, password } = req.body;
+  
+    adminLogin(email, password, (err, result) => {
         if (err) {
             return res.status(400).json({ error: err.message });
         }
