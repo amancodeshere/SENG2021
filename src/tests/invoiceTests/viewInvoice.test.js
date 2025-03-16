@@ -50,7 +50,7 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
 
             const res = await request(app)
                 .get('/api/v1/invoice/123456')
-                .set('sessionid', '123')
+                .set('sessionid', '123');
             expect(res.status).toBe(200);
             expect(res.body).toEqual({
                 invoiceId: 123456,
@@ -106,25 +106,25 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
 
             const res = await request(app)
                 .get('/api/v1/invoice/234567')
-                .set('sessionid', '123')
-                expect(res.status).toBe(200);
-                expect(res.body).toEqual({
-                    invoiceId: 234567,
-                    salesOrderID: 2454565,
-                    issueDate: "2025-03-06",
-                    partyNameBuyer: "ABC Corp",
-                    payableAmount: "USD 500",
-                    items: [
-                        {
-                            description: "Electronic Component",
-                            amount: "5 PCS"
-                        },
-                        {
-                            description: "Battery Component",
-                            amount: "15 PCS"
-                        }
-                    ]
-                });
+                .set('sessionid', '123');
+            expect(res.status).toBe(200);
+            expect(res.body).toEqual({
+                invoiceId: 234567,
+                salesOrderID: 2454565,
+                issueDate: "2025-03-06",
+                partyNameBuyer: "ABC Corp",
+                payableAmount: "USD 500",
+                items: [
+                    {
+                        description: "Electronic Component",
+                        amount: "5 PCS"
+                    },
+                    {
+                        description: "Battery Component",
+                        amount: "15 PCS"
+                    }
+                ]
+            });
         });
     });
 
@@ -142,7 +142,7 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
             });
             const res = await request(app)
                 .get('/api/v1/invoice/123/xml')
-                .set('sessionid', '1234')
+                .set('sessionid', '1234');
             expect(res.body).toEqual({ error: "Invoice not found." });
             expect(res.status).toBe(404);
         });
@@ -153,7 +153,7 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
             });
             const res = await request(app)
                 .get('/api/v1/invoice/123/xml')
-                .set('sessionid', '1234')
+                .set('sessionid', '1234');
             expect(res.body).toEqual({ error: "Session not found." });
             expect(res.status).toBe(401);
         });

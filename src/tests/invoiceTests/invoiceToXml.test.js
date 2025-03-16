@@ -74,7 +74,7 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
             });
             const res = await request(app)
                 .get('/api/v1/invoice/123456/xml')
-                .set('sessionid', '123')
+                .set('sessionid', '123');
             expect(typeof res.text).toBe("string");
             expect(res.status).toBe(200);
             expect(res.text).toContain('<?xml version="1.0" encoding="UTF-8"');
@@ -106,7 +106,7 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
             });
             const res = await request(app)
                 .get('/api/v1/invoice/123456/xml')
-                .set('sessionid', '123')
+                .set('sessionid', '123');
             expect(typeof res.text).toBe("string");
             expect(res.status).toBe(200);
             expect(res.text).toContain('<?xml version="1.0" encoding="UTF-8"');
@@ -204,7 +204,7 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
             });
             const res = await request(app)
                 .get('/api/v1/invoice/123/xml')
-                .set('sessionid', '1234')
+                .set('sessionid', '1234');
             expect(res.body).toEqual({ error: "Invoice not found." });
             expect(res.status).toBe(404);
         });
@@ -215,7 +215,7 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
             });
             const res = await request(app)
                 .get('/api/v1/invoice/123/xml')
-                .set('sessionid', '1234')
+                .set('sessionid', '1234');
             expect(res.body).toEqual({ error: "Session not found." });
             expect(res.status).toBe(401);
         });
