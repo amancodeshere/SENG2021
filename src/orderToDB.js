@@ -2,6 +2,7 @@ import { db } from './connect.js';
 import { CustomInputError } from './errors.js';
 import { validate as validateUUID } from "uuid";
 import { parse, isValid, format } from "date-fns";
+import { isValidPartyName } from './helperFunctions.js'
 
 // ===========================================================================
 // ======================== Helper Functions Below ===========================
@@ -17,20 +18,6 @@ export function isValidIssueDate(date) {
     if (typeof date !== 'string') return false;
     const parsedDate = parse(date, 'yyyy-MM-dd', new Date());
     return isValid(parsedDate) && format(parsedDate, 'yyyy-MM-dd') === date;
-}
-
-/**
- * Validates a party name.
- *
- * @param {string} partyName - party name to validate.
- * @returns {boolean} True if valid, false otherwise.
- */
-export function isValidPartyName(partyName) {
-    if (typeof partyName !== 'string' || !partyName.trim()) {
-        return false;
-    }
-    const allowedRegex = /^[a-zA-Z0-9\s.,'\-&()]+$/;
-    return allowedRegex.test(partyName.trim());
 }
 
 /**
