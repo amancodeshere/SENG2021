@@ -1,14 +1,13 @@
-import { db } from '../connect.js';
-import { CustomInputError } from '../errors.js';
+import { db } from './connect.js';
+import { CustomInputError } from './errors.js';
 import { UBLBuilder } from 'ubl-builder';
 import { inputOrder } from './orderToDB.js';
 import { inputInvoice } from './invoiceToDB.js';
 import { v4 as uuidv4 } from 'uuid';
 
+
 /**
  * Validates the required fields in the document
- * @param {Object} document - The document to validate
- * @returns {boolean} - Whether the document is valid
  */
 function validateDocument(document) {
     const requiredFields = ['SalesOrderID', 'IssueDate', 'PartyName', 'PayableAmount', 'CurrencyCode'];
@@ -16,42 +15,56 @@ function validateDocument(document) {
 }
 
 /**
- * Parses XML document using UBL standard and extracts required fields
- * @param {string} xmlString - XML document string
- * @returns {Object} - Parsed document with required fields
+ * Parses XML document using UBL standard
  */
 function parseXMLDocument(xmlString) {
+    if (!xmlString || typeof xmlString !== 'string') {
+        throw new CustomInputError('Invalid XML document');
+    }
+
+    console.log("🔹 Raw XML received:", xmlString);
+
     try {
         const ubl = new UBLBuilder();
         const invoice = ubl.parseInvoiceXML(xmlString);
 
-        return {
-            SalesOrderID: invoice.getOrderReference(),
+        // Fix: Get payable amount text properly
+        const payableAmountElement = invoice.getLegalMonetaryTotal().getPayableAmount();
+        const payableAmount = payableAmountElement && payableAmountElement._text 
+            ? parseFloat(payableAmountElement._text) 
+            : NaN;
+        
+        // Fix: Extract currency code properly
+        const currencyCode = payableAmountElement && payableAmountElement.currencyID
+            ? payableAmountElement.currencyID 
+            : undefined;
+
+        const document = {
+            SalesOrderID: invoice.getOrderReference().getID(),
             IssueDate: invoice.getIssueDate(),
-            PartyName: invoice.getAccountingCustomerParty().getName(),
-            PayableAmount: parseFloat(invoice.getLegalMonetaryTotal().getPayableAmount()),
-            CurrencyCode: invoice.getDocumentCurrencyCode(),
-            Items: invoice.getInvoiceLines().map(line => ({
-                ItemDescription: line.getItem().getDescription(),
-                BuyersItemIdentification: line.getItem().getBuyersItemIdentification(),
-                SellersItemIdentification: line.getItem().getSellersItemIdentification(),
-                ItemAmount: parseFloat(line.getInvoicedQuantity()),
-                ItemUnitCode: line.getInvoicedQuantity().getUnitCode()
-            }))
+            PartyName: invoice.getAccountingCustomerParty().getParty().getPartyName().getName(),
+            PayableAmount: payableAmount,
+            CurrencyCode: currencyCode
         };
+
+        console.log("✅ Parsed XML document:", document);
+
+        if (!validateDocument(document)) {
+            throw new CustomInputError('Missing required fields in document');
+        }
+
+        return document;
     } catch (error) {
+        console.error("🔴 Error parsing XML:", error);
         throw new CustomInputError('Invalid XML document');
     }
 }
 
 /**
  * Creates an invoice using the order-first approach
- * @param {Object} document - The validated document data
- * @returns {Promise<number>} - The ID of the created invoice
  */
 async function createInvoiceFromDocument(document) {
     return new Promise((resolve, reject) => {
-        // First create an order
         const orderData = {
             SalesOrderID: document.SalesOrderID,
             UUID: uuidv4(),
@@ -68,75 +81,83 @@ async function createInvoiceFromDocument(document) {
             }]
         };
 
-        // Create order first
-        inputOrder(
-            orderData.SalesOrderID,
-            orderData.UUID,
-            orderData.IssueDate,
-            orderData.PartyName,
-            orderData.PayableAmount,
-            orderData.PayableCurrencyCode,
-            orderData.Items,
-            (orderErr) => {
-                if (orderErr) {
-                    console.error('Error creating order:', orderErr);
-                    reject(new Error('Failed to create invoice: ' + orderErr.message));
+        inputOrder(orderData.SalesOrderID, orderData.UUID, orderData.IssueDate, orderData.PartyName, orderData.PayableAmount, orderData.PayableCurrencyCode, orderData.Items, (orderErr) => {
+            if (orderErr) {
+                console.error('🔴 Error creating order:', orderErr);
+                reject(new Error('Order creation failed'));
+                return;
+            }
+
+            inputInvoice(orderData.SalesOrderID, (invoiceErr, result) => {
+                if (invoiceErr) {
+                    console.error('🔴 Error creating invoice:', invoiceErr);
+                    reject(new Error('Invoice creation failed'));
                     return;
                 }
-
-                // Then create invoice from the order
-                inputInvoice(orderData.SalesOrderID, (invoiceErr, result) => {
-                    if (invoiceErr) {
-                        console.error('Error creating invoice:', invoiceErr);
-                        reject(new Error('Failed to create invoice: ' + invoiceErr.message));
-                        return;
-                    }
-                    resolve(result.InvoiceID);
-                });
-            }
-        );
+                resolve(result.InvoiceID);
+            });
+        });
     });
 }
 
 /**
  * Handles the POST /api/invoice request
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
  */
 export async function handlePostInvoice(req, res) {
     try {
+        console.log("🔹 Received request for /api/invoice");
+
+        const sessionId = req.headers['sessionid'];
+        if (!sessionId) {
+            return res.status(400).json({ error: 'Invalid session ID' });
+        }
+
+        console.log(`🔹 Checking session ID: ${sessionId}`);
+
+        try {
+            const validSession = await new Promise((resolve, reject) => {
+                db.get('SELECT * FROM sessions WHERE sessionId = ?', [sessionId], (err, row) => {
+                    if (err) return reject(new Error('Database error while checking session'));
+                    resolve(row);
+                });
+            });
+
+            if (!validSession) {
+                return res.status(400).json({ error: 'Invalid session ID' });
+            }
+        } catch (err) {
+            return res.status(500).json({ error: 'Internal session validation error' });
+        }
+
         let document;
-        if (req.headers['content-type'] === 'application/xml') {
-            if (!req.body || typeof req.body !== 'string') {
-                return res.status(400).json({ error: 'Invalid document format' });
+        const contentType = req.headers['content-type'];
+        console.log(`🔹 Content-Type received: ${contentType}`);
+
+        try {
+            if (contentType === 'application/xml') {
+                document = parseXMLDocument(req.body);
+            } else if (contentType === 'application/json') {
+                console.log("🔹 Parsing JSON document", req.body);
+                document = req.body;
+
+                if (!validateDocument(document)) {
+                    return res.status(400).json({ error: 'Missing required fields in document' });
+                }
+            } else {
+                return res.status(400).json({ error: 'Invalid content type' });
             }
-            document = parseXMLDocument(req.body);
-        } else if (req.headers['content-type'] === 'application/json') {
-            if (!req.body || typeof req.body !== 'object') {
-                return res.status(400).json({ error: 'Invalid document format' });
-            }
-            document = req.body;
-        } else {
-            return res.status(400).json({ error: 'Invalid content type' });
+        } catch (err) {
+            return res.status(400).json({ error: err.message });
         }
 
-        if (!document || Object.keys(document).length === 0) {
-            return res.status(400).json({ error: 'Document is required' });
+        try {
+            console.log("🔹 Creating invoice from document:", document);
+            const invoiceId = await createInvoiceFromDocument(document);
+            return res.status(200).json({ invoiceId });
+        } catch (err) {
+            return res.status(400).json({ error: err.message });
         }
-
-        if (!validateDocument(document)) {
-            return res.status(400).json({ error: 'Missing required fields in document' });
-        }
-
-        const invoiceId = await createInvoiceFromDocument(document);
-        res.status(200).json({ invoiceId });
-
     } catch (error) {
-        if (error instanceof CustomInputError) {
-            res.status(400).json({ error: error.message });
-        } else {
-            console.error('Unexpected error:', error);
-            res.status(500).json({ error: 'Internal server error' });
-        }
+        return res.status(500).json({ error: 'Internal server error' });
     }
 }
