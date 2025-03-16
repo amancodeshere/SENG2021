@@ -2,7 +2,7 @@ import request from 'supertest';
 import { app } from '../../app.js';
 import { validateUser, updateUserSession } from '../../UsersToDB.js';
 
-// constants for request parameters
+// constants
 const VALID_EMAIL = 'valid@gmail.com';
 const VALID_PASSWORD = 'Password123';
 const SECOND_EMAIL = 'candle.craft@gmail.com'
