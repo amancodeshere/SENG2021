@@ -41,7 +41,7 @@ app.use(morgan('dev'));
 app.get('/api/health', healthCheck);
 
 // register a new user
-app.post('/v1/api/admin/register', bodyParser.json(), (req, res) => {
+app.post('/api/v1/admin/register', bodyParser.json(), (req, res) => {
     const { companyName, email, password } = req.body;
   
     adminRegister(email, password, companyName, (err, result) => {
@@ -67,7 +67,7 @@ app.post('/api/v1/admin/login', bodyParser.json(), (req, res) => {
 });
 
 // create UBL XML invoice
-app.get('/v1/api/invoice/:invoiceid/xml', (req, res) => {
+app.get('/api/v1/invoice/:invoiceid/xml', (req, res) => {
     const sessionId = parseInt(req.headers.sessionid);
     const invoiceId = req.params.invoiceid;
 

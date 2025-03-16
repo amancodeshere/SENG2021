@@ -46,7 +46,7 @@ describe('adminRegister route - Comprehensive Tests', () => {
                 });
             });
             const res = await request(app)
-                .post('/v1/api/admin/register')
+                .post('/api/v1/admin/register')
                 .set('Content-Type', 'application/json')
                 .send(user);
             expect(res.body).toEqual({ sessionId: SESSIONID1 });
@@ -72,7 +72,7 @@ describe('adminRegister route - Comprehensive Tests', () => {
                     });
                 });
             const res1 = await request(app)
-                .post('/v1/api/admin/register')
+                .post('/api/v1/admin/register')
                 .set('Content-Type', 'application/json')
                 .send(user);
             expect(res1.body).toEqual({ sessionId: SESSIONID1 });
@@ -84,7 +84,7 @@ describe('adminRegister route - Comprehensive Tests', () => {
                 password: VALID_PASSWORD
             };
             const res2 = await request(app)
-                .post('/v1/api/admin/register')
+                .post('/api/v1/admin/register')
                 .set('Content-Type', 'application/json')
                 .send(user2);
             expect(res2.body).toEqual({ sessionId: SESSIONID2 });
@@ -98,7 +98,7 @@ describe('adminRegister route - Comprehensive Tests', () => {
                 callback(new CustomInputError("Database error while inserting user."));
             });
             const res = await request(app)
-                .post('/v1/api/admin/register')
+                .post('/api/v1/admin/register')
                 .set('Content-Type', 'application/json')
                 .send(user);
             expect(res.body).toEqual({ error: "Database error while inserting user." });
@@ -112,7 +112,7 @@ describe('adminRegister route - Comprehensive Tests', () => {
                 password: VALID_PASSWORD
             };
             const res = await request(app)
-                .post('/v1/api/admin/register')
+                .post('/api/v1/admin/register')
                 .set('Content-Type', 'application/json')
                 .send(invalidUser);
             expect(res.body).toEqual({ error: expect.any(String) });
@@ -126,7 +126,7 @@ describe('adminRegister route - Comprehensive Tests', () => {
                 password: VALID_PASSWORD
             };
             const res = await request(app)
-                .post('/v1/api/admin/register')
+                .post('/api/v1/admin/register')
                 .set('Content-Type', 'application/json')
                 .send(invalidUser);
             expect(res.body).toEqual({ error: expect.any(String) });
@@ -140,7 +140,7 @@ describe('adminRegister route - Comprehensive Tests', () => {
                 password: VALID_PASSWORD
             };
             const res = await request(app)
-                .post('/v1/api/admin/register')
+                .post('/api/v1/admin/register')
                 .set('Content-Type', 'application/json')
                 .send(invalidUser);
             expect(res.body).toEqual({ error: expect.any(String) });
@@ -155,7 +155,7 @@ describe('adminRegister route - Comprehensive Tests', () => {
                 password: SHORT_PASSWORD
             };
             const res = await request(app)
-                .post('/v1/api/admin/register')
+                .post('/api/v1/admin/register')
                 .set('Content-Type', 'application/json')
                 .send(invalidUser);
             expect(res.body).toEqual({ error: expect.any(String) });
@@ -169,7 +169,7 @@ describe('adminRegister route - Comprehensive Tests', () => {
                 password: PASSWORD_NO_NUMBERS
             };
             let res = await request(app)
-                .post('/v1/api/admin/register')
+                .post('/api/v1/admin/register')
                 .set('Content-Type', 'application/json')
                 .send(invalidUser);
             expect(res.body).toEqual({ error: expect.any(String) });
@@ -177,7 +177,7 @@ describe('adminRegister route - Comprehensive Tests', () => {
 
             user.password = PASSWORD_NO_LETTERS;
             res = await request(app)
-                .post('/v1/api/admin/register')
+                .post('/api/v1/admin/register')
                 .set('Content-Type', 'application/json')
                 .send(invalidUser);
             expect(res.body).toEqual({ error: expect.any(String) });
