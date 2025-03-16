@@ -15,9 +15,9 @@ export async function validateInvoice(invoice, callback) {
         await validate(invoice, 'schemas/ANZ-PEPPOL/AUNZ-PEPPOL-validation.sch');
     } catch (err) {
         console.error(err.messages)
-        return callback(null, { validated: false, message: err.messages[0]});
+        return callback({ validated: false, message: err.messages[0]});
     }
 
-    return callback(null, { validated: true, message: "Valid invoice"});
+    return callback({ validated: true, message: "Valid invoice"});
 
 }

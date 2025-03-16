@@ -63,11 +63,8 @@ app.post('/api/v1/admin/login', (req, res) => {
 app.get('/api/v1/invoice/validate', (req, res) => {
     const { invoice } = req.body;
 
-    validateInvoice(invoice, (err, result) => {
+    validateInvoice(invoice, (result) => {
         res.set("Content-Type", "application/json");
-        if (err) {
-            return res.status(400).json({ error: err.message });
-        }
         res.status(200).json(result);
     });
 
