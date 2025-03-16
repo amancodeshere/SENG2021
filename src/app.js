@@ -19,6 +19,7 @@ import {
     deleteInvoiceById
 } from './invoiceToDB.js';
 import { userInput } from "./UsersToDB.js";
+import { validateInvoice } from './validate.js';
 
 export const app = express();
 // Middleware to access the JSON body of requests
