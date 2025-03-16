@@ -111,3 +111,33 @@ export function getInvoicesBySession(sessionId, callback) {
         });
     });
 }
+
+/**
+ * @description Find an invoice using its invoiceId and return information about it.
+ * @param {number} invoiceId
+ * @param {function} callback
+ */
+export function viewInvoice(invoiceId, callback) {
+    getInvoiceByID(invoiceId, (err, invoice) => {
+        if (err) {
+            return callback(err);
+        }
+
+        const items = [];
+        invoice.Items.forEach((item) => {
+            items.push({
+                description: item.ItemDescription,
+                amount: `${item.ItemAmount} ${item.ItemUnitCode}`,
+            });
+        });
+
+        callback(null, {
+            invoiceId: invoice.InvoiceID,
+            salesOrderID: parseInt(invoice.SalesOrderID),
+            issueDate: invoice.IssueDate,
+            partyNameBuyer: invoice.PartyNameBuyer,
+            payableAmount: `${invoice.CurrencyCode} ${invoice.PayableAmount}`,
+            items: items
+        });
+    });
+}
