@@ -22,6 +22,8 @@ import {
 import { userInput } from "./UsersToDB.js";
 import { validateInvoice } from './validate.js';
 
+import { healthCheck } from './health.js';
+
 export const app = express();
 // Middleware to access the JSON body of requests
 app.use(bodyParser.json());
@@ -33,6 +35,9 @@ app.use(morgan('dev'));
 // ===========================================================================
 // ============================= ROUTES BELOW ================================
 // ===========================================================================
+
+// Health check route
+app.get('/api/health', healthCheck);
 
 // register a new user
 app.post('/api/v1/admin/register', (req, res) => {
