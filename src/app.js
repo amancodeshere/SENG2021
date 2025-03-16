@@ -6,7 +6,7 @@ import {
     adminRegister,
     adminLogin
 } from './admin.js';
-import {getInvoicesBySession, invoiceToXml} from './invoice.js';
+import {getInvoicesBySession, invoiceToXml, viewInvoice} from './invoice.js';
 import {
     inputOrder,
     getOrderBySalesOrderID,
@@ -110,6 +110,26 @@ app.post('/api/v1/invoice/validate', bodyParser.json(), (req, res) => {
         res.status(200).json(result);
     });
 
+});
+
+
+// view an invoice
+app.get('/api/v1/invoice/:invoiceid', (req, res) => {
+    const sessionId = parseInt(req.headers.sessionid);
+    const invoiceId = req.params.invoiceid;
+
+    getUserBySessionId(sessionId, (sessionErr, user) => {
+        if (sessionErr) {
+            return res.status(401).json({ error: sessionErr.message });
+        }
+
+        viewInvoice(invoiceId, (err, result) => {
+            if (err) {
+                return res.status(404).json({ error: err.message });
+            }
+            res.status(200).json(result);
+        });
+    });
 });
 
 // ===========================================================================
