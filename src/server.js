@@ -167,7 +167,7 @@ app.delete('/api/invoices/delete/:invoiceId', (req, res) => {
 });
 
 // validate a given XML invoice
-app.get('/api/invoice/validate', (req, res) => {
+app.get('/api/v1/invoice/validate', (req, res) => {
     const { invoice } = req.body;
 
     validateInvoice(invoice, (err, result) => {

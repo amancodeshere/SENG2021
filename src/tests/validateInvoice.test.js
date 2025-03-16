@@ -1,6 +1,8 @@
 import fs from "fs";
 import { validateInvoice } from "../validate.js";
 import expect from "expect";
+import request from "supertest";
+
 
 describe("validateInvoice Function", () => {
     const path = "src/tests/xmlInvoiceExamples/";
@@ -9,11 +11,17 @@ describe("validateInvoice Function", () => {
     const invalidUblTagsInvoice = fs.readFileSync(path +"AusInvoiceInvalidUBL.xml", "utf-8");
     const invalidMissingField = fs.readFileSync(path +"AusInvoiceNoId.xml", "utf-8");
     const notUBL = fs.readFileSync(path +"notUBL.xml", "utf-8");
+    
     test("Validate Aus invoice successfully", async () => {
-        await validateInvoice(validInvoice, (err, result) => {
-            expect(err).toBeNull();
-            expect(result).toEqual({ validated: true, message: "Valid invoice" });
-        });
+        const res = await request(app).get('/api/v1/invoice/validate')
+                                      .set("Content-Type", "application/json")
+                                      .send({ invoice: validInvoice })
+        expect(res.body).toEqual({ validated: true, message: "Valid invoice" });
+        expect(res.status).toEqual(200);
+        // await validateInvoice(validInvoice, (err, result) => {
+        //     expect(err).toBeNull();
+        //     expect(result).toEqual({ validated: true, message: "Valid invoice" });
+        // });
     });
 
     test("Validate standard UBL invoice successfully", async () => {
