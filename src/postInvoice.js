@@ -1,6 +1,5 @@
 import { db } from './connect.js';
 import { CustomInputError } from './errors.js';
-import { UBLBuilder } from 'ubl-builder';
 import { inputOrder } from './orderToDB.js';
 import { inputInvoice } from './invoiceToDB.js';
 import { v4 as uuidv4 } from 'uuid';
@@ -22,39 +21,12 @@ function parseXMLDocument(xmlString) {
         throw new CustomInputError('Invalid XML document');
     }
 
-    console.log("🔹 Raw XML received:", xmlString);
-
     try {
-        // const ubl = new UBLBuilder();
-        // const invoice = ubl.parseInvoiceXML(xmlString);
-
-        // // Fix: Get payable amount text properly
-        // const payableAmountElement = invoice.getLegalMonetaryTotal().getPayableAmount();
-        // const payableAmount = payableAmountElement && payableAmountElement._text 
-        //     ? parseFloat(payableAmountElement._text) 
-        //     : NaN;
-        
-        // // Fix: Extract currency code properly
-        // const currencyCode = payableAmountElement && payableAmountElement.currencyID
-        //     ? payableAmountElement.currencyID 
-        //     : undefined;
-
-        // const document = {
-        //     SalesOrderID: invoice.getOrderReference().getID(),
-        //     IssueDate: invoice.getIssueDate(),
-        //     PartyName: invoice.getAccountingCustomerParty().getParty().getPartyName().getName(),
-        //     PayableAmount: payableAmount,
-        //     CurrencyCode: currencyCode
-        // };
         const options = {
             ignoreAttributes : false
         }; 
         const parser = new XMLParser(options);
         let orderObj = parser.parse(xmlString);
-        // console.log(orderObj.Invoice);
-        // for(var property in orderObj.Invoice) {
-        //     console.log(property, orderObj.Invoice[property]);
-        // }
 
         let invoiceObj = orderObj.Invoice;
 
@@ -66,15 +38,12 @@ function parseXMLDocument(xmlString) {
             CurrencyCode: invoiceObj['cac:LegalMonetaryTotal']['cbc:PayableAmount']['@_currencyID']
         }
         
-        console.log("✅ Parsed XML document:", document);
-
         if (!validateDocument(document)) {
             throw new CustomInputError('Missing required fields in document');
         }
 
         return document;
     } catch (error) {
-        console.error("🔴 Error parsing XML:", error);
         throw new CustomInputError('Invalid XML document');
     }
 }
@@ -102,14 +71,12 @@ async function createInvoiceFromDocument(document) {
 
         inputOrder(orderData.SalesOrderID, orderData.UUID, orderData.IssueDate, orderData.PartyName, orderData.PayableAmount, orderData.PayableCurrencyCode, orderData.Items, (orderErr) => {
             if (orderErr) {
-                console.error('🔴 Error creating order:', orderErr);
                 reject(new Error('Order creation failed'));
                 return;
             }
 
             inputInvoice(orderData.SalesOrderID, (invoiceErr, result) => {
                 if (invoiceErr) {
-                    console.error('🔴 Error creating invoice:', invoiceErr);
                     reject(new Error('Invoice creation failed'));
                     return;
                 }
@@ -124,14 +91,10 @@ async function createInvoiceFromDocument(document) {
  */
 export async function handlePostInvoice(req, res) {
     try {
-        console.log("🔹 Received request for /api/invoice");
-
         const sessionId = req.headers['sessionid'];
         if (!sessionId) {
             return res.status(400).json({ error: 'Invalid session ID' });
         }
-
-        console.log(`🔹 Checking session ID: ${sessionId}`);
 
         try {
             const validSession = await new Promise((resolve, reject) => {
@@ -150,13 +113,11 @@ export async function handlePostInvoice(req, res) {
 
         let document;
         const contentType = req.headers['content-type'];
-        console.log(`🔹 Content-Type received: ${contentType}`);
 
         try {
             if (contentType === 'application/xml') {
                 document = parseXMLDocument(req.body);
             } else if (contentType === 'application/json') {
-                console.log("🔹 Parsing JSON document", req.body);
                 document = req.body;
 
                 if (!validateDocument(document)) {
@@ -170,7 +131,6 @@ export async function handlePostInvoice(req, res) {
         }
 
         try {
-            console.log("🔹 Creating invoice from document:", document);
             const invoiceId = await createInvoiceFromDocument(document);
             return res.status(200).json({ invoiceId });
         } catch (err) {
