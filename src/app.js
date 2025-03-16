@@ -189,15 +189,15 @@ app.post('/api/users/register/db', (req, res) => {
 
 // update session after login
 app.post('/api/users/session/update', (req, res) => {
-    const { userId } = req.body;
+    const { email } = req.body;
 
-    if (!userId) {
-        return res.status(400).json({ error: "User ID is required." });
+    if (!email) {
+        return res.status(400).json({ error: "Email is required." });
     }
 
     res.set("Content-Type", "application/json");
 
-    updateUserSession(userId, (err, result) => {
+    updateUserSession(email, (err, result) => {
         if (err) {
             return res.status(500).json({ error: err.message });
         }
