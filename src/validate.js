@@ -1,6 +1,5 @@
 import xsdValidator from 'xsd-schema-validator';
 import { validate } from 'schematron-runner';
-import { CustomInputError } from './errors';
 
 /**
  * Submits an invoice for validation. Validates that invoice in XML matches UBL formatting and schema.
@@ -10,23 +9,15 @@ import { CustomInputError } from './errors';
  */
 export async function validateInvoice(invoice, callback) {
     try {
-        // Validates against the UBL Invoice XSD schema
-        const xsdResult = await xsdValidator.validateXML(invoice, 'schemas/ubl/xsd/maindoc/UBL-Invoice-2.1.xsd');
-        if (!xsdResult.valid) {
-            return callback(null, { validated: false, message: xsdResult.messages});
-        }
-
+        //Validates against the UBL Invoice XSD schema
+        await xsdValidator.validateXML(invoice, 'schemas/ubl/xsd/maindoc/UBL-Invoice-2.1.xsd');
         // Validates against the AUNZ-PEPPOL schematron
-        const schResult = await validate(invoice, 'schemas/ANZ-PEPPOL/AUNZ-PEPPOL-validation.sch');
-        if (schResult.errors.length != 0) {
-            var message = "";
-            schResult.errors.forEach(error => {message += error.xml + "\n";});
-            return callback(null, { validated: false, message: message});
-        }
-
-        return callback(null, { validated: true, message: "Valid invoice"});
-    } catch (error) {
-        console.error("Error validating invoice: ", error);
-        return callback(new CustomInputError("Error validating invoice"));
+        await validate(invoice, 'schemas/ANZ-PEPPOL/AUNZ-PEPPOL-validation.sch');
+    } catch (err) {
+        console.error(err.messages)
+        return callback(null, { validated: false, message: err.messages[0]});
     }
+
+    return callback(null, { validated: true, message: "Valid invoice"});
+
 }
