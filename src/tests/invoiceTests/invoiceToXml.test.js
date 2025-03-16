@@ -4,8 +4,6 @@ import { getInvoiceByID } from '../../invoiceToDB.js';
 import { getUserBySessionId } from '../../UsersToDB.js';
 import { CustomInputError } from '../../errors.js';
 
-// constants for request parameters
-
 jest.mock('../../UsersToDB.js', () => ({
     getUserBySessionId: jest.fn()
 }));
@@ -206,7 +204,7 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
             });
             const res = await request(app)
                 .get('/v1/api/invoice/123/xml')
-                .set('sessionid', '123')
+                .set('sessionid', '1234')
             expect(res.body).toEqual({ error: "Invoice not found." });
             expect(res.status).toBe(404);
         });
@@ -216,7 +214,7 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
                 return callback(new CustomInputError("Session not found."));
             });
             const res = await request(app)
-                .get('/v1/api/invoice/123456/xml')
+                .get('/v1/api/invoice/123/xml')
                 .set('sessionid', '1234')
             expect(res.body).toEqual({ error: "Session not found." });
             expect(res.status).toBe(401);

@@ -45,7 +45,7 @@ app.post('/v1/api/admin/register', bodyParser.json(), (req, res) => {
     });
 });
 
-app.get('/api/v1/invoice/:invoiceid/xml', (req, res) => {
+app.get('/v1/api/invoice/:invoiceid/xml', (req, res) => {
     const sessionId = parseInt(req.headers.sessionid);
     const invoiceId = req.params.invoiceid;
 
@@ -66,7 +66,8 @@ app.get('/api/v1/invoice/:invoiceid/xml', (req, res) => {
 });
 
 // --------------------------------------------------------------------------
-// ------------------- Routes to manually test database functions -----------
+// ---------------- Routes to manually test database functions --------------
+// ---------------- commented out to check coverage correctly ----------------
 
 // // Delete order based on orderId
 // app.delete('/api/orders/delete/:orderId', (req, res) => {
@@ -241,7 +242,6 @@ app.get('/api/v1/invoice/:invoiceid/xml', (req, res) => {
 //         res.status(200).json(result);
 //     });
 // });
-
 
 // app.get("/api/users/sessions/:email", (req, res) => {
 //     const email = decodeURIComponent(req.params.email).toLowerCase();
