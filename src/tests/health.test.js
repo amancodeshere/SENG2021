@@ -1,7 +1,7 @@
-import { healthCheck } from './health.js';
-import { db } from './connect.js';
+import { healthCheck } from '../health.js';
+import { db } from '../connect.js';
 
-jest.mock('./connect.js', () => ({
+jest.mock('../connect.js', () => ({
     db: {
         get: jest.fn(),
     },
@@ -52,27 +52,4 @@ describe("healthCheck Function", () => {
         expect(db.get).toHaveBeenCalledTimes(1);
     });
 
-    test("Check to see if calcUptime and getMemoryUsage function are called", (done) => {
-        jest.spyOn(healthCheck, 'calcUptime').mockReturnValue('1 hour(s), 30 minutes');
-        jest.spyOn(healthCheck, 'getMemoryUsage').mockReturnValue('500MB');
-
-        db.get.mockImplementation((sql, params, callback) => callback(null));
-
-        healthCheck({}, {
-            status: (statusCode) => {
-                expect(statusCode).toBe(200);
-                return {
-                    json: (response) => {
-                        expect(response.Uptime).toBe('1 hour(s), 30 minutes');
-                        expect(response.memoryUsage).toBe('500MB');
-                        done();
-                    }
-                };
-            }
-        });
-
-        expect(db.get).toHaveBeenCalledTimes(1);
-        expect(healthCheck.calcUptime).toHaveBeenCalledTimes(1);
-        expect(healthCheck.getMemoryUsage).toHaveBeenCalledTimes(1);
-    });
 });

@@ -24,7 +24,7 @@ export function getMemoryUsage() {
     const freeMemory = os.freemem();
     const usedMemory = totalMemory - freeMemory;
     const usedMemoryMB = (usedMemory / (1024 *1024)).toFixed(2);
-    return $`{usedMemoryMB}MB`;
+    return `${usedMemoryMB}MB`;
 }
 
 /**
