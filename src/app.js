@@ -3,7 +3,8 @@ import cors from 'cors';
 import morgan from 'morgan';
 import bodyParser from 'body-parser';
 import {
-    adminRegister
+    adminRegister,
+    adminLogin
 } from './admin.js';
 import { invoiceToXml } from './invoice.js';
 import {
@@ -20,6 +21,9 @@ import {
     deleteInvoiceById
 } from './invoiceToDB.js';
 import { userInput, getUserBySessionId } from "./UsersToDB.js";
+import { validateInvoice } from './validate.js';
+
+import { healthCheck } from './health.js';
 
 export const app = express();
 // Middleware to access the JSON body of requests
@@ -33,6 +37,10 @@ app.use(morgan('dev'));
 // ============================= ROUTES BELOW ================================
 // ===========================================================================
 
+// Health check route
+app.get('/api/health', healthCheck);
+
+// register a new user
 app.post('/v1/api/admin/register', bodyParser.json(), (req, res) => {
     const { companyName, email, password } = req.body;
   
@@ -45,6 +53,20 @@ app.post('/v1/api/admin/register', bodyParser.json(), (req, res) => {
     });
 });
 
+// login an existing user
+app.post('/api/v1/admin/login', bodyParser.json(), (req, res) => {
+    const { email, password } = req.body;
+  
+    adminLogin(email, password, (err, result) => {
+        if (err) {
+            return res.status(400).json({ error: err.message });
+        }
+
+        res.status(200).json(result);
+    });
+});
+
+// create UBL XML invoice
 app.get('/v1/api/invoice/:invoiceid/xml', (req, res) => {
     const sessionId = parseInt(req.headers.sessionid);
     const invoiceId = req.params.invoiceid;
@@ -63,6 +85,17 @@ app.get('/v1/api/invoice/:invoiceid/xml', (req, res) => {
                 .send(invoiceResult);
         });
     });
+});
+
+// validate a given XML invoice
+app.post('/api/v1/invoice/validate', bodyParser.json(), (req, res) => {
+    const { invoice } = req.body;
+
+    validateInvoice(invoice, (result) => {
+        res.set("Content-Type", "application/json");
+        res.status(200).json(result);
+    });
+
 });
 
 // --------------------------------------------------------------------------
@@ -159,19 +192,6 @@ app.get('/v1/api/invoice/:invoiceid/xml', (req, res) => {
 //     });
 // });
 
-// // get invoice by InvoiceID
-// app.get("/api/invoices/:invoiceID", (req, res) => {
-//     const { invoiceID } = req.params;
-
-//     getInvoiceByID(invoiceID, (err, result) => {
-//         res.set("Content-Type", "application/json");
-//         if (err) {
-//             return res.status(400).json({ error: err.message });
-//         }
-//         res.status(200).json(result);
-//     });
-// });
-
 // // get list of invoices given party name
 // app.get('/api/invoices/company/:PartyNameBuyer', (req, res) => {
 //     const { PartyNameBuyer } = req.params;
@@ -182,6 +202,19 @@ app.get('/v1/api/invoice/:invoiceid/xml', (req, res) => {
 //             return res.status(400).json({ error: err.message });
 //         }
 //         res.status(200).json({ invoices: result });
+//     });
+// });
+
+// // get invoice by InvoiceID
+// app.get("/api/invoices/:invoiceID", (req, res) => {
+//     const { invoiceID } = req.params;
+
+//     getInvoiceByID(invoiceID, (err, result) => {
+//         res.set("Content-Type", "application/json");
+//         if (err) {
+//             return res.status(400).json({ error: err.message });
+//         }
+//         res.status(200).json(result);
 //     });
 // });
 
@@ -214,15 +247,13 @@ app.get('/v1/api/invoice/:invoiceid/xml', (req, res) => {
 
 // // update session after login
 // app.post('/api/users/session/update', (req, res) => {
-//     const { userId } = req.body;
+//     const { email } = req.body;
 
-//     if (!userId) {
-//         return res.status(400).json({ error: "User ID is required." });
+//     if (!email) {
+//         return res.status(400).json({ error: "Email is required." });
 //     }
 
-//     res.set("Content-Type", "application/json");
-
-//     updateUserSession(userId, (err, result) => {
+//     updateUserSession(email, (err, result) => {
 //         if (err) {
 //             return res.status(500).json({ error: err.message });
 //         }
@@ -258,4 +289,3 @@ app.get('/v1/api/invoice/:invoiceid/xml', (req, res) => {
 // ===========================================================================
 // ============================= ROUTES ABOVE ================================
 // ===========================================================================
-
