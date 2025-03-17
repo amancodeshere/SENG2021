@@ -2,35 +2,35 @@
 FROM node:18
 
 
-# Install Java (Required for xsd-schema-validator)
-RUN apt-get update && apt-get install -y openjdk-17-jre
+# Install system dependencies required by some npm packages
+RUN apt-get update && apt-get install -y openjdk-17-jre ca-certificates && rm -rf /var/lib/apt/lists/*
 
 
-# Set working directory
-WORKDIR /src
+# Set working directory inside the container
+WORKDIR /app
 
 
-# Copy package files first (better caching)
+# Copy only package files first (optimizes Docker layer caching)
 COPY package.json package-lock.json ./
 
 
-# Clear npm cache to prevent install issues
+# Force a clean npm cache (prevents conflicts)
 RUN npm cache clean --force
 
 
-# Run npm install safely (with verbose output for debugging)
-RUN npm install --omit=dev --verbose || npm install --verbose
+# Install dependencies without optional packages
+RUN npm install --omit=optional --omit=dev --verbose || npm install --verbose
 
 
-# Copy the entire project
+# Copy the rest of the project files
 COPY . .
 
 
-# Fix permissions if needed
-RUN chmod -R 777 /src
+# Ensure permissions are set correctly
+RUN chmod -R 777 /app
 
 
-# Expose the port
+# Expose the port your application uses
 EXPOSE 3000
 
 
