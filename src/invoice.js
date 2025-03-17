@@ -77,8 +77,8 @@ async function createInvoiceFromDocument(document) {
             PayableCurrencyCode: document.CurrencyCode,
             Items: document.Items || [{
                 ItemDescription: "Default Item",
-                BuyersItemIdentification: "DEFAULT-BUYER",
-                SellersItemIdentification: "DEFAULT-SELLER",
+                BuyersItemIdentification: "12345678",
+                SellersItemIdentification: "12345678",
                 ItemAmount: document.PayableAmount,
                 ItemUnitCode: "EA"
             }]

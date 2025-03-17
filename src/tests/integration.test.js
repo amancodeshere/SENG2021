@@ -77,7 +77,7 @@ describe('Intergration tests for all routes', () => {
 
         // input invoice into database from XML order
         res = await request(app)
-              .post('/api/invoice')
+              .post('/api/v1/invoice/create')
               .set('sessionid', sessionId)
               .set('Content-Type', 'application/json')
               .send(validJSONDocument);
@@ -111,7 +111,6 @@ describe('Intergration tests for all routes', () => {
             .get(`/api/v1/invoice/${invoiceId1}/xml`)
             .set('sessionid', sessionId);
 
-        console.log(res.text);
         expect(res.status).toBe(200);
 
         expect(res.text).toContain('<?xml version="1.0" encoding="UTF-8"');
@@ -131,7 +130,7 @@ describe('Intergration tests for all routes', () => {
         
         // input second invoice, using xml doc instead of json
         res = await request(app)
-            .post('/api/invoice')
+            .post('/api/v1/invoice/create')
             .set('sessionid', sessionId)
             .set('Content-Type', 'application/json')
             .send(validJSONDocument2);
@@ -160,6 +159,28 @@ describe('Intergration tests for all routes', () => {
                 }
             ]
         });
+
+        res = await request(app)
+            .get('/api/v1/invoices/list')
+            .set('sessionid', sessionId)
+            .query({ partyNameBuyer: 'ABC Corp' });
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual([
+            {
+                invoiceId: invoiceId1,
+                salesOrderID: 12345678,
+                issueDate: "2025-03-06",
+                partyNameBuyer: "ABC Corp",
+                payableAmount: "USD 500"
+            },
+            {
+                invoiceId: invoiceId2,
+                salesOrderID: 87654321,
+                issueDate: "2025-03-06",
+                partyNameBuyer: "ABC Corp",
+                payableAmount: "USD 500"
+            }
+        ]);
     });
 
 
