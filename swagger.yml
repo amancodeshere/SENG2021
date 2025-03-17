@@ -252,14 +252,21 @@ paths:
                 example:
                   validated: true
                   message:  "Invoice is in valid UBL 2.1 XML format"
-  /v1/invoice/list:
+  /v1/invoices/list:
     get:
-      summary: Lists all invoices by customer party
+      summary: Lists all invoices by buyer party
       tags:
         - Working routes
       security:
         - Authentication: []
       operationId: listInvoices
+      parameters:
+        - name: partyNameBuyer
+          in: query
+          required: true
+          schema:
+            type: string
+          description: buyer party name to filter invoices by
       responses:
         "200":
           description: Successful retrieval of invoices list
@@ -276,6 +283,9 @@ paths:
                         invoiceId:
                           type: integer
                           example: 123456
+                        salesOrderId:
+                          type: integer
+                          example: 765489
                         issueDate:
                           type: string
                           example: 2025-03-02
@@ -283,14 +293,14 @@ paths:
                           type: string
                           example: Candlecraft Pty Ltd
                         payableAmount:
-                          type: number
-                          example: 100
-                        currencyCode:
                           type: string
-                          example: AUD
-                        salesOrderId:
-                          type: integer
-                          example: 765489
+                          example: AUD 100
+        "400":
+          description: Invalid input provided - partyNameBuyer has invalid characters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         "401":
           $ref: "#/components/responses/Unauthorised"
   /v1/invoice/{invoiceid}:
