@@ -258,7 +258,7 @@ export async function handlePostInvoice(req, res) {
             });
 
             if (!validSession) {
-                return res.status(400).json({ error: 'Invalid session ID' });
+                return res.status(401).json({ error: 'Invalid session ID' });
             }
         } catch (err) {
             return res.status(500).json({ error: 'Internal session validation error' });

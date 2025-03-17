@@ -35,7 +35,7 @@ app.use(morgan('dev'));
 app.get('/api/health', healthCheck);
 
 // register a new user
-app.post('/api/v1/admin/register', bodyParser.json(), (req, res) => {
+app.post('/api/v1/admin/register', (req, res) => {
     const { companyName, email, password } = req.body;
   
     adminRegister(email, password, companyName, (err, result) => {
@@ -48,7 +48,7 @@ app.post('/api/v1/admin/register', bodyParser.json(), (req, res) => {
 });
 
 // login an existing user
-app.post('/api/v1/admin/login', bodyParser.json(), (req, res) => {
+app.post('/api/v1/admin/login', (req, res) => {
     const { email, password } = req.body;
   
     adminLogin(email, password, (err, result) => {
@@ -61,7 +61,7 @@ app.post('/api/v1/admin/login', bodyParser.json(), (req, res) => {
 });
 
 // Create new invoice
-app.post('/api/invoice', (req, res) => {
+app.post('/api/v1/invoice/create', (req, res) => {
     handlePostInvoice(req, res);
 });
 
@@ -106,7 +106,7 @@ app.get('/api/v1/invoice/:invoiceid/xml', (req, res) => {
 });
 
 // validate a given XML invoice
-app.post('/api/v1/invoice/validate', bodyParser.json(), (req, res) => {
+app.post('/api/v1/invoice/validate', (req, res) => {
     const { invoice } = req.body;
 
     validateInvoice(invoice, (result) => {
