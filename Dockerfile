@@ -4,7 +4,7 @@ FROM node:18
 # Install Java (Required for xsd-schema-validator)
 RUN apt-get update && apt-get install -y default-jre default-jdk && rm -rf /var/lib/apt/lists/*
 
-# Set environment variable for Java
+# Set environment variables for Java
 ENV JAVA_HOME=/usr/lib/jvm/default-java
 ENV PATH=$JAVA_HOME/bin:$PATH
 
@@ -12,16 +12,20 @@ ENV PATH=$JAVA_HOME/bin:$PATH
 WORKDIR /src
 
 # Copy only package.json and package-lock.json first for caching
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json ../
 
-# Install dependencies
+# Install dependencies in /app
+WORKDIR /app
 RUN npm install --omit=dev --verbose || npm install --verbose
 
-# Copy the entire project (Ensures server.js is included)
+# Copy the entire project
 COPY . .
+
+# Set the working directory back to src where server.js is
+WORKDIR /src
 
 # Expose the application port
 EXPOSE 3000
 
-# Set the correct CMD to start the server
+# Run the application from `src/server.js`
 CMD ["node", "server.js"]
