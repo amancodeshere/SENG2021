@@ -33,7 +33,9 @@ app.use(morgan('dev'));
 // ===========================================================================
 
 // Health check route
-app.get('/api/health', healthCheck);
+app.get('/api/health', (req, res) => {
+    healthCheck(req, res);
+});
 
 // Get an invoice list given suer session
 app.get('/api/invoices/list/:sessionId', (req, res) => {
