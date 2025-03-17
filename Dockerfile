@@ -1,38 +1,27 @@
 # Use official Node.js image
 FROM node:18
 
+# Install Java (Required for xsd-schema-validator)
+RUN apt-get update && apt-get install -y default-jre default-jdk && rm -rf /var/lib/apt/lists/*
 
-# Install system dependencies required by some npm packages
-RUN apt-get update && apt-get install -y openjdk-17-jre ca-certificates && rm -rf /var/lib/apt/lists/*
+# Set environment variable for Java
+ENV JAVA_HOME=/usr/lib/jvm/default-java
+ENV PATH=$JAVA_HOME/bin:$PATH
 
-
-# Set working directory inside the container
+# Set working directory
 WORKDIR /app
 
-
-# Copy only package files first (optimizes Docker layer caching)
+# Copy package.json and package-lock.json first (for better caching)
 COPY package.json package-lock.json ./
 
+# Install dependencies (Ensuring xsd-schema-validator works)
+RUN npm install --omit=dev --verbose || npm install --verbose
 
-# Force a clean npm cache (prevents conflicts)
-RUN npm cache clean --force
-
-
-# Install dependencies without optional packages
-RUN npm install --omit=optional --omit=dev --verbose || npm install --verbose
-
-
-# Copy the rest of the project files
+# Copy the entire project
 COPY . .
 
-
-# Ensure permissions are set correctly
-RUN chmod -R 777 /app
-
-
-# Expose the port your application uses
+# Expose the port the app runs on
 EXPOSE 3000
-
 
 # Start the server
 CMD ["node", "server.js"]
