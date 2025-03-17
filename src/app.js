@@ -16,7 +16,7 @@ import { healthCheck } from './health.js';
 export const app = express();
 
 // Load Swagger YAML file
-const swaggerDocument = YAML.load("../swagger.yml");
+const swaggerDocument = YAML.load("./swagger.yml");
 
 // Middleware to serve Swagger UI
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
