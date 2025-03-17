@@ -1,5 +1,7 @@
 import { MonetaryTotal } from 'ubl-builder/lib/ubl21/CommonAggregateComponents/MonetaryTotalTypeGroup.js';
-import { getInvoiceByID } from './invoiceToDB.js';
+import { getInvoiceByID, getInvoicesByCompanyName, inputInvoice } from './invoiceToDB.js';
+import { inputOrder } from './orderToDB.js';
+import { isValidPartyName } from './helperFunctions.js';
 import { Invoice } from 'ubl-builder';
 import { PartyName } from 'ubl-builder/lib/ubl21/CommonAggregateComponents/PartyName.js';
 import { Party } from 'ubl-builder/lib/ubl21/CommonAggregateComponents/PartyTypeGroup.js';
@@ -11,6 +13,97 @@ import xsdValidator from 'xsd-schema-validator';
 import { validate } from 'schematron-runner';
 import {CustomInputError} from "./errors.js";
 import { db } from './connect.js';
+import { v4 as uuidv4 } from 'uuid';
+import { XMLParser } from 'fast-xml-parser';
+
+// ===========================================================================
+// ============== local helper functions only used in admin.js ===============
+// ===========================================================================
+
+/**
+ * Validates the required fields in the document
+ */
+function validateDocument(document) {
+    const requiredFields = ['SalesOrderID', 'IssueDate', 'PartyName', 'PayableAmount', 'CurrencyCode'];
+    return requiredFields.every(field => document[field] !== undefined);
+}
+
+/**
+ * Parses XML document using UBL standard
+ */
+function parseXMLDocument(xmlString) {
+    if (!xmlString || typeof xmlString !== 'string') {
+        throw new CustomInputError('Invalid XML document');
+    }
+
+    try {
+        const options = {
+            ignoreAttributes : false
+        }; 
+        const parser = new XMLParser(options);
+        let orderObj = parser.parse(xmlString);
+
+        let invoiceObj = orderObj.Invoice;
+
+        const document = {
+            SalesOrderID: invoiceObj['cac:OrderReference']['cbc:ID'],
+            IssueDate: invoiceObj['cbc:IssueDate'],
+            PartyName: invoiceObj['cac:AccountingCustomerParty']['cac:Party']['cac:PartyName']['cbc:Name'],
+            PayableAmount: invoiceObj['cac:LegalMonetaryTotal']['cbc:PayableAmount']['#text'],
+            CurrencyCode: invoiceObj['cac:LegalMonetaryTotal']['cbc:PayableAmount']['@_currencyID']
+        }
+        
+        if (!validateDocument(document)) {
+            throw new CustomInputError('Missing required fields in document');
+        }
+
+        return document;
+    } catch (error) {
+        throw new CustomInputError('Invalid XML document');
+    }
+}
+
+/**
+ * Creates an invoice using the order-first approach
+ */
+async function createInvoiceFromDocument(document) {
+    return new Promise((resolve, reject) => {
+        const orderData = {
+            SalesOrderID: document.SalesOrderID,
+            UUID: uuidv4(),
+            IssueDate: document.IssueDate,
+            PartyName: document.PartyName,
+            PayableAmount: document.PayableAmount,
+            PayableCurrencyCode: document.CurrencyCode,
+            Items: document.Items || [{
+                ItemDescription: "Default Item",
+                BuyersItemIdentification: "DEFAULT-BUYER",
+                SellersItemIdentification: "DEFAULT-SELLER",
+                ItemAmount: document.PayableAmount,
+                ItemUnitCode: "EA"
+            }]
+        };
+
+        inputOrder(orderData.SalesOrderID, orderData.UUID, orderData.IssueDate, orderData.PartyName, orderData.PayableAmount, orderData.PayableCurrencyCode, orderData.Items, (orderErr) => {
+            if (orderErr) {
+                reject(new Error('Order creation failed'));
+                return;
+            }
+
+            inputInvoice(orderData.SalesOrderID, (invoiceErr, result) => {
+                if (invoiceErr) {
+                    reject(new Error('Invoice creation failed'));
+                    return;
+                }
+                resolve(result.InvoiceID);
+            });
+        });
+    });
+}
+
+// ===========================================================================
+// ============================ main functions ===============================
+// ===========================================================================
 
 /**
  * @description Converts invoice with the given invoiceid to UBL 2.1 XML format and returns it.
@@ -93,8 +186,7 @@ export function viewInvoice(invoiceId, callback) {
 }
 
 /**
- * Submits an invoice for validation. Validates that invoice in XML matches UBL formatting and schema.
- * 
+ * @description Submits an invoice for validation. Validates that invoice in XML matches UBL formatting and schema.
  * @param {String} invoice - The XML invoice to validate
  * @param {Function} callback - Callback function to handle the result.
  */
@@ -113,60 +205,91 @@ export async function validateInvoice(invoice, callback) {
 
 }
 
-
 /**
- * Fetches invoices for the company associated with the given session ID.
- *
- * @param {number} sessionId - The session ID to validate user access.
- * @param {Function} callback - Callback function to handle the result.
+ * @decsription Find a list of invoices for partyNameBuyer and return it.
+ * @param {string} partyNameBuyer 
+ * @param {function} callback 
  */
-export function getInvoicesBySession(sessionId, callback) {
-    if (!sessionId || typeof sessionId !== 'number') {
-        return callback(new CustomInputError("Invalid session ID."));
+export function listInvoices(partyNameBuyer, callback) {
+    if(!isValidPartyName(partyNameBuyer)) {
+        return callback(new CustomInputError("partyNameBuyer contains invalid characters."));
     }
 
-    // get UserID from session
-    const sqlGetUserId = `SELECT UserID FROM sessions WHERE SessionID = ?;`;
-    db.get(sqlGetUserId, [sessionId], (sessionErr, sessionRow) => {
-        if (sessionErr) {
-            console.error("SQL Error while fetching session:", sessionErr.message);
-            return callback(new CustomInputError("Database error while fetching session."));
+    getInvoicesByCompanyName(partyNameBuyer, (err, result) => {
+        const invoicesList = [];
+
+        if (err) {
+            if (err.message === "No invoices found for this company.") {
+                return callback(null, invoicesList);
+            }
+            return callback(err);
         }
 
-        if (!sessionRow) {
-            return callback(new CustomInputError("Invalid session. No user found."));
-        }
-
-        const userId = sessionRow.UserID;
-
-        // get the user's company name
-        const sqlGetCompany = `SELECT CompanyName FROM users WHERE UserID = ?;`;
-        db.get(sqlGetCompany, [userId], (userErr, userRow) => {
-            if (userErr) {
-                console.error("SQL Error while fetching company name:", userErr.message);
-                return callback(new CustomInputError("Database error while fetching company details."));
-            }
-
-            if (!userRow || !userRow.CompanyName) {
-                return callback(new CustomInputError("User does not belong to a valid company."));
-            }
-
-            const companyName = userRow.CompanyName;
-
-            // get invoices belonging to the users company
-            const sqlQuery = `SELECT * FROM invoices WHERE PartyNameBuyer = ?;`;
-            db.all(sqlQuery, [companyName], (invoiceErr, invoices) => {
-                if (invoiceErr) {
-                    console.error("SQL Error while fetching invoices:", invoiceErr.message);
-                    return callback(new CustomInputError("Database error while fetching invoices."));
-                }
-
-                if (!invoices || invoices.length === 0) {
-                    return callback(new CustomInputError("No invoices found for this company."));
-                }
-
-                callback(null, { companyName, invoices });
+        result.forEach((invoice) => {
+            invoicesList.push({
+                invoiceId: invoice.InvoiceID,
+                salesOrderID: parseInt(invoice.SalesOrderID),
+                issueDate: invoice.IssueDate,
+                partyNameBuyer: partyNameBuyer,
+                payableAmount: `${invoice.CurrencyCode} ${invoice.PayableAmount}`,
             });
         });
+
+        callback(null, invoicesList);
     });
+}
+
+/**
+ * @description Handles the POST /api/invoice request
+ */
+export async function handlePostInvoice(req, res) {
+    try {
+        const sessionId = req.headers['sessionid'];
+        if (!sessionId) {
+            return res.status(401).json({ error: 'Invalid session ID' });
+        }
+
+        try {
+            const validSession = await new Promise((resolve, reject) => {
+                db.get('SELECT * FROM sessions WHERE sessionId = ?', [sessionId], (err, row) => {
+                    if (err) return reject(new Error('Database error while checking session'));
+                    resolve(row);
+                });
+            });
+
+            if (!validSession) {
+                return res.status(400).json({ error: 'Invalid session ID' });
+            }
+        } catch (err) {
+            return res.status(500).json({ error: 'Internal session validation error' });
+        }
+
+        let document;
+        const contentType = req.headers['content-type'];
+
+        try {
+            if (contentType === 'application/xml') {
+                document = parseXMLDocument(req.body);
+            } else if (contentType === 'application/json') {
+                document = req.body;
+
+                if (!validateDocument(document)) {
+                    return res.status(400).json({ error: 'Missing required fields in document' });
+                }
+            } else {
+                return res.status(400).json({ error: 'Invalid content type' });
+            }
+        } catch (err) {
+            return res.status(400).json({ error: err.message });
+        }
+
+        try {
+            const invoiceId = await createInvoiceFromDocument(document);
+            return res.status(200).json({ invoiceId });
+        } catch (err) {
+            return res.status(400).json({ error: err.message });
+        }
+    } catch (error) {
+        return res.status(500).json({ error: 'Internal server error' });
+    }
 }
