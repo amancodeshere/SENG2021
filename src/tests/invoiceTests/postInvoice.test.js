@@ -1,18 +1,18 @@
 import request from 'supertest';
-import { app } from '../app.js';
-import { db } from '../connect.js';
-import * as orderModule from '../orderToDB.js';
-import * as invoiceModule from '../invoiceToDB.js';
+import { app } from '../../app.js';
+import { db } from '../../connect.js';
+import * as orderModule from '../../orderToDB.js';
+import * as invoiceModule from '../../invoiceToDB.js';
 
-jest.mock('../connect.js', () => ({
+jest.mock('../../connect.js', () => ({
     db: {
         exec: jest.fn(),
         get: jest.fn(),
         run: jest.fn(),
         all: jest.fn(),
     },
-}));jest.mock('../orderToDB.js');
-jest.mock('../invoiceToDB.js');
+}));jest.mock('../../orderToDB.js');
+jest.mock('../../invoiceToDB.js');
 jest.mock('ubl-builder', () => {
   return {
     UBLBuilder: jest.fn().mockImplementation(() => ({
@@ -40,7 +40,7 @@ jest.mock('ubl-builder', () => {
   };
 });
 
-describe('POST /api/invoice', () => {
+describe('POST /api/v1/invoice/create', () => {
   const validSessionId = '123456';
   
   const validXMLDocument = `<?xml version="1.0" encoding="UTF-8"?>
@@ -96,7 +96,7 @@ describe('POST /api/invoice', () => {
 
   test('should successfully create invoice from XML document', async () => {
     const response = await request(app)
-      .post('/api/invoice')
+      .post('/api/v1/invoice/create')
       .set('sessionid', validSessionId)
       .set('Content-Type', 'application/xml')
       .send(validXMLDocument);
@@ -109,7 +109,7 @@ describe('POST /api/invoice', () => {
 
   test('should successfully create invoice from JSON document', async () => {
     const response = await request(app)
-      .post('/api/invoice')
+      .post('/api/v1/invoice/create')
       .set('sessionid', validSessionId)
       .set('Content-Type', 'application/json')
       .send(validJSONDocument);
@@ -122,7 +122,7 @@ describe('POST /api/invoice', () => {
 
   test('should return error when sessionId is missing', async () => {
     const response = await request(app)
-      .post('/api/invoice')
+      .post('/api/v1/invoice/create')
       .set('Content-Type', 'application/json')
       .send(validJSONDocument);
 
@@ -132,18 +132,18 @@ describe('POST /api/invoice', () => {
 
   test('should return error when sessionId is invalid', async () => {
     const response = await request(app)
-      .post('/api/invoice')
+      .post('/api/v1/invoice/create')
       .set('sessionid', 'invalid-session-id')
       .set('Content-Type', 'application/json')
       .send(validJSONDocument);
 
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(401);
     expect(response.body).toEqual({ error: 'Invalid session ID' });
   });
 
   test('should return error when document is missing', async () => {
     const response = await request(app)
-      .post('/api/invoice')
+      .post('/api/v1/invoice/create')
       .set('sessionid', validSessionId)
       .set('Content-Type', 'application/json')
       .send({});
@@ -156,7 +156,7 @@ describe('POST /api/invoice', () => {
     const malformedXML = '<invalid>xml</invalid>';
 
     const response = await request(app)
-      .post('/api/invoice')
+      .post('/api/v1/invoice/create')
       .set('sessionid', validSessionId)
       .set('Content-Type', 'application/xml')
       .send(malformedXML);
@@ -171,7 +171,7 @@ describe('POST /api/invoice', () => {
     });
 
     const response = await request(app)
-      .post('/api/invoice')
+      .post('/api/v1/invoice/create')
       .set('sessionid', validSessionId)
       .set('Content-Type', 'application/json')
       .send(validJSONDocument);
@@ -186,7 +186,7 @@ describe('POST /api/invoice', () => {
     });
 
     const response = await request(app)
-      .post('/api/invoice')
+      .post('/api/v1/invoice/create')
       .set('sessionid', validSessionId)
       .set('Content-Type', 'application/json')
       .send(validJSONDocument);
