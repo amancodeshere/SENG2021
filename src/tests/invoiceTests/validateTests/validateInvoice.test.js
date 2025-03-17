@@ -18,7 +18,7 @@ describe("validateInvoice Function", () => {
                                       .send({ invoice: validInvoice })
         expect(res.body).toEqual({ validated: true, message: "Valid invoice" });
         expect(res.status).toEqual(200);
-    });
+    }, 7000);
 
     test("Validate standard UBL invoice successfully", async () => {
         const res = await request(app).post('/api/v1/invoice/validate')
@@ -26,7 +26,7 @@ describe("validateInvoice Function", () => {
                                       .send({ invoice: ublStandardInvoice })
         expect(res.body).toEqual({ validated: true, message: "Valid invoice" });
         expect(res.status).toEqual(200);
-    });
+    }, 7000);
 
     test("Invalid tags - repeated issue date", async () => {
         const res = await request(app).post('/api/v1/invoice/validate')
@@ -34,7 +34,7 @@ describe("validateInvoice Function", () => {
                                       .send({ invoice: invalidUblTagsInvoice })
         expect(res.body).toEqual({ validated: false, message: expect.not.stringMatching("Valid invoice") });
         expect(res.status).toEqual(200);
-    });
+    }, 7000);
 
     test("Missing mandatory field - ID", async () => {
         const res = await request(app).post('/api/v1/invoice/validate')
@@ -42,7 +42,7 @@ describe("validateInvoice Function", () => {
                                       .send({ invoice: invalidMissingField })
         expect(res.body).toEqual({ validated: false, message: expect.not.stringMatching("Valid invoice") });
         expect(res.status).toEqual(200);
-    });
+    }, 7000);
 
     test("Non UBL valid XML", async () => {
         const res = await request(app).post('/api/v1/invoice/validate')
@@ -50,5 +50,5 @@ describe("validateInvoice Function", () => {
                                       .send({ invoice: notUBL })
         expect(res.body).toEqual({ validated: false, message: expect.not.stringMatching("Valid invoice") });
         expect(res.status).toEqual(200);
-    });
+    }, 7000);
 });

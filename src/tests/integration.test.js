@@ -128,7 +128,7 @@ describe('Intergration tests for all routes', () => {
             expect(res.text).toContain("<cbc:LineExtensionAmount>500</");
             expect(res.text).toContain("<cac:Item><cbc:Name>Default Item</");
         
-        // input second invoice, using xml doc instead of json
+        // input second invoice
         res = await request(app)
             .post('/api/v1/invoice/create')
             .set('sessionid', sessionId)
@@ -181,8 +181,8 @@ describe('Intergration tests for all routes', () => {
                 payableAmount: "USD 500"
             }
         ]);
-    });
 
+    });
 
 
 });

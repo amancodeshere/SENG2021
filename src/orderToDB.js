@@ -266,26 +266,3 @@ export function deleteOrderById(SalesOrderID, callback) {
     });
 }
 
-
-/**
- * Get items from an order given a SalesOrderID.
- *
- * @param {String} SalesOrderID - The order ID to fetch items for.
- * @param {function} callback - Callback function to handle the result.
- **/
-export function getItemsBySalesOrderID(SalesOrderID, callback) {
-    console.log(`Fetching items for SalesOrderID: ${SalesOrderID}`);
-
-    const sqlQuery = `SELECT * FROM order_items WHERE SalesOrderID = ?;`;
-
-    db.all(sqlQuery, [SalesOrderID], (err, rows) => {
-        if (err) {
-            console.error("SQL Error while fetching order items:", err.message);
-            return callback(new CustomInputError('Database error while fetching order items.'));
-        }
-        if (!rows || rows.length === 0) {
-            return callback(new CustomInputError('No items found for this SalesOrderID.'));
-        }
-        callback(null, rows);
-    });
-}
