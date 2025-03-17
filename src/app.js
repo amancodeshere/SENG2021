@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import bodyParser from 'body-parser';
+import swaggerUi from "swagger-ui-express";
+import YAML from "yamljs";
 import {
     adminRegister,
     adminLogin
@@ -13,6 +15,12 @@ import { healthCheck } from './health.js';
 
 export const app = express();
 
+// Load Swagger YAML file
+const swaggerDocument = YAML.load("./swagger.yml");
+
+// Middleware to serve Swagger UI
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+// Middleware to access JSON/XML body of requests
 app.use((req, res, next) => {
     if (req.headers['content-type'] === 'application/xml') {
         bodyParser.text({ type: 'application/xml' })(req, res, next);
@@ -118,7 +126,7 @@ app.post('/api/v1/invoice/validate', (req, res) => {
 
 });
 
-// View an list of sessions by partyNameBuyer
+// View an list of invoices by partyNameBuyer
 app.get('/api/v1/invoices/list', (req, res) => {
     const sessionId = parseInt(req.headers.sessionid);
     const partyNameBuyer = req.query.partyNameBuyer
