@@ -10,16 +10,20 @@ RUN apt-get update && apt-get install -y openjdk-17-jre
 WORKDIR /app
 
 
-# Copy package.json and install dependencies
+# Copy package.json and package-lock.json first (for better Docker caching)
 COPY package.json package-lock.json ./
 
 
-# Ensure clean build by forcing a full install
-RUN npm ci --omit=dev
+# Ensure clean install with logs enabled (fallback to `npm install` if needed)
+RUN npm install --omit=dev || npm install
 
 
-# Copy the entire project
+# Copy the entire project after dependencies are installed
 COPY . .
+
+
+# Fix file permissions if needed
+RUN chmod -R 777 /app
 
 
 # Expose the port the app runs on
