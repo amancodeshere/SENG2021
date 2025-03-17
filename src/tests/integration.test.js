@@ -182,7 +182,15 @@ describe('Intergration tests for all routes', () => {
             }
         ]);
 
-    });
+        //start a new session with login
+        res = await request(app)
+        .post('/api/v1/admin/login')
+        .set('Content-Type', 'application/json')
+        .send(user);
+    expect(res.body).toEqual({ sessionId: expect.any(Number) });
+    expect(res.status).toBe(200);
+
+    }, 8000);
 
 
 });
