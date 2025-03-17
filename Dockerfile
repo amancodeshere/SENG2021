@@ -8,20 +8,20 @@ RUN apt-get update && apt-get install -y default-jre default-jdk && rm -rf /var/
 ENV JAVA_HOME=/usr/lib/jvm/default-java
 ENV PATH=$JAVA_HOME/bin:$PATH
 
-# Set working directory
+# Set the correct working directory
 WORKDIR /src
 
-# Copy package.json and package-lock.json first (for better caching)
+# Copy only package.json and package-lock.json first for caching
 COPY package.json package-lock.json ./
 
-# Install dependencies (Ensuring xsd-schema-validator works)
+# Install dependencies
 RUN npm install --omit=dev --verbose || npm install --verbose
 
-# Copy the entire project
+# Copy the entire project (Ensures server.js is included)
 COPY . .
 
-# Expose the port the app runs on
+# Expose the application port
 EXPOSE 3000
 
-# Start the server
+# Set the correct CMD to start the server
 CMD ["node", "server.js"]
