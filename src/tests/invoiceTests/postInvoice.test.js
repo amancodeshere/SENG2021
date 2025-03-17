@@ -1,18 +1,18 @@
 import request from 'supertest';
-import { app } from '../app.js';
-import { db } from '../connect.js';
-import * as orderModule from '../orderToDB.js';
-import * as invoiceModule from '../invoiceToDB.js';
+import { app } from '../../app.js';
+import { db } from '../../connect.js';
+import * as orderModule from '../../orderToDB.js';
+import * as invoiceModule from '../../invoiceToDB.js';
 
-jest.mock('../connect.js', () => ({
+jest.mock('../../connect.js', () => ({
     db: {
         exec: jest.fn(),
         get: jest.fn(),
         run: jest.fn(),
         all: jest.fn(),
     },
-}));jest.mock('../orderToDB.js');
-jest.mock('../invoiceToDB.js');
+}));jest.mock('../../orderToDB.js');
+jest.mock('../../invoiceToDB.js');
 jest.mock('ubl-builder', () => {
   return {
     UBLBuilder: jest.fn().mockImplementation(() => ({
