@@ -32,11 +32,7 @@ function validateDocument(document) {
  * Parses XML document using UBL standard
  */
 function parseXMLDocument(xmlString) {
-    if (!xmlString || typeof xmlString !== 'string') {
-        throw new CustomInputError('Invalid XML document');
-    }
-
-    try {
+        try {
         const options = {
             ignoreAttributes : false
         }; 

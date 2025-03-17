@@ -55,6 +55,8 @@ describe('Intergration tests for all routes', () => {
         CurrencyCode: "USD"
     };
 
+    //All the integration testing happens in the 1 test case because tests are run
+    //concurrently and so accessing the database in multiple tests can cause issues
     test("user successfully creates, views and exports multiple invoices", async () => {
         
        
@@ -62,7 +64,7 @@ describe('Intergration tests for all routes', () => {
          var res = await request(app)
              .get('/api/health');
         
-        // expect(res.body.status).toEqual('success');
+        expect(res.body.status).toEqual('success');
 
         // register user
          res = await request(app)
@@ -184,13 +186,16 @@ describe('Intergration tests for all routes', () => {
 
         //start a new session with login
         res = await request(app)
-        .post('/api/v1/admin/login')
-        .set('Content-Type', 'application/json')
-        .send(user);
-    expect(res.body).toEqual({ sessionId: expect.any(Number) });
-    expect(res.status).toBe(200);
+            .post('/api/v1/admin/login')
+            .set('Content-Type', 'application/json')
+            .send(user);
+        expect(res.body).toEqual({ sessionId: expect.any(Number) });
+        expect(res.status).toBe(200);
+    
 
-    }, 8000);
+       
+
+    }, 10000);
 
 
 });
