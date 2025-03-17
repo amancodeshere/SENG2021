@@ -32,11 +32,7 @@ function validateDocument(document) {
  * Parses XML document using UBL standard
  */
 function parseXMLDocument(xmlString) {
-    if (!xmlString || typeof xmlString !== 'string') {
-        throw new CustomInputError('Invalid XML document');
-    }
-
-    try {
+        try {
         const options = {
             ignoreAttributes : false
         }; 
@@ -77,8 +73,8 @@ async function createInvoiceFromDocument(document) {
             PayableCurrencyCode: document.CurrencyCode,
             Items: document.Items || [{
                 ItemDescription: "Default Item",
-                BuyersItemIdentification: "DEFAULT-BUYER",
-                SellersItemIdentification: "DEFAULT-SELLER",
+                BuyersItemIdentification: "12345678",
+                SellersItemIdentification: "12345678",
                 ItemAmount: document.PayableAmount,
                 ItemUnitCode: "EA"
             }]

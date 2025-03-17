@@ -194,4 +194,29 @@ describe('POST /api/v1/invoice/create', () => {
     expect(response.status).toBe(400);
     expect(response.body).toEqual({ error: 'Order creation failed' });
   });
+
+  test('parseXML error - not XML', async () => {
+    const response = await request(app)
+      .post('/api/v1/invoice/create')
+      .set('sessionid', validSessionId)
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ error: "Invalid content type" });
+  });
+
+  test('failed to create invoice', async () => {
+    invoiceModule.inputInvoice.mockImplementationOnce((SalesOrderId, callback) => {
+      callback(new Error('Invoice creation failed'));
+    });
+    const response = await request(app)
+      .post('/api/v1/invoice/create')
+      .set('sessionid', validSessionId)
+      .set('Content-Type', 'application/json')
+      .send(validJSONDocument);
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ error: 'Invoice creation failed' });
+  });
+
+
 });

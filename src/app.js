@@ -32,7 +32,9 @@ app.use(morgan('dev'));
 // ===========================================================================
 
 // Health check route
-app.get('/api/health', healthCheck);
+app.get('/api/health', (req, res) => {
+    healthCheck(req, res);
+});
 
 // register a new user
 app.post('/api/v1/admin/register', (req, res) => {
