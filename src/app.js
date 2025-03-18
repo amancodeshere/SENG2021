@@ -14,14 +14,10 @@ import { healthCheck } from './health.js';
 
 export const app = express();
 
-// Middleware to access JSON/XML body of requests
-app.use((req, res, next) => {
-    if (req.headers['content-type'] === 'application/xml') {
-        bodyParser.text({ type: 'application/xml' })(req, res, next);
-    } else {
-        bodyParser.json()(req, res, next);
-    }
-});
+app.use(express.json()); // Parse JSON bodies
+app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
+app.use(bodyParser.text({ type: 'application/xml' })); // Handle XML
+
 // Middleware to access the JSON body of requests
 app.use(bodyParser.urlencoded({ extended: true }));
 // Middleware to allow access from other domains
