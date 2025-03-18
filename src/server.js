@@ -1,10 +1,10 @@
 import { app } from './app.js';
 
-const PORT = parseInt(process.env.PORT || 3000);
-const HOST = process.env.IP || '127.0.0.1';
+const PORT = process.env.PORT || 3000;  // Ensure Railway assigns this dynamically
 
-const server = app.listen(PORT, HOST, () => {
-    console.log(`Server is running on http://${HOST}:${PORT}`);
+// Don't specify HOST (let Railway handle it)
+const server = app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
 });
 
 process.on('SIGINT', () => {
