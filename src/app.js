@@ -3,7 +3,6 @@ import cors from 'cors';
 import morgan from 'morgan';
 import bodyParser from 'body-parser';
 import swaggerUi from "swagger-ui-express";
-import YAML from "yamljs";
 import {
     adminRegister,
     adminLogin
@@ -14,9 +13,6 @@ import { handlePostInvoice } from './invoice.js';
 import { healthCheck } from './health.js';
 
 export const app = express();
-
-// Load Swagger YAML file
-const swaggerDocument = YAML.load("./swagger.yml");
 
 // Middleware to serve Swagger UI
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
