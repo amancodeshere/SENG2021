@@ -1,15 +1,15 @@
 import { app } from './app.js';
 
-const PORT = process.env.PORT || 3000;  // Ensure Railway assigns this dynamically
+const PORT = process.env.PORT || 3000;
+const HOST = '0.0.0.0';  // Ensure app listens on all interfaces
 
-// Don't specify HOST (let Railway handle it)
-const server = app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+const server = app.listen(PORT, HOST, () => {
+    console.log(` Server is running on http://${HOST}:${PORT}`);
 });
 
 process.on('SIGINT', () => {
     server.close(() => {
-        console.log('Shutting down server gracefully.');
+        console.log(' Shutting down server gracefully.');
         process.exit();
     });
 });
