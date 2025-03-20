@@ -3,6 +3,7 @@ import { app } from '../../app.js';
 import { db } from '../../connect.js';
 import * as orderModule from '../../orderToDB.js';
 import * as invoiceModule from '../../invoiceToDB.js';
+import fs from "fs";
 
 jest.mock('../../connect.js', () => ({
     db: {
@@ -43,26 +44,27 @@ jest.mock('ubl-builder', () => {
 describe('POST /api/v1/invoice/create', () => {
   const validSessionId = '123456';
   
-  const validXMLDocument = `<?xml version="1.0" encoding="UTF-8"?>
-<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
-       xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
-       xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
-  <cbc:ID>12345678</cbc:ID>
-  <cbc:IssueDate>2025-03-06</cbc:IssueDate>
-  <cac:AccountingCustomerParty>
-    <cac:Party>
-      <cac:PartyName>
-        <cbc:Name>ABC Corp</cbc:Name>
-      </cac:PartyName>
-    </cac:Party>
-  </cac:AccountingCustomerParty>
-  <cac:LegalMonetaryTotal>
-    <cbc:PayableAmount currencyID="USD">500</cbc:PayableAmount>
-  </cac:LegalMonetaryTotal>
-  <cac:OrderReference>
-    <cbc:ID>12345678</cbc:ID>
-  </cac:OrderReference>
-</Invoice>`;
+  const validXMLDocument = fs.readFileSync("./order2.xml", "utf-8");
+//   const validXMLDocument = `<?xml version="1.0" encoding="UTF-8"?>
+// <Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
+//        xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+//        xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+//   <cbc:ID>12345678</cbc:ID>
+//   <cbc:IssueDate>2025-03-06</cbc:IssueDate>
+//   <cac:AccountingCustomerParty>
+//     <cac:Party>
+//       <cac:PartyName>
+//         <cbc:Name>ABC Corp</cbc:Name>
+//       </cac:PartyName>
+//     </cac:Party>
+//   </cac:AccountingCustomerParty>
+//   <cac:LegalMonetaryTotal>
+//     <cbc:PayableAmount currencyID="USD">500</cbc:PayableAmount>
+//   </cac:LegalMonetaryTotal>
+//   <cac:OrderReference>
+//     <cbc:ID>12345678</cbc:ID>
+//   </cac:OrderReference>
+// </Invoice>`;
 
   const validJSONDocument = {
     SalesOrderID: "12345678",

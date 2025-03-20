@@ -24,7 +24,7 @@ import { XMLParser } from 'fast-xml-parser';
  * Validates the required fields in the document
  */
 function validateDocument(document) {
-    const requiredFields = ['SalesOrderID', 'IssueDate', 'PartyName', 'PayableAmount', 'CurrencyCode'];
+    const requiredFields = ['IssueDate', 'PartyName', 'PayableAmount', 'CurrencyCode'];
     return requiredFields.every(field => document[field] !== undefined);
 }
 
@@ -32,23 +32,26 @@ function validateDocument(document) {
  * Parses XML document using UBL standard
  */
 function parseXMLDocument(xmlString) {
-        try {
+    try {
         const options = {
             ignoreAttributes : false
         }; 
         const parser = new XMLParser(options);
-        let orderObj = parser.parse(xmlString);
+        let orderObj = parser.parse(xmlString).Order;
 
-        let invoiceObj = orderObj.Invoice;
+        console.log(orderObj);
+
+        var items = parseXMLItemsList(orderObj["cac:OrderLine"]);
 
         const document = {
-            SalesOrderID: invoiceObj['cac:OrderReference']['cbc:ID'],
-            IssueDate: invoiceObj['cbc:IssueDate'],
-            PartyName: invoiceObj['cac:AccountingCustomerParty']['cac:Party']['cac:PartyName']['cbc:Name'],
-            PayableAmount: invoiceObj['cac:LegalMonetaryTotal']['cbc:PayableAmount']['#text'],
-            CurrencyCode: invoiceObj['cac:LegalMonetaryTotal']['cbc:PayableAmount']['@_currencyID']
+            IssueDate: orderObj['cbc:IssueDate'],
+            PartyName: orderObj['cac:BuyerCustomerParty']['cac:Party']['cac:PartyName']['cbc:Name'],
+            PayableAmount: orderObj['cac:AnticipatedMonetaryTotal']['cbc:PayableAmount']['#text'],
+            CurrencyCode: orderObj['cac:AnticipatedMonetaryTotal']['cbc:PayableAmount']['@_currencyID'],
+            Items: items
         }
         
+        console.log(document)
         if (!validateDocument(document)) {
             throw new CustomInputError('Missing required fields in document');
         }
@@ -57,6 +60,23 @@ function parseXMLDocument(xmlString) {
     } catch (error) {
         throw new CustomInputError('Invalid XML document');
     }
+}
+
+function parseXMLItemsList(xmlItems) {
+    var items = [];
+    for(var orderLine of xmlItems) {
+        var xmlItem = orderLine['cac:LineItem'];
+        console.log(xmlItem);
+        const item = {
+            Id: xmlItem['cbc:ID'],
+            ItemName: xmlItem['cac:Item']['cbc:Name'],
+            ItemDescription: xmlItem['cac:Item']['cbc:Description'],
+            ItemAmount: xmlItem['cac:Price']['cbc:PriceAmount']['#text'],
+            ItemUnitCode: xmlItem['cbc:Quantity']['@_unitCode']
+        };
+       items.push(item);
+    }
+    return items;
 }
 
 /**
@@ -120,7 +140,6 @@ export function invoiceToXml(invoiceId, companyName, callback) {
 
         invoice.setIssueDate(invoiceData.IssueDate);
         invoice.setDocumentCurrencyCode(invoiceData.CurrencyCode);
-        invoice.setOrderReference({ salesOrderID: invoiceData.SalesOrderID });
 
         const supplierPartyName = new PartyName({ name: companyName });
         const supplierParty = new Party({ partyNames: [supplierPartyName] });
@@ -144,6 +163,8 @@ export function invoiceToXml(invoiceId, companyName, callback) {
             invoice.addInvoiceLine(invoiceLine);
             id++;
         });
+
+        
 
         const xmlInvoice = invoice.getXml();
 
