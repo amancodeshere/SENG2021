@@ -144,7 +144,7 @@ export function inputOrder(UUID, IssueDate, PartyName,
                                 db.exec("ROLLBACK;", () => {});
                                 return callback(new CustomInputError('Error committing order transaction.'));
                             }
-                            callback(null, { success: true, message: 'Order and items inserted successfully.' });
+                            callback(null, { success: true, message: 'Order and items inserted successfully.', OrderID });
                         });
                     }
                 });

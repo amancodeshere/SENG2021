@@ -24,7 +24,7 @@ import { XMLParser } from 'fast-xml-parser';
  * Validates the required fields in the document
  */
 function validateDocument(document) {
-    const requiredFields = ['IssueDate', 'PartyName', 'PayableAmount', 'CurrencyCode'];
+    const requiredFields = ['IssueDate', 'PartyName', 'PayableAmount', 'CurrencyCode', 'Items'];
     return requiredFields.every(field => document[field] !== undefined);
 }
 
@@ -93,13 +93,13 @@ async function createInvoiceFromDocument(document) {
             Items: document.Items
         };
 
-        inputOrder(orderData.UUID, orderData.IssueDate, orderData.PartyName, orderData.PayableAmount, orderData.PayableCurrencyCode, orderData.Items, (orderErr) => {
+        inputOrder(orderData.UUID, orderData.IssueDate, orderData.PartyName, orderData.PayableAmount, orderData.PayableCurrencyCode, orderData.Items, (orderErr, result) => {
             if (orderErr) {
                 reject(new Error('Order creation failed'));
                 return;
             }
 
-            inputInvoice(orderData.SalesOrderID, (invoiceErr, result) => {
+            inputInvoice(result.OrderId, (invoiceErr, result) => {
                 if (invoiceErr) {
                     reject(new Error('Invoice creation failed'));
                     return;
