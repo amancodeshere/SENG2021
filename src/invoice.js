@@ -85,22 +85,15 @@ function parseXMLItemsList(xmlItems) {
 async function createInvoiceFromDocument(document) {
     return new Promise((resolve, reject) => {
         const orderData = {
-            SalesOrderID: document.SalesOrderID,
             UUID: uuidv4(),
             IssueDate: document.IssueDate,
             PartyName: document.PartyName,
             PayableAmount: document.PayableAmount,
             PayableCurrencyCode: document.CurrencyCode,
-            Items: document.Items || [{
-                ItemDescription: "Default Item",
-                BuyersItemIdentification: "12345678",
-                SellersItemIdentification: "12345678",
-                ItemAmount: document.PayableAmount,
-                ItemUnitCode: "EA"
-            }]
+            Items: document.Items
         };
 
-        inputOrder(orderData.SalesOrderID, orderData.UUID, orderData.IssueDate, orderData.PartyName, orderData.PayableAmount, orderData.PayableCurrencyCode, orderData.Items, (orderErr) => {
+        inputOrder(orderData.UUID, orderData.IssueDate, orderData.PartyName, orderData.PayableAmount, orderData.PayableCurrencyCode, orderData.Items, (orderErr) => {
             if (orderErr) {
                 reject(new Error('Order creation failed'));
                 return;
