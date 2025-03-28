@@ -31,20 +31,18 @@ const schema = [
     SalesOrderID TEXT PRIMARY KEY,
     UUID TEXT NOT NULL,
     IssueDate DATE NOT NULL,
-    PartyNameBuyer TEXT NOT NULL,
-    PartyNameSeller TEXT NOT NULL,
+    PartyName TEXT NOT NULL,
     PayableAmount REAL NOT NULL,
     PayableCurrencyCode TEXT NOT NULL
   );`,
 
     `CREATE TABLE IF NOT EXISTS order_items (
     ItemID SERIAL PRIMARY KEY,
-    OrderItemId TEXT NOT NULL,
     SalesOrderID TEXT NOT NULL,
-    ItemName TEXT NOT NULL,
-    ItemDescription TEXT Not NULL,
-    ItemPrice REAL NOT NULL,
-    ItemQuantity INTEGER NOT NULL,
+    ItemDescription TEXT NOT NULL,
+    BuyersItemIdentification INTEGER NOT NULL,
+    SellersItemIdentification INTEGER NOT NULL,
+    ItemAmount INTEGER NOT NULL,
     ItemUnitCode TEXT NOT NULL,
     FOREIGN KEY (SalesOrderID) REFERENCES orders(SalesOrderID) ON DELETE CASCADE
   );`,
@@ -52,8 +50,8 @@ const schema = [
     `CREATE TABLE IF NOT EXISTS invoices (
     InvoiceID SERIAL PRIMARY KEY,
     IssueDate DATE NOT NULL,
-    PartyNameSeller Text NOT NULL,
     PartyNameBuyer TEXT NOT NULL,
+    PayableAmount REAL NOT NULL,
     CurrencyCode TEXT NOT NULL,
     InvoiceStartDate DATE DEFAULT NULL,
     InvoiceEndDate DATE DEFAULT NULL,
@@ -64,12 +62,10 @@ const schema = [
     `CREATE TABLE IF NOT EXISTS invoice_items (
     InvoiceItemID SERIAL PRIMARY KEY,
     InvoiceID INTEGER NOT NULL,
-    InvoiceItemName TEXT NOT NULL,
     ItemDescription TEXT NOT NULL,
     BuyersItemIdentification INTEGER NOT NULL,
     SellersItemIdentification INTEGER NOT NULL,
-    ItemPrice REAL NOT NULL,
-    ItemQuantity INTEGER NOT NULL,
+    ItemAmount INTEGER NOT NULL,
     ItemUnitCode TEXT NOT NULL,
     FOREIGN KEY (InvoiceID) REFERENCES invoices(InvoiceID) ON DELETE CASCADE
   );`,
@@ -78,31 +74,26 @@ const schema = [
     UserID SERIAL PRIMARY KEY,
     Email TEXT UNIQUE NOT NULL,
     Password TEXT NOT NULL,
-    CompanyName TEXT NOT NULL,
-    NumLogins INTEGER DEFAULT 0 NOT NULL
+    CompanyName TEXT NOT NULL
   );`,
 
     `CREATE TABLE IF NOT EXISTS sessions (
     SessionID SERIAL PRIMARY KEY,
     UserID INTEGER NOT NULL,
+    NumLogins INTEGER DEFAULT 0 NOT NULL,
     CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    VALID BOOLEAN NOT NULL,
     FOREIGN KEY (UserID) REFERENCES users(UserID) ON DELETE CASCADE
   );`
 ];
 
-async function initializeSchema() {
-    for (const query of schema) {
-        try {
-            await pool.query(query);
-            if (!isTestEnv) console.log('Table ensured/created.');
-        } catch (err) {
-            console.error('Error creating table:', err.message);
-        }
+// run schema creation
+schema.forEach(async (query) => {
+    try {
+        await pool.query(query);
+        if (!isTestEnv) console.log('Table ensured/created.');
+    } catch (err) {
+        console.error('Error creating table:', err.message);
     }
-}
-
-initializeSchema();
-
+});
 
 export { pool as db };
