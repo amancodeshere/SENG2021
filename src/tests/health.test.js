@@ -1,6 +1,5 @@
 import { healthCheck } from '../health.js';
 import { db } from '../connect.js';
-import expect from "expect";
 
 jest.mock('../connect.js', () => ({
     db: {
@@ -13,7 +12,6 @@ describe("healthCheck Function", () => {
         jest.clearAllMocks();
     });
 
-    // TODO: ** Fix this test before merging into main **
     test("success should be returned if database is connected", async () => {
         db.query.mockResolvedValueOnce({}); // simulate a successful query
 
@@ -26,7 +24,7 @@ describe("healthCheck Function", () => {
 
         expect(mockRes.status).toHaveBeenCalledWith(200);
         expect(mockRes.json).toHaveBeenCalledWith(
-            expect.any({
+            expect.objectContaining({
                 database: "connected",
                 memoryUsage: expect.any(String),
                 status: "success",
