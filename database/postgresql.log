@@ -324,3 +324,7 @@
 	;
 2025-03-28 18:17:54.994 AEDT [48129] LOG:  checkpoint starting: time
 2025-03-28 18:18:05.088 AEDT [48129] LOG:  checkpoint complete: wrote 99 buffers (0.6%); 0 WAL file(s) added, 0 removed, 0 recycled; write=10.062 s, sync=0.021 s, total=10.095 s; sync files=81, longest=0.002 s, average=0.001 s; distance=399 kB, estimate=3195 kB; lsn=0/1E22948, redo lsn=0/1E22910
+2025-04-01 12:35:45.810 AEDT [31017] ERROR:  relation "orders_items" does not exist at character 15
+2025-04-01 12:35:45.810 AEDT [31017] STATEMENT:  select * from orders_items;
+2025-04-01 12:36:50.224 AEDT [48129] LOG:  checkpoint starting: time
+2025-04-01 12:36:51.253 AEDT [48129] LOG:  checkpoint complete: wrote 9 buffers (0.1%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.919 s, sync=0.002 s, total=1.030 s; sync files=5, longest=0.001 s, average=0.001 s; distance=7 kB, estimate=2876 kB; lsn=0/1E24860, redo lsn=0/1E24828
