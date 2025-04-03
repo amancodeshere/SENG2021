@@ -16,7 +16,13 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          npm install
+          cd frontend
+          npm install
 
       - name: Run ESLint
-        run: npx eslint
+        run: |
+          npm run lint
+          cd frontend
+          npm run lint
