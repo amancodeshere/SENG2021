@@ -133,6 +133,7 @@ export function invoiceToXml(invoiceId, companyName, callback) {
 
         invoice.setIssueDate(invoiceData.IssueDate);
         invoice.setDocumentCurrencyCode(invoiceData.CurrencyCode);
+        invoice.setUUID(invoiceData.UUID);
 
         const supplierPartyName = new PartyName({ name: companyName });
         const supplierParty = new Party({ partyNames: [supplierPartyName] });
@@ -147,17 +148,14 @@ export function invoiceToXml(invoiceId, companyName, callback) {
         const monetaryTotal = new MonetaryTotal({ payableAmount: invoiceData.PayableAmount });
         invoice.setLegalMonetaryTotal(monetaryTotal);
 
-        const numItems = invoiceData.Items.length
         let id = 1;
         invoiceData.Items.forEach((item) => {
-            const invoiceItem = new Item({ name: item.ItemDescription });
-            const lineExtensionAmount = invoiceData.PayableAmount / numItems;
-            const invoiceLine = new InvoiceLine({ id, invoicedQuantity: item.ItemAmount, lineExtensionAmount, item: invoiceItem });
+            const invoiceItem = new Item({ name: item.ItemName, descriptions: item.ItemDescription });
+            const lineExtensionAmount = item.ItemAmount;
+            const invoiceLine = new InvoiceLine({ id, invoicedQuantity: item.ItemAmount, lineExtensionAmount, item: invoiceItem});
             invoice.addInvoiceLine(invoiceLine);
             id++;
-        });
-
-        
+        });   
 
         const xmlInvoice = invoice.getXml();
 
@@ -186,7 +184,6 @@ export function viewInvoice(invoiceId, callback) {
 
         callback(null, {
             invoiceId: invoice.InvoiceID,
-            salesOrderID: parseInt(invoice.SalesOrderID),
             issueDate: invoice.IssueDate,
             partyNameBuyer: invoice.PartyNameBuyer,
             payableAmount: `${invoice.CurrencyCode} ${invoice.PayableAmount}`,
@@ -238,7 +235,6 @@ export function listInvoices(partyNameBuyer, callback) {
         result.forEach((invoice) => {
             invoicesList.push({
                 invoiceId: invoice.InvoiceID,
-                salesOrderID: parseInt(invoice.SalesOrderID),
                 issueDate: invoice.IssueDate,
                 partyNameBuyer: partyNameBuyer,
                 payableAmount: `${invoice.CurrencyCode} ${invoice.PayableAmount}`,

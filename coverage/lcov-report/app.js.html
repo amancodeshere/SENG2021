@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">31.14% </span>
+                <span class="strong">37.7% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>19/61</span>
+                <span class='fraction'>23/61</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">11.11% </span>
+                <span class="strong">16.66% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>2/18</span>
+                <span class='fraction'>3/18</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">11.11% </span>
+                <span class="strong">16.66% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>2/18</span>
+                <span class='fraction'>3/18</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">31.14% </span>
+                <span class="strong">37.7% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>19/61</span>
+                <span class='fraction'>23/61</span>
             </div>
         
             
@@ -237,10 +237,10 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">10x</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -287,7 +287,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -311,15 +311,15 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -387,8 +387,8 @@ const swaggerDocument = YAML.load("./swagger.yml");
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 // Middleware to access JSON/XML body of requests
 app.use((req, res, next) =&gt; {
-    if (req.headers['content-type'] === 'application/xml') {
-        bodyParser.text({ type: 'application/xml' })(req, res, next);
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (req.headers['content-type'] === 'application/xml') {
+<span class="cstat-no" title="statement not covered" >        bodyParser.text({ type: 'application/xml' })(req, res, next);</span>
     } else {
         bodyParser.json()(req, res, next);
     }
@@ -436,8 +436,8 @@ app.post('/api/v1/admin/login', <span class="fstat-no" title="function not cover
 });
 &nbsp;
 // Create new invoice
-app.post('/api/v1/invoice/create', (req, res) =&gt; {
-    handlePostInvoice(req, res);
+app.post('/api/v1/invoice/create', <span class="fstat-no" title="function not covered" >(r</span>eq, res) =&gt; {
+<span class="cstat-no" title="statement not covered" >    handlePostInvoice(req, res);</span>
 });
 &nbsp;
 // view an invoice
@@ -460,16 +460,16 @@ app.get('/api/v1/invoice/:invoiceid', <span class="fstat-no" title="function not
 });
 &nbsp;
 // create UBL XML invoice
-app.get('/api/v1/invoice/:invoiceid/xml', <span class="fstat-no" title="function not covered" >(r</span>eq, res) =&gt; {
-    const sessionId = <span class="cstat-no" title="statement not covered" >parseInt(req.headers.sessionid);</span>
-    const invoiceId = <span class="cstat-no" title="statement not covered" >req.params.invoiceid;</span>
+app.get('/api/v1/invoice/:invoiceid/xml', (req, res) =&gt; {
+    const sessionId = parseInt(req.headers.sessionid);
+    const invoiceId = req.params.invoiceid;
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    getUserBySessionId(sessionId, <span class="fstat-no" title="function not covered" >(s</span>essionErr, user) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >        if (sessionErr) {</span>
-<span class="cstat-no" title="statement not covered" >            return res.status(401).json({ error: sessionErr.message });</span>
+    getUserBySessionId(sessionId, (sessionErr, user) =&gt; {
+        if (sessionErr) {
+            return res.status(401).json({ error: sessionErr.message });
         }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >        invoiceToXml(invoiceId, user.company, <span class="fstat-no" title="function not covered" >(i</span>nvoiceErr, invoiceResult) =&gt; {</span>
+        invoiceToXml(invoiceId, user.company, <span class="fstat-no" title="function not covered" >(i</span>nvoiceErr, invoiceResult) =&gt; {
 <span class="cstat-no" title="statement not covered" >            if (invoiceErr) {</span>
 <span class="cstat-no" title="statement not covered" >                return res.status(404).json({ error: invoiceErr.message });</span>
             }
@@ -520,7 +520,7 @@ app.get('/api/v1/invoices/list', <span class="fstat-no" title="function not cove
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-03-31T23:56:17.427Z
+                at 2025-04-03T05:11:16.824Z
             </div>
         <script src="prettify.js"></script>
         <script>

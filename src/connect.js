@@ -68,9 +68,7 @@ const sql_invoices_table = `
         IssueDate TEXT NOT NULL,
         PartyNameBuyer TEXT NOT NULL,
         PayableAmount REAL NOT NULL,
-        CurrencyCode TEXT NOT NULL,
-        InvoiceStartDate TEXT DEFAULT NULL,
-        InvoiceEndDate TEXT DEFAULT NULL
+        CurrencyCode TEXT NOT NULL
     );
 `;
 
@@ -87,9 +85,8 @@ const sql_invoice_items_table = `
     CREATE TABLE IF NOT EXISTS invoice_items (
         InvoiceItemID INTEGER PRIMARY KEY AUTOINCREMENT,
         InvoiceID INTEGER NOT NULL,
-        ItemDescription TEXT NOT NULL,
-        BuyersItemIdentification INTEGER NOT NULL,
-        SellersItemIdentification INTEGER NOT NULL,
+        ItemName TEXT,
+        ItemDescription TEXT,
         ItemAmount INTEGER NOT NULL,
         ItemUnitCode TEXT NOT NULL,
         FOREIGN KEY (InvoiceID) REFERENCES invoices(InvoiceID) ON DELETE CASCADE

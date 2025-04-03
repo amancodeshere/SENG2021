@@ -24,7 +24,6 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
             PartyNameBuyer: "ABC Corp",
             PayableAmount: 500,
             CurrencyCode: "USD",
-            SalesOrderID: "12345678",
         }
     ];
 
@@ -49,7 +48,6 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
             expect(res.body).toEqual([
                 {
                     invoiceId: 123456,
-                    salesOrderID: 12345678,
                     issueDate: "2025-03-06",
                     partyNameBuyer: "ABC Corp",
                     payableAmount: "USD 500"
@@ -86,7 +84,6 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
                     PartyNameBuyer: "ABC Corp",
                     PayableAmount: 500,
                     CurrencyCode: "USD",
-                    SalesOrderID: "2454565",
                 },
                 {
                     InvoiceID: 87865,
@@ -94,7 +91,6 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
                     PartyNameBuyer: "ABC Corp",
                     PayableAmount: 1000,
                     CurrencyCode: "USD",
-                    SalesOrderID: "324553",
                 }
             ];
             getUserBySessionId.mockImplementationOnce((sessionId, callback) => {
@@ -116,14 +112,12 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
             expect(res.body).toEqual([
                 {
                     invoiceId: 234567,
-                    salesOrderID: 2454565,
                     issueDate: "2025-03-06",
                     partyNameBuyer: "ABC Corp",
                     payableAmount: "USD 500"
                 },
                 {
                     invoiceId: 87865,
-                    salesOrderID: 324553,
                     issueDate: "2025-01-14",
                     partyNameBuyer: "ABC Corp",
                     payableAmount: "USD 1000"

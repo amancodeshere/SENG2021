@@ -23,13 +23,11 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
         PartyNameBuyer: "ABC Corp",
         PayableAmount: 500,
         CurrencyCode: "USD",
-        SalesOrderID: "12345678",
     };
     const mockItems = [
         {
+            ItemName: "Item",
             ItemDescription: "Electronic Component",
-            BuyersItemIdentification: "87654321",
-            SellersItemIdentification: "12345678",
             ItemAmount: 10,
             ItemUnitCode: "PCS",
         },
@@ -42,20 +40,17 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
             PartyNameBuyer: "ABC Corp",
             PayableAmount: 500,
             CurrencyCode: "USD",
-            SalesOrderID: "2454565",
         };
         const mockItems2 = [
             {
+                ItemName: "Item",
                 ItemDescription: "Electronic Component",
-                BuyersItemIdentification: "343543",
-                SellersItemIdentification: "4334555",
                 ItemAmount: 5,
                 ItemUnitCode: "PCS",
             },
             {
+                ItemName: "Item2",
                 ItemDescription: "Battery Component",
-                BuyersItemIdentification: "324455",
-                SellersItemIdentification: "876867",
                 ItemAmount: 15,
                 ItemUnitCode: "PCS",
             }
@@ -82,7 +77,6 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
             expect(res.text).toContain("<cbc:ID>123456</");
             expect(res.text).toContain("<cbc:IssueDate>2025-03-06</");
             expect(res.text).toContain("<cbc:DocumentCurrencyCode>USD</");
-            expect(res.text).toContain("<cbc:SalesOrderID>12345678</");
             expect(res.text).toContain("<cac:AccountingSupplierParty><cac:Party><cac:PartyName><cbc:Name>ABC Pty Ltd</");
             expect(res.text).toContain("<cac:AccountingCustomerParty><cac:Party><cac:PartyName><cbc:Name>ABC Corp</");
             expect(res.text).toContain("<cbc:PayableAmount>500</");
@@ -90,7 +84,7 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
             expect(res.text).toContain("<cac:InvoiceLine><cbc:ID>1</");
             expect(res.text).toContain("<cbc:InvoicedQuantity>10</");
             expect(res.text).toContain("<cbc:LineExtensionAmount>500</");
-            expect(res.text).toContain("<cac:Item><cbc:Name>Electronic Component</");
+            expect(res.text).toContain("<cac:Item><cbc:Name>Item</");
         });
 
         test('Converting an invoice with multiple items to XML successfully', async () => {
@@ -114,7 +108,6 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
             expect(res.text).toContain("<cbc:ID>123456</");
             expect(res.text).toContain("<cbc:IssueDate>2025-03-06</");
             expect(res.text).toContain("<cbc:DocumentCurrencyCode>USD</");
-            expect(res.text).toContain("<cbc:SalesOrderID>2454565</");
             expect(res.text).toContain("<cac:AccountingSupplierParty><cac:Party><cac:PartyName><cbc:Name>ABC Pty Ltd</");
             expect(res.text).toContain("<cac:AccountingCustomerParty><cac:Party><cac:PartyName><cbc:Name>ABC Corp</");
             expect(res.text).toContain("<cbc:PayableAmount>500</");
@@ -122,11 +115,11 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
             expect(res.text).toContain("<cac:InvoiceLine><cbc:ID>1</");
             expect(res.text).toContain("<cbc:InvoicedQuantity>5</");
             expect(res.text).toContain("<cbc:LineExtensionAmount>250</");
-            expect(res.text).toContain("<cac:Item><cbc:Name>Electronic Component</");
+            expect(res.text).toContain("<cac:Item><cbc:Name>Item</");
             expect(res.text).toContain("<cac:InvoiceLine><cbc:ID>2</");
             expect(res.text).toContain("<cbc:InvoicedQuantity>15</");
             expect(res.text).toContain("<cbc:LineExtensionAmount>250</");
-            expect(res.text).toContain("<cac:Item><cbc:Name>Battery Component</");
+            expect(res.text).toContain("<cac:Item><cbc:Name>Item2</");
         });
   
         test('converting multiple different invoices to XML successfully', async () => {
@@ -174,7 +167,6 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
             expect(res2.text).toContain("<cbc:ID>234567</");
             expect(res2.text).toContain("<cbc:IssueDate>2025-03-06</");
             expect(res2.text).toContain("<cbc:DocumentCurrencyCode>USD</");
-            expect(res2.text).toContain("<cbc:SalesOrderID>2454565</");
             expect(res2.text).toContain("<cac:AccountingSupplierParty><cac:Party><cac:PartyName><cbc:Name>ABC Pty Ltd</");
             expect(res2.text).toContain("<cac:AccountingCustomerParty><cac:Party><cac:PartyName><cbc:Name>ABC Corp</");
             expect(res2.text).toContain("<cbc:PayableAmount>500</");
