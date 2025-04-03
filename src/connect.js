@@ -31,7 +31,8 @@ const schema = [
     SalesOrderID TEXT PRIMARY KEY,
     UUID TEXT NOT NULL,
     IssueDate DATE NOT NULL,
-    PartyName TEXT NOT NULL,
+    PartyNameBuyer TEXT NOT NULL,
+    PartyNameSeller TEXT NOT NULL,
     PayableAmount REAL NOT NULL,
     PayableCurrencyCode TEXT NOT NULL
   );`,
@@ -50,6 +51,7 @@ const schema = [
     `CREATE TABLE IF NOT EXISTS invoices (
     InvoiceID SERIAL PRIMARY KEY,
     IssueDate DATE NOT NULL,
+    PartyNameSeller Text NOT NULL,
     PartyNameBuyer TEXT NOT NULL,
     PayableAmount REAL NOT NULL,
     CurrencyCode TEXT NOT NULL,
@@ -74,17 +76,18 @@ const schema = [
     UserID SERIAL PRIMARY KEY,
     Email TEXT UNIQUE NOT NULL,
     Password TEXT NOT NULL,
-    CompanyName TEXT NOT NULL
+    CompanyName TEXT NOT NULL,
+    NumLogins INTEGER DEFAULT 0 NOT NULL
   );`,
 
     `CREATE TABLE IF NOT EXISTS sessions (
     SessionID SERIAL PRIMARY KEY,
     UserID INTEGER NOT NULL,
-    NumLogins INTEGER DEFAULT 0 NOT NULL,
     CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (UserID) REFERENCES users(UserID) ON DELETE CASCADE
   );`
 ];
+
 
 // run schema creation
 schema.forEach(async (query) => {
