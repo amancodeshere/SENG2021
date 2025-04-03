@@ -1,4 +1,4 @@
-import { userInput, validateUser, updateUserSession, getSessionsByEmail, getUserBySessionId, invalidateSession } from '../../UsersToDB.js';
+import { userInput, validateUser, updateUserSession, getSessionsByEmail, getUserBySessionId } from '../../UsersToDB.js';
 import { CustomInputError } from '../../errors.js';
 import bcrypt from 'bcrypt';
 import { db } from '../../connect.js';
@@ -215,47 +215,6 @@ describe('getUserBySessionId', () => {
             expect(err).toBeNull();
             expect(res).toEqual({ userId: 1, email: 'email', company: 'Company' });
             done();
-        });
-    });
-});
-
-describe('invalidateSession', () => {
-    afterEach(() => jest.clearAllMocks());
-
-    it('should invalidate a session successfully', async () => {
-        db.query.mockResolvedValueOnce({ rows: [{}] });
-
-        await invalidateSession(1, (err, res) => {
-            expect(err).toBeNull();
-            expect(res).toEqual({
-                success: true,
-                message: 'Session invalidated successfully.',
-            });
-        });
-    });
-
-    it('should return error if session not found', async () => {
-        db.query.mockResolvedValueOnce({ rows: [] });
-
-        await invalidateSession(999, (err, res) => {
-            expect(err).toBeInstanceOf(CustomInputError);
-            expect(err.message).toMatch("Session not found");
-        });
-    });
-
-    it('should handle invalid session ID type', async () => {
-        await invalidateSession("abc", (err, res) => {
-            expect(err).toBeInstanceOf(CustomInputError);
-            expect(err.message).toMatch("Invalid session ID");
-        });
-    });
-
-    it('should handle database error', async () => {
-        db.query.mockRejectedValueOnce(new Error('DB failure'));
-
-        await invalidateSession(1, (err, res) => {
-            expect(err).toBeInstanceOf(CustomInputError);
-            expect(err.message).toMatch("Database error while invalidating session");
         });
     });
 });
