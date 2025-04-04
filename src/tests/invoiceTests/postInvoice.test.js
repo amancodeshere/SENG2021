@@ -51,14 +51,14 @@ describe('POST /api/v1/invoice/create', () => {
     PartyName: "ABC Corp",
     PayableAmount: 500,
     CurrencyCode: "USD",
-    Items: {
-      Id: 1,
+    Items: [{
+      Id: "1",
       ItemName: "new Item",
       ItemDescription: "This is an item",
       ItemPrice: 250,
       ItemQuantity: 2,
       ItemUnitCode: "PCS"
-    }
+    }]
   };
 
   beforeEach(() => {

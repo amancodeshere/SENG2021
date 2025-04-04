@@ -79,7 +79,7 @@ export function inputInvoice(OrderID, callback) {
                     let pendingItems = itemsRows.length;
 
                     for (const item of itemsRows) {
-                        db.run(sqlInsertInvoiceItem, [InvoiceID, item.ItemDescription,  item.ItemPrice, item.ItemQuantity, item.ItemUnitCode], function (invoiceItemErr) {
+                        db.run(sqlInsertInvoiceItem, [InvoiceID, item.ItemName, item.ItemDescription,  item.ItemPrice, item.ItemQuantity, item.ItemUnitCode], function (invoiceItemErr) {
                             if (invoiceItemErr) {
                                 console.error("SQL Error while inserting invoice item:", invoiceItemErr.message);
                                 db.exec("ROLLBACK;", () => {});
@@ -136,7 +136,7 @@ export function getInvoiceByID(InvoiceID, callback) {
 
         // get invoice items from invoice_items table
         const sqlGetInvoiceItems = `
-            SELECT ItemName, ItemDescription, ItemAmount, ItemUnitCode
+            SELECT ItemName, ItemDescription, ItemPrice, ItemQuantity, ItemUnitCode
             FROM invoice_items
             WHERE InvoiceID = ?;
         `;

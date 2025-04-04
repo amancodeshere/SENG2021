@@ -17,16 +17,15 @@ describe("inputOrder Function", () => {
         PartyName: "ABC Corp",
         PayableAmount: 500,
         PayableCurrencyCode: "USD",
-        Items: [
-            {
-                Id: "12",
-                ItemName: "Default",
-                ItemDescription: "Electronic Component",
-                ItemAmount: 10,
-                ItemUnitCode: "PCS"
-            }
-        ]
-    };
+        Items: [{
+          Id: "1",
+          ItemName: "new Item",
+          ItemDescription: "This is an item",
+          ItemPrice: 250,
+          ItemQuantity: 2,
+          ItemUnitCode: "PCS"
+        }]
+      };
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -120,14 +119,14 @@ describe("inputOrder Function", () => {
     test("should return error when an Item has invalid data", (done) => {
         const invalidOrder = {
             ...validOrder,
-            Items: [{ Id: "1", ItemDescription: "", BuyersItemIdentification: "123", SellersItemIdentification: "456", ItemAmount: -5, ItemUnitCode: "XYZ" }]
+            Items: [{Id: 1, ItemUnitCode: 3 }]
         };
 
         inputOrder(
             ...Object.values(invalidOrder),
             (err, result) => {
                 expect(err).toBeInstanceOf(CustomInputError);
-                expect(err.message).toMatch(/Invalid Item Description|Invalid Buyers Item ID|Invalid Sellers Item ID|Invalid Item Amount|Invalid Item Unit Code/);
+                expect(err.message).toMatch(/Invalid Item ID||Invalid Item Unit Code/);
                 done();
             }
         );

@@ -42,8 +42,6 @@ function parseXMLDocument(xmlString) {
         const parser = new XMLParser(options);
         let orderObj = parser.parse(xmlString).Order;
 
-        console.log(orderObj);
-
         var items = parseXMLItemsList(orderObj["cac:OrderLine"]);
 
         const document = {
@@ -54,7 +52,6 @@ function parseXMLDocument(xmlString) {
             Items: items
         }
         
-        console.log(document)
         if (!validateDocument(document)) {
             throw new CustomInputError('Missing required fields in document');
         }
@@ -69,13 +66,12 @@ function parseXMLItemsList(xmlItems) {
     var items = [];
     for(var orderLine of xmlItems) {
         var xmlItem = orderLine['cac:LineItem'];
-        console.log(xmlItem);
         const item = {
             Id: xmlItem['cbc:ID'],
             ItemName: xmlItem['cac:Item']['cbc:Name'],
             ItemDescription: xmlItem['cac:Item']['cbc:Description'],
             ItemPrice: xmlItem['cac:Price']['cbc:PriceAmount']['#text'],
-            ItemQuantity: xmlItem['cbc:Quantity'],
+            ItemQuantity: xmlItem['cbc:Quantity']['#text'],
             ItemUnitCode: xmlItem['cbc:Quantity']['@_unitCode'],
         };
        items.push(item);
@@ -96,6 +92,7 @@ async function createInvoiceFromDocument(document) {
             PayableCurrencyCode: document.CurrencyCode,
             Items: document.Items
         };
+        
 
         inputOrder(orderData.UUID, orderData.IssueDate, orderData.PartyName, orderData.PayableAmount, orderData.PayableCurrencyCode, orderData.Items, (orderErr, result) => {
             if (orderErr) {
@@ -103,7 +100,7 @@ async function createInvoiceFromDocument(document) {
                 return;
             }
 
-            inputInvoice(result.OrderId, (invoiceErr, result) => {
+            inputInvoice(result.OrderID, (invoiceErr, result) => {
                 if (invoiceErr) {
                     reject(new Error('Invoice creation failed'));
                     return;

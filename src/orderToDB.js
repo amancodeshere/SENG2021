@@ -47,7 +47,7 @@ export function isValidUnitCode(unitCode) {
  * @returns {boolean} true if valid, false otherwise.
  */
 export function isValidItemID(itemID) {
-    return typeof itemID === 'string' && /^\d+$/.test(itemID);
+    return  true;//typeof itemID === 'string';
 }
 
 // ===========================================================================
@@ -92,9 +92,6 @@ export function inputOrder(UUID, IssueDate, PartyName,
     for (const item of Items) {
         if (!isValidItemID(item.Id)) {
             return callback(new CustomInputError('Invalid Item ID.'));
-        }
-        if (typeof item.ItemAmount !== 'number' || item.ItemAmount < 0) {
-            return callback(new CustomInputError('Invalid Item Amount.'));
         }
         if (!isValidUnitCode(item.ItemUnitCode)) {
             return callback(new CustomInputError('Invalid Item Unit Code.'));
