@@ -2514,3 +2514,15 @@
 2025-04-04 15:39:01.287 AEDT [80635] ERROR:  duplicate key value violates unique constraint "users_email_key"
 2025-04-04 15:39:01.287 AEDT [80635] DETAIL:  Key (email)=(val@gmail.com) already exists.
 2025-04-04 15:39:01.287 AEDT [80635] STATEMENT:  INSERT INTO users (Email, Password, CompanyName) VALUES ($1, $2, $3) RETURNING UserID;
+2025-04-04 15:41:25.026 AEDT [6226] LOG:  checkpoint starting: time
+2025-04-04 15:41:25.347 AEDT [6226] LOG:  checkpoint complete: wrote 4 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.311 s, sync=0.004 s, total=0.321 s; sync files=4, longest=0.002 s, average=0.001 s; distance=3 kB, estimate=413 kB; lsn=0/286EC68, redo lsn=0/286EC30
+2025-04-04 15:55:46.252 AEDT [81195] ERROR:  duplicate key value violates unique constraint "users_email_key"
+2025-04-04 15:55:46.252 AEDT [81195] DETAIL:  Key (email)=(val@gmail.com) already exists.
+2025-04-04 15:55:46.252 AEDT [81195] STATEMENT:  INSERT INTO users (Email, Password, CompanyName) VALUES ($1, $2, $3) RETURNING UserID;
+2025-04-04 15:56:25.410 AEDT [6226] LOG:  checkpoint starting: time
+2025-04-04 15:56:25.722 AEDT [6226] LOG:  checkpoint complete: wrote 4 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.308 s, sync=0.002 s, total=0.313 s; sync files=4, longest=0.001 s, average=0.001 s; distance=3 kB, estimate=372 kB; lsn=0/286F8E8, redo lsn=0/286F8B0
+2025-04-04 16:58:54.721 AEDT [81712] ERROR:  duplicate key value violates unique constraint "users_email_key"
+2025-04-04 16:58:54.721 AEDT [81712] DETAIL:  Key (email)=(val@gmail.com) already exists.
+2025-04-04 16:58:54.721 AEDT [81712] STATEMENT:  INSERT INTO users (Email, Password, CompanyName) VALUES ($1, $2, $3) RETURNING UserID;
+2025-04-04 17:01:48.198 AEDT [6226] LOG:  checkpoint starting: time
+2025-04-04 17:01:48.521 AEDT [6226] LOG:  checkpoint complete: wrote 4 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.313 s, sync=0.003 s, total=0.323 s; sync files=4, longest=0.002 s, average=0.001 s; distance=3 kB, estimate=335 kB; lsn=0/2870610, redo lsn=0/28705D8
