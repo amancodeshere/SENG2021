@@ -4,11 +4,9 @@ import { validate as validateUUID } from "uuid";
 import { parse, isValid, format } from "date-fns";
 import { isValidPartyName } from './helperFunctions.js';
 
-
 // ===========================================================================
 // ======================== Helper Functions Below ===========================
 // ===========================================================================
-
 
 /**
  * Validates a date string in 'YYYY-MM-DD'.
@@ -22,7 +20,6 @@ export function isValidIssueDate(date) {
     return isValid(parsedDate) && format(parsedDate, 'yyyy-MM-dd') === date;
 }
 
-
 /**
  * Validates a currency code.
  *
@@ -32,7 +29,6 @@ export function isValidIssueDate(date) {
 export function isValidCurrencyCode(currencyCode) {
     return typeof currencyCode === 'string' && /^[A-Z]{3}$/.test(currencyCode);
 }
-
 
 /**
  * Validates a unit code.
@@ -44,7 +40,6 @@ export function isValidUnitCode(unitCode) {
     return typeof unitCode === 'string' && /^[A-Z]{2,3}$/.test(unitCode);
 }
 
-
 /**
  * Validates an item identification number.
  *
@@ -55,11 +50,9 @@ export function isValidItemID(itemID) {
     return typeof itemID === 'string' && /^\d{8}$/.test(itemID);
 }
 
-
 // ===========================================================================
 // ======================== Helper Functions Above ===========================
 // ===========================================================================
-
 
 /**
  * Inserts an order and its items into the database after validation.
@@ -67,74 +60,66 @@ export function isValidItemID(itemID) {
  * @param {string} SalesOrderID - identifier for sales order.
  * @param {string} UUID - identifier the order
  * @param {string} IssueDate - issue date of order.
- * @param {string} PartyNameBuyer - buyer party name
- * @param {string} PartyNameSeller - seller party name
+ * @param {string} PartyName - party name placing order
  * @param {number} PayableAmount - amount payable for order
  * @param {string} PayableCurrencyCode - currency code of payable amount
  * @param {Array} Items - Array of items (each item is an object)
  * @param {function} callback - callback function to handle the result
  */
-export async function inputOrder(SalesOrderID, UUID, IssueDate, PartyNameBuyer,
-                                 PartyNameSeller, PayableAmount, PayableCurrencyCode, Items, callback) {
+export async function inputOrder(SalesOrderID, UUID, IssueDate, PartyName,
+                                 PayableAmount, PayableCurrencyCode, Items, callback) {
     try {
         const checkRes = await db.query(`SELECT COUNT(*) FROM orders WHERE SalesOrderID = $1;`, [SalesOrderID]);
         if (parseInt(checkRes.rows[0].count) > 0) {
             return callback(new CustomInputError('SalesOrderID already exists.'));
         }
 
-
-        if (!validateUUID(UUID)) throw new CustomInputError('Invalid UUID.');
-        if (!isValidIssueDate(IssueDate)) throw new CustomInputError('Invalid Issue Date.');
-        if (!isValidPartyName(PartyNameBuyer)) throw new CustomInputError('Invalid Buyer Party Name.');
-        if (!isValidPartyName(PartyNameSeller)) throw new CustomInputError('Invalid Seller Party Name.');
+        // Validate order
+        if (!validateUUID(UUID)) return callback(new CustomInputError('Invalid UUID.'));
+        if (!isValidIssueDate(IssueDate)) return callback(new CustomInputError('Invalid Issue Date.'));
+        if (!isValidPartyName(PartyName)) return callback(new CustomInputError('Invalid Party Name.'));
         if (typeof PayableAmount !== 'number' || PayableAmount < 0)
-            throw new CustomInputError('Invalid Payable Amount.');
+            return callback(new CustomInputError('Invalid Payable Amount.'));
         if (!isValidCurrencyCode(PayableCurrencyCode))
-            throw new CustomInputError('Invalid Payable Currency Code.');
+            return callback(new CustomInputError('Invalid Payable Currency Code.'));
         if (!Array.isArray(Items) || Items.length === 0)
-            throw new CustomInputError('Invalid Items list.');
-
+            return callback(new CustomInputError('Invalid Items list.'));
 
         for (const item of Items) {
             if (!isValidItemID(item.SellersItemIdentification))
-                throw new CustomInputError('Invalid Sellers Item ID.');
+                return callback(new CustomInputError('Invalid Sellers Item ID.'));
             if (!isValidItemID(item.BuyersItemIdentification))
-                throw new CustomInputError('Invalid Buyers Item ID.');
+                return callback(new CustomInputError('Invalid Buyers Item ID.'));
             if (typeof item.ItemAmount !== 'number' || item.ItemAmount < 0)
-                throw new CustomInputError('Invalid Item Amount.');
+                return callback(new CustomInputError('Invalid Item Amount.'));
             if (!isValidUnitCode(item.ItemUnitCode))
-                throw new CustomInputError('Invalid Item Unit Code.');
+                return callback(new CustomInputError('Invalid Item Unit Code.'));
             if (typeof item.ItemDescription !== 'string' || !item.ItemDescription.trim())
-                throw new CustomInputError('Invalid Item Description.');
+                return callback(new CustomInputError('Invalid Item Description.'));
         }
-
 
         await db.query('BEGIN');
 
-
         await db.query(`
-            INSERT INTO orders (SalesOrderID, UUID, IssueDate, PartyNameBuyer, PartyNameSeller, PayableAmount, PayableCurrencyCode)
-            VALUES ($1, $2, $3, $4, $5, $6, $7);
-        `, [SalesOrderID, UUID, IssueDate, PartyNameBuyer, PartyNameSeller, PayableAmount, PayableCurrencyCode]);
-
+           INSERT INTO orders (SalesOrderID, UUID, IssueDate, PartyNameBuyer, PartyNameSeller, PayableAmount, PayableCurrencyCode)
+           VALUES ($1, $2, $3, $4, $4, $5, $6);
+       `, [SalesOrderID, UUID, IssueDate, PartyName, PayableAmount, PayableCurrencyCode]);
 
         for (const item of Items) {
             await db.query(`
-                INSERT INTO order_items (SalesOrderID, ItemDescription, BuyersItemIdentification, SellersItemIdentification, ItemAmount, ItemUnitCode)
-                VALUES ($1, $2, $3, $4, $5, $6);
-            `, [SalesOrderID, item.ItemDescription, item.BuyersItemIdentification, item.SellersItemIdentification, item.ItemAmount, item.ItemUnitCode]);
+               INSERT INTO order_items (SalesOrderID, ItemDescription, BuyersItemIdentification, SellersItemIdentification, ItemAmount, ItemUnitCode)
+               VALUES ($1, $2, $3, $4, $5, $6);
+           `, [SalesOrderID, item.ItemDescription, item.BuyersItemIdentification, item.SellersItemIdentification, item.ItemAmount, item.ItemUnitCode]);
         }
-
 
         await db.query('COMMIT');
         callback(null, { success: true, message: 'Order and items inserted successfully.' });
     } catch (err) {
-        console.error("Error inserting order and items:", err.message || err);
+        console.error("Error inserting order and items:", err.message);
         await db.query('ROLLBACK');
-        return callback(err instanceof CustomInputError ? err : new CustomInputError('Error processing order insert.'));
+        return callback(new CustomInputError('Error processing order insert.'));
     }
 }
-
 
 /**
  * Get the full order details from SalesOrderID
@@ -152,7 +137,6 @@ export async function getOrderBySalesOrderID(SalesOrderID, callback) {
         return callback(new CustomInputError('Database error while fetching order.'));
     }
 }
-
 
 /**
  * Get a list of SalesOrderIDs from a party's name
@@ -173,7 +157,6 @@ export async function getOrderIdsByPartyName(PartyName, callback) {
     }
 }
 
-
 /**
  * Delete an order from database given SalesOrderIDs
  *
@@ -184,21 +167,18 @@ export async function deleteOrderById(SalesOrderID, callback) {
     try {
         await db.query('BEGIN');
 
-
         await db.query(`DELETE FROM order_items WHERE SalesOrderID = $1;`, [SalesOrderID]);
         const res = await db.query(`DELETE FROM orders WHERE SalesOrderID = $1 RETURNING *;`, [SalesOrderID]);
-
 
         if (res.rowCount === 0) {
             await db.query('ROLLBACK');
             return callback(new CustomInputError('Order not found.'));
         }
 
-
         await db.query('COMMIT');
         callback(null, { success: true, message: 'Order and related items deleted successfully.' });
     } catch (err) {
-        console.error("SQL Error while deleting order:", err.message || err);
+        console.error("SQL Error while deleting order:", err.message);
         await db.query('ROLLBACK');
         return callback(new CustomInputError('Error committing delete transaction.'));
     }
