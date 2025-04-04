@@ -133,7 +133,6 @@ export function invoiceToXml(invoiceId, companyName, callback) {
 
         invoice.setIssueDate(invoiceData.IssueDate);
         invoice.setDocumentCurrencyCode(invoiceData.CurrencyCode);
-        invoice.setUUID(invoiceData.UUID);
 
         const supplierPartyName = new PartyName({ name: companyName });
         const supplierParty = new Party({ partyNames: [supplierPartyName] });

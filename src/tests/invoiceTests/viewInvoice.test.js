@@ -16,7 +16,7 @@ beforeEach(() => {
     jest.clearAllMocks();
 });
 
-describe('invoiceToXml route - Comprehensive Tests', () => {
+describe('View invoice route - Comprehensive Tests', () => {
     const mockInvoice = {
         InvoiceID: 123456,
         IssueDate: "2025-03-06",
