@@ -3,7 +3,6 @@ import cors from 'cors';
 import morgan from 'morgan';
 import bodyParser from 'body-parser';
 import swaggerUi from "swagger-ui-express";
-import YAML from "yamljs";
 import {
     adminRegister,
     adminLogin
@@ -15,19 +14,10 @@ import { healthCheck } from './health.js';
 
 export const app = express();
 
-// Load Swagger YAML file
-const swaggerDocument = YAML.load("./swagger.yml");
+app.use(express.json()); // Parse JSON bodies
+app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
+app.use(bodyParser.text({ type: 'application/xml' })); // Handle XML
 
-// Middleware to serve Swagger UI
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-// Middleware to access JSON/XML body of requests
-app.use((req, res, next) => {
-    if (req.headers['content-type'] === 'application/xml') {
-        bodyParser.text({ type: 'application/xml' })(req, res, next);
-    } else {
-        bodyParser.json()(req, res, next);
-    }
-});
 // Middleware to access the JSON body of requests
 app.use(bodyParser.urlencoded({ extended: true }));
 // Middleware to allow access from other domains
@@ -143,6 +133,10 @@ app.get('/api/v1/invoices/list', (req, res) => {
             res.status(200).json(result);
         });
     });
+});
+
+app.get('/', (req, res) => {
+    res.send('🚀 Server is running!');
 });
 
 // ===========================================================================
