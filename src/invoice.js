@@ -72,8 +72,9 @@ function parseXMLItemsList(xmlItems) {
             Id: xmlItem['cbc:ID'],
             ItemName: xmlItem['cac:Item']['cbc:Name'],
             ItemDescription: xmlItem['cac:Item']['cbc:Description'],
-            ItemAmount: xmlItem['cac:Price']['cbc:PriceAmount']['#text'],
-            ItemUnitCode: xmlItem['cbc:Quantity']['@_unitCode']
+            ItemPrice: xmlItem['cac:Price']['cbc:PriceAmount']['#text'],
+            ItemQuantity: xmlItem['cbc:Quantity'],
+            ItemUnitCode: xmlItem['cbc:Quantity']['@_unitCode'],
         };
        items.push(item);
     }

@@ -124,13 +124,13 @@ export function inputOrder(UUID, IssueDate, PartyName,
 
             // item insertion is handled separately now
             const sqlItemInsert = `
-                INSERT INTO order_items (OrderItemId, OrderId, ItemName, ItemDescription, ItemAmount, ItemUnitCode)
-                VALUES (?, ?, ?, ?, ?, ?);
+                INSERT INTO order_items (OrderItemId, OrderId, ItemName, ItemDescription, ItemPrice, ItemQuantity, ItemUnitCode)
+                VALUES (?, ?, ?, ?, ?, ?, ?);
             `;
 
             let pendingItems = Items.length;
             for (const item of Items) {
-                db.run(sqlItemInsert, [item.Id, OrderID, item.ItemName, item.ItemDescription, item.ItemAmount, item.ItemUnitCode], function (err) {
+                db.run(sqlItemInsert, [item.Id, OrderID, item.ItemName, item.ItemDescription, item.ItemPrice, item.ItemQuantity, item.ItemUnitCode], function (err) {
                     if (err) {
                         console.error('SQL Error while inserting order item:', err.message);
                         db.exec("ROLLBACK;", () => {});

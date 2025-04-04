@@ -55,7 +55,8 @@ describe('POST /api/v1/invoice/create', () => {
       Id: 1,
       ItemName: "new Item",
       ItemDescription: "This is an item",
-      ItemAmount: 500,
+      ItemPrice: 250,
+      ItemQuantity: 2,
       ItemUnitCode: "PCS"
     }
   };

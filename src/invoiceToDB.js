@@ -21,7 +21,7 @@ export function inputInvoice(OrderID, callback) {
         const sqlGetOrder = `
             SELECT IssueDate, PartyName AS PartyNameBuyer, PayableAmount, PayableCurrencyCode AS CurrencyCode
             FROM orders
-            WHERE SalesOrderID = ?;
+            WHERE OrderId = ?;
         `;
 
         db.get(sqlGetOrder, [OrderID], (orderErr, orderRow) => {
@@ -53,7 +53,7 @@ export function inputInvoice(OrderID, callback) {
 
                 // get order items
                 const sqlGetOrderItems = `
-                    SELECT ItemName, ItemDescription, ItemAmount, ItemUnitCode
+                    SELECT ItemName, ItemDescription, ItemPrice, ItemQuantity, ItemUnitCode
                     FROM order_items
                     WHERE OrderId = ?;
                 `;
@@ -72,14 +72,14 @@ export function inputInvoice(OrderID, callback) {
 
                     // insert items into invoice_items table
                     const sqlInsertInvoiceItem = `
-                        INSERT INTO invoice_items (InvoiceID, ItemName, ItemDescription, ItemAmount, ItemUnitCode)
-                        VALUES (?, ?, ?, ?, ?);
+                        INSERT INTO invoice_items (InvoiceID, ItemName, ItemDescription, ItemPrice, ItemQuantity, ItemUnitCode)
+                        VALUES (?, ?, ?, ?, ?, ?);
                     `;
 
                     let pendingItems = itemsRows.length;
 
                     for (const item of itemsRows) {
-                        db.run(sqlInsertInvoiceItem, [InvoiceID, item.ItemDescription, item.BuyersItemIdentification, item.SellersItemIdentification, item.ItemAmount, item.ItemUnitCode], function (invoiceItemErr) {
+                        db.run(sqlInsertInvoiceItem, [InvoiceID, item.ItemDescription,  ItemPrice, ItemQuantity, item.ItemUnitCode], function (invoiceItemErr) {
                             if (invoiceItemErr) {
                                 console.error("SQL Error while inserting invoice item:", invoiceItemErr.message);
                                 db.exec("ROLLBACK;", () => {});

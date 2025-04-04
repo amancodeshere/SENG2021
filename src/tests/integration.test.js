@@ -114,21 +114,6 @@ describe('Intergration tests for all routes', () => {
             .set('sessionid', sessionId);
 
         expect(res.status).toBe(200);
-
-        //expect(res.text).toContain('<?xml version="1.0" encoding="UTF-8"');
-            // expect(res.text).toContain("<Invoice");
-            // expect(res.text).toContain(`<cbc:ID>${invoiceId1}</`);
-            // expect(res.text).toContain("<cbc:IssueDate>2025-03-06</");
-            // expect(res.text).toContain("<cbc:DocumentCurrencyCode>USD</");
-            // expect(res.text).toContain("<cbc:SalesOrderID>12345678</");
-            // expect(res.text).toContain("<cac:AccountingSupplierParty><cac:Party><cac:PartyName><cbc:Name>Valid Pty Ltd</");
-            // expect(res.text).toContain("<cac:AccountingCustomerParty><cac:Party><cac:PartyName><cbc:Name>ABC Corp</");
-            // expect(res.text).toContain("<cbc:PayableAmount>500</");
-            // expect(res.text).toContain("<cbc:PayableAmount>500</");
-            // expect(res.text).toContain("<cac:InvoiceLine><cbc:ID>1</");
-            // expect(res.text).toContain("<cbc:InvoicedQuantity>500</");
-            // expect(res.text).toContain("<cbc:LineExtensionAmount>500</");
-            // expect(res.text).toContain("<cac:Item><cbc:Name>Default Item</");
         
         var xml = res.text;
         res = await request(app).post('/api/v1/invoice/validate')

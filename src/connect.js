@@ -47,7 +47,8 @@ const sql_order_items_table = `
         OrderID TEXT NOT NULL,
         ItemName TEXT,
         ItemDescription TEXT,
-        ItemAmount INTEGER NOT NULL,
+        ItemPrice REAL NOT NULL,
+        ItemQuantity INTEGER NOT NULL,
         ItemUnitCode TEXT NOT NULL,
         FOREIGN KEY (OrderID) REFERENCES orders(OrderId) ON DELETE CASCADE
     );
@@ -87,7 +88,8 @@ const sql_invoice_items_table = `
         InvoiceID INTEGER NOT NULL,
         ItemName TEXT,
         ItemDescription TEXT,
-        ItemAmount INTEGER NOT NULL,
+        ItemPrice REAL NOT NULL,
+        ItemQuantity INTEGER NOT NULL,
         ItemUnitCode TEXT NOT NULL,
         FOREIGN KEY (InvoiceID) REFERENCES invoices(InvoiceID) ON DELETE CASCADE
     );
