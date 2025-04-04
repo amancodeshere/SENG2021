@@ -15,6 +15,7 @@ import {CustomInputError} from "./errors.js";
 import { db } from './connect.js';
 import { v4 as uuidv4 } from 'uuid';
 import { XMLParser } from 'fast-xml-parser';
+import { Price } from 'ubl-builder/lib/ubl21/CommonAggregateComponents/PriceTypeGroup.js';
 
 // ===========================================================================
 // ============== local helper functions only used in admin.js ===============
@@ -151,14 +152,15 @@ export function invoiceToXml(invoiceId, companyName, callback) {
         invoiceData.Items.forEach((item) => {
             const invoiceItem = new Item({ name: item.ItemName, descriptions: item.ItemDescription });
             const lineExtensionAmount = item.ItemAmount;
-            const invoiceLine = new InvoiceLine({ id, invoicedQuantity: item.ItemAmount, lineExtensionAmount, item: invoiceItem});
+            const itemPrice = new Price({ priceAmount: item.ItemAmount })
+            const invoiceLine = new InvoiceLine({ id, price: itemPrice, lineExtensionAmount, item: invoiceItem});
             invoice.addInvoiceLine(invoiceLine);
             id++;
         });   
 
         const xmlInvoice = invoice.getXml();
 
-        callback(null, xmlInvoice);
+        return callback(null, xmlInvoice);
     });
 }
 

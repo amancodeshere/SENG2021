@@ -81,7 +81,7 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
             expect(res.text).toContain("<cac:AccountingCustomerParty><cac:Party><cac:PartyName><cbc:Name>ABC Corp</");
             expect(res.text).toContain("<cbc:PayableAmount>10</");
             expect(res.text).toContain("<cac:InvoiceLine><cbc:ID>1</");
-            expect(res.text).toContain("<cbc:InvoicedQuantity>10</");
+            expect(res.text).toContain("<cac:Price><cbc:PriceAmount>10</");
             expect(res.text).toContain("<cbc:LineExtensionAmount>10</");
             expect(res.text).toContain("<cbc:Name>Item</");
         });
@@ -111,11 +111,11 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
             expect(res.text).toContain("<cac:AccountingCustomerParty><cac:Party><cac:PartyName><cbc:Name>ABC Corp</");
             expect(res.text).toContain("<cbc:PayableAmount>20</");
             expect(res.text).toContain("<cac:InvoiceLine><cbc:ID>1</");
-            expect(res.text).toContain("<cbc:InvoicedQuantity>5</");
+            expect(res.text).toContain("<cac:Price><cbc:PriceAmount>5</");
             expect(res.text).toContain("<cbc:LineExtensionAmount>5</");
             expect(res.text).toContain("<cbc:Name>Item</");
             expect(res.text).toContain("<cac:InvoiceLine><cbc:ID>2</");
-            expect(res.text).toContain("<cbc:InvoicedQuantity>15</");
+            expect(res.text).toContain("<cac:Price><cbc:PriceAmount>15</");
             expect(res.text).toContain("<cbc:LineExtensionAmount>15</");
             expect(res.text).toContain("<cbc:Name>Item2</");
         });
@@ -150,7 +150,7 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
             expect(res.text).toContain("<cac:AccountingCustomerParty><cac:Party><cac:PartyName><cbc:Name>ABC Corp</");
             expect(res.text).toContain("<cbc:PayableAmount>10</");
             expect(res.text).toContain("<cac:InvoiceLine><cbc:ID>1</");
-            expect(res.text).toContain("<cbc:InvoicedQuantity>10</");
+            expect(res.text).toContain("<cac:Price><cbc:PriceAmount>10</");
             expect(res.text).toContain("<cbc:LineExtensionAmount>10</");
             expect(res.text).toContain("<cbc:Name>Item</");
             const res2 = await request(app)
@@ -167,11 +167,11 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
             expect(res2.text).toContain("<cac:AccountingCustomerParty><cac:Party><cac:PartyName><cbc:Name>ABC Corp</");
             expect(res2.text).toContain("<cbc:PayableAmount>20</");
             expect(res2.text).toContain("<cac:InvoiceLine><cbc:ID>1</");
-            expect(res2.text).toContain("<cbc:InvoicedQuantity>5</");
+            expect(res2.text).toContain("<cac:Price><cbc:PriceAmount>5</");
             expect(res2.text).toContain("<cbc:LineExtensionAmount>5</");
             expect(res2.text).toContain("<cbc:Name>Item</");
             expect(res2.text).toContain("<cac:InvoiceLine><cbc:ID>2</");
-            expect(res2.text).toContain("<cbc:InvoicedQuantity>15</");
+            expect(res2.text).toContain("<cac:Price><cbc:PriceAmount>15</");
             expect(res2.text).toContain("<cbc:LineExtensionAmount>15</");
             expect(res2.text).toContain("<cbc:Name>Item2</");
         });
