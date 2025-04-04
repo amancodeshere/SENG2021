@@ -16,6 +16,8 @@ import { db } from './connect.js';
 import { v4 as uuidv4 } from 'uuid';
 import { XMLParser } from 'fast-xml-parser';
 import { Price } from 'ubl-builder/lib/ubl21/CommonAggregateComponents/PriceTypeGroup.js';
+import { UdtQuantity } from 'ubl-builder/lib/ubl21/types/UnqualifiedDataTypes/UdtQuantity.js';
+import { UdtAmount } from 'ubl-builder/lib/ubl21/types/UnqualifiedDataTypes/UdtAmount.js';
 
 // ===========================================================================
 // ============== local helper functions only used in admin.js ===============
@@ -146,15 +148,17 @@ export function invoiceToXml(invoiceId, companyName, callback) {
         const accountingCustomerParty = new AccountingCustomerParty({ party: customerParty })
         invoice.setAccountingCustomerParty(accountingCustomerParty);
 
-        const monetaryTotal = new MonetaryTotal({ payableAmount: invoiceData.PayableAmount });
+        const currencyAttribute = { currencyID: invoiceData.CurrencyCode };
+        const monetaryTotal = new MonetaryTotal({ payableAmount: new UdtAmount(invoiceData.PayableAmount, currencyAttribute) });
         invoice.setLegalMonetaryTotal(monetaryTotal);
 
         let id = 1;
         invoiceData.Items.forEach((item) => {
             const invoiceItem = new Item({ name: item.ItemName, descriptions: item.ItemDescription });
-            const lineExtensionAmount = item.ItemAmount;
-            const itemPrice = new Price({ priceAmount: item.ItemAmount })
-            const invoiceLine = new InvoiceLine({ id, price: itemPrice, lineExtensionAmount, item: invoiceItem});
+            const lineExtensionAmount = new UdtAmount(item.ItemPrice * item.ItemQuantity, currencyAttribute);
+            const itemPrice = new Price({ priceAmount: new UdtAmount(item.ItemPrice, currencyAttribute) })
+            const itemQuantity = new UdtQuantity(item.ItemQuantity, { unitCode: item.ItemUnitCode })
+            const invoiceLine = new InvoiceLine({ id, price: itemPrice, invoicedQuantity: itemQuantity ,lineExtensionAmount, item: invoiceItem});
             invoice.addInvoiceLine(invoiceLine);
             id++;
         });   
