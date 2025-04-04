@@ -1,0 +1,24 @@
+.landing-logo {
+    width: 500px;
+    margin-bottom: 20px;
+}
+
+.landing-text {
+    font-size: 22px;
+    color: #222;
+    margin-bottom: 20px;
+}
+
+.login-button {
+    background-color: #13355c;
+    color: white;
+    font-size: 26px;
+    padding: 28px 48px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+}
+
+.login-button:hover {
+    background-color: #102844; /* Slightly darker on hover */
+}
