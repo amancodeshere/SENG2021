@@ -1,21 +1,17 @@
 import { db } from './connect.js';
 import { CustomInputError } from './errors.js';
 
-
 /**
- * Inserts an invoice into the database based on an existing order.
- *
- * @param {string} SalesOrderID - ID of the sales order to convert into an invoice.
- * @param {function} callback - Callback to handle result or error.
+ * Inserts an invoice based on an existing order.
  */
 export async function inputInvoice(SalesOrderID, callback) {
     try {
         await db.query('BEGIN');
 
         const orderResult = await db.query(
-            `SELECT IssueDate, PartyNameBuyer, PartyNameSeller, PayableCurrencyCode AS CurrencyCode
+            `SELECT IssueDate, PartyNameBuyer, PartyNameSeller, PayableAmount, PayableCurrencyCode AS CurrencyCode
              FROM orders WHERE SalesOrderID = $1;`,
-            [SalesOrderID]
+             [SalesOrderID]
         );
 
         if (orderResult.rows.length === 0) {
@@ -26,9 +22,9 @@ export async function inputInvoice(SalesOrderID, callback) {
         const order = orderResult.rows[0];
 
         const invoiceInsertResult = await db.query(
-            `INSERT INTO invoices (IssueDate, PartyNameBuyer, PartyNameSeller, CurrencyCode, SalesOrderID)
-             VALUES ($1, $2, $3, $4, $5) RETURNING InvoiceID;`,
-            [order.issuedate, order.partynamebuyer, order.partynameseller, order.currencycode, SalesOrderID]
+            `INSERT INTO invoices (IssueDate, PartyNameBuyer, PartyNameSeller, PayableAmount, CurrencyCode, SalesOrderID)
+             VALUES ($1, $2, $3, $4, $5, $6) RETURNING InvoiceID;`,
+             [order.issuedate, order.partynamebuyer, order.partynameseller, order.payableamount, order.currencycode, SalesOrderID]
         );
 
         const InvoiceID = invoiceInsertResult.rows[0].invoiceid;
@@ -36,7 +32,7 @@ export async function inputInvoice(SalesOrderID, callback) {
         const itemsResult = await db.query(
             `SELECT ItemDescription, BuyersItemIdentification, SellersItemIdentification, ItemAmount, ItemUnitCode
              FROM order_items WHERE SalesOrderID = $1;`,
-            [SalesOrderID]
+             [SalesOrderID]
         );
 
         if (itemsResult.rows.length === 0) {
@@ -44,26 +40,13 @@ export async function inputInvoice(SalesOrderID, callback) {
             return callback(new CustomInputError("No items found for this order."));
         }
 
-        let count = 1;
         for (const item of itemsResult.rows) {
             await db.query(
-                `INSERT INTO invoice_items (
-                    InvoiceID, InvoiceItemName, ItemDescription, BuyersItemIdentification, SellersItemIdentification,
-                    ItemPrice, ItemQuantity, ItemUnitCode
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`,
-                [
-                    InvoiceID,
-                    `Item ${count++}`,
-                    item.itemdescription,
-                    item.buyersitemidentification,
-                    item.sellersitemidentification,
-                    item.itemamount,
-                    1, // Default quantity since not specified
-                    item.itemunitcode
-                ]
+                `INSERT INTO invoice_items (InvoiceID, ItemDescription, BuyersItemIdentification, SellersItemIdentification, ItemAmount, ItemUnitCode)
+         VALUES ($1, $2, $3, $4, $5, $6);`,
+                [InvoiceID, item.itemdescription, item.buyersitemidentification, item.sellersitemidentification, item.itemamount, item.itemunitcode]
             );
         }
-
 
         await db.query('COMMIT');
         callback(null, { success: true, message: "Invoice created successfully.", InvoiceID });
@@ -74,27 +57,22 @@ export async function inputInvoice(SalesOrderID, callback) {
     }
 }
 
-
 /**
- * Retrieves full invoice details including items based on a given InvoiceID.
- *
- * @param {number} InvoiceID - The ID of the invoice to retrieve.
- * @param {function} callback - Callback to handle result or error.
+ * Gets a full invoice including its items by InvoiceID
  */
 export function getInvoiceByID(InvoiceID, callback) {
     db.query(
-        `SELECT InvoiceID, IssueDate, PartyNameBuyer, PartyNameSeller, CurrencyCode, SalesOrderID
-         FROM invoices WHERE InvoiceID = $1;`,
+        `SELECT InvoiceID, IssueDate, PartyNameBuyer, PartyNameSeller, PayableAmount, CurrencyCode, SalesOrderID
+     FROM invoices WHERE InvoiceID = $1;`,
         [InvoiceID]
     )
         .then(invoiceRes => {
             if (invoiceRes.rows.length === 0) return callback(new CustomInputError("Invoice not found."));
             const invoice = invoiceRes.rows[0];
 
-
             db.query(
-                `SELECT InvoiceItemName, ItemDescription, BuyersItemIdentification, SellersItemIdentification, ItemPrice, ItemQuantity, ItemUnitCode
-                 FROM invoice_items WHERE InvoiceID = $1;`,
+                `SELECT ItemDescription, BuyersItemIdentification, SellersItemIdentification, ItemAmount, ItemUnitCode
+         FROM invoice_items WHERE InvoiceID = $1;`,
                 [InvoiceID]
             )
                 .then(itemRes => callback(null, { ...invoice, Items: itemRes.rows }))
@@ -109,12 +87,8 @@ export function getInvoiceByID(InvoiceID, callback) {
         });
 }
 
-
 /**
- * Retrieves all invoices for a specific buyer company.
- *
- * @param {string} PartyNameBuyer - The name of the buyer company.
- * @param {function} callback - Callback to handle result or error.
+ * Gets a list of full invoices excluding its items by Buyers Name
  */
 export function getInvoicesByCompanyName(PartyNameBuyer, callback) {
     db.query(
@@ -131,12 +105,8 @@ export function getInvoicesByCompanyName(PartyNameBuyer, callback) {
         });
 }
 
-
 /**
- * Deletes a specific invoice and all its associated items from the database.
- *
- * @param {number} InvoiceID - The ID of the invoice to delete.
- * @param {function} callback - Callback to handle result or error.
+ * Deletes invoice by InvoiceID
  */
 export async function deleteInvoiceById(InvoiceID, callback) {
     try {

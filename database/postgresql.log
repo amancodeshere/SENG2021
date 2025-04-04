@@ -2460,3 +2460,28 @@
 2025-04-03 22:59:24.486 AEDT [53521] STATEMENT:  INSERT INTO users (Email, Password, CompanyName) VALUES ($1, $2, $3) RETURNING UserID;
 2025-04-03 22:59:42.532 AEDT [6226] LOG:  checkpoint starting: time
 2025-04-03 22:59:42.851 AEDT [6226] LOG:  checkpoint complete: wrote 4 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.310 s, sync=0.002 s, total=0.319 s; sync files=4, longest=0.001 s, average=0.001 s; distance=1 kB, estimate=1180 kB; lsn=0/2869B38, redo lsn=0/2869B00
+2025-04-03 23:13:34.873 AEDT [54515] ERROR:  duplicate key value violates unique constraint "users_email_key"
+2025-04-03 23:13:34.873 AEDT [54515] DETAIL:  Key (email)=(val@gmail.com) already exists.
+2025-04-03 23:13:34.873 AEDT [54515] STATEMENT:  INSERT INTO users (Email, Password, CompanyName) VALUES ($1, $2, $3) RETURNING UserID;
+2025-04-03 23:14:42.867 AEDT [6226] LOG:  checkpoint starting: time
+2025-04-03 23:14:43.186 AEDT [6226] LOG:  checkpoint complete: wrote 4 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.309 s, sync=0.003 s, total=0.320 s; sync files=4, longest=0.001 s, average=0.001 s; distance=1 kB, estimate=1062 kB; lsn=0/286A140, redo lsn=0/286A108
+2025-04-04 00:05:09.397 AEDT [55986] ERROR:  duplicate key value violates unique constraint "users_email_key"
+2025-04-04 00:05:09.397 AEDT [55986] DETAIL:  Key (email)=(val@gmail.com) already exists.
+2025-04-04 00:05:09.397 AEDT [55986] STATEMENT:  INSERT INTO users (Email, Password, CompanyName) VALUES ($1, $2, $3) RETURNING UserID;
+2025-04-04 00:09:42.216 AEDT [6226] LOG:  checkpoint starting: time
+2025-04-04 00:09:42.536 AEDT [6226] LOG:  checkpoint complete: wrote 4 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.312 s, sync=0.003 s, total=0.321 s; sync files=4, longest=0.002 s, average=0.001 s; distance=1 kB, estimate=956 kB; lsn=0/286A7D0, redo lsn=0/286A798
+2025-04-04 00:13:55.419 AEDT [57337] ERROR:  relation "seng_db.orders" does not exist at character 15
+2025-04-04 00:13:55.419 AEDT [57337] STATEMENT:  select * from seng_db.orders
+2025-04-04 00:14:42.539 AEDT [6226] LOG:  checkpoint starting: time
+2025-04-04 00:14:42.551 AEDT [6226] LOG:  checkpoint complete: wrote 1 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.004 s, sync=0.001 s, total=0.012 s; sync files=1, longest=0.001 s, average=0.001 s; distance=0 kB, estimate=860 kB; lsn=0/286A978, redo lsn=0/286A940
+2025-04-04 14:45:00.705 AEDT [76593] ERROR:  duplicate key value violates unique constraint "users_email_key"
+2025-04-04 14:45:00.705 AEDT [76593] DETAIL:  Key (email)=(val@gmail.com) already exists.
+2025-04-04 14:45:00.705 AEDT [76593] STATEMENT:  INSERT INTO users (Email, Password, CompanyName) VALUES ($1, $2, $3) RETURNING UserID;
+2025-04-04 14:46:25.239 AEDT [6226] LOG:  checkpoint starting: time
+2025-04-04 14:46:25.561 AEDT [6226] LOG:  checkpoint complete: wrote 4 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.312 s, sync=0.003 s, total=0.324 s; sync files=4, longest=0.002 s, average=0.001 s; distance=1 kB, estimate=774 kB; lsn=0/286B098, redo lsn=0/286B060
+2025-04-04 14:53:03.167 AEDT [77474] ERROR:  duplicate key value violates unique constraint "users_email_key"
+2025-04-04 14:53:03.167 AEDT [77474] DETAIL:  Key (email)=(val@gmail.com) already exists.
+2025-04-04 14:53:03.167 AEDT [77474] STATEMENT:  INSERT INTO users (Email, Password, CompanyName) VALUES ($1, $2, $3) RETURNING UserID;
+2025-04-04 14:54:50.856 AEDT [77630] FATAL:  database "seng_user" does not exist
+2025-04-04 14:56:25.454 AEDT [6226] LOG:  checkpoint starting: time
+2025-04-04 14:56:25.871 AEDT [6226] LOG:  checkpoint complete: wrote 5 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.410 s, sync=0.004 s, total=0.418 s; sync files=5, longest=0.002 s, average=0.001 s; distance=1 kB, estimate=697 kB; lsn=0/286B858, redo lsn=0/286B820
