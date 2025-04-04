@@ -28,7 +28,8 @@ describe('View invoice route - Comprehensive Tests', () => {
         {
             ItemName: "New Item",
             ItemDescription: "Electronic Component",
-            ItemAmount: 10,
+            ItemPrice: 10,
+            ItemQuantity: 50,
             ItemUnitCode: "PCS",
         },
     ];
@@ -59,7 +60,8 @@ describe('View invoice route - Comprehensive Tests', () => {
                     {
                         name: "New Item",
                         description: "Electronic Component",
-                        price: 10
+                        price: 10,
+                        quantity: "50 PCS"
                     }
                 ]
             });
@@ -77,13 +79,15 @@ describe('View invoice route - Comprehensive Tests', () => {
                 {
                     ItemName: "New Item",
                     ItemDescription: "Electronic Component",
-                    ItemAmount: 10,
+                    ItemPrice: 10,
+                    ItemQuantity: 10,
                     ItemUnitCode: "PCS",
                 },
                 {
                     ItemName: "Other Item",
                     ItemDescription: "Battery Component",
-                    ItemAmount: 15,
+                    ItemPrice: 20,
+                    ItemQuantity: 20,
                     ItemUnitCode: "PCS",
                 }
             ];
@@ -112,12 +116,14 @@ describe('View invoice route - Comprehensive Tests', () => {
                     {
                         name: "New Item",
                         description: "Electronic Component",
-                        price: 10
+                        price: 10,
+                        quantity: "10 PCS"
                     },
                     {
                         name: "Other Item",
                         description: "Battery Component",
-                        price: 15
+                        price: 20,
+                        quantity: "20 PCS"
                     }
                 ]
             });

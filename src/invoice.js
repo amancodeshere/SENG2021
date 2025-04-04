@@ -181,7 +181,8 @@ export function viewInvoice(invoiceId, callback) {
             items.push({
                 name: item.ItemName,
                 description: item.ItemDescription,
-                price: item.ItemAmount,
+                price: item.ItemPrice,
+                quantity: `${item.ItemQuantity} ${item.ItemUnitCode}`
             });
         });
 
