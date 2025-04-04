@@ -2485,3 +2485,32 @@
 2025-04-04 14:54:50.856 AEDT [77630] FATAL:  database "seng_user" does not exist
 2025-04-04 14:56:25.454 AEDT [6226] LOG:  checkpoint starting: time
 2025-04-04 14:56:25.871 AEDT [6226] LOG:  checkpoint complete: wrote 5 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.410 s, sync=0.004 s, total=0.418 s; sync files=5, longest=0.002 s, average=0.001 s; distance=1 kB, estimate=697 kB; lsn=0/286B858, redo lsn=0/286B820
+2025-04-04 15:14:57.227 AEDT [79110] ERROR:  duplicate key value violates unique constraint "users_email_key"
+2025-04-04 15:14:57.227 AEDT [79110] DETAIL:  Key (email)=(val@gmail.com) already exists.
+2025-04-04 15:14:57.227 AEDT [79110] STATEMENT:  INSERT INTO users (Email, Password, CompanyName) VALUES ($1, $2, $3) RETURNING UserID;
+2025-04-04 15:16:25.835 AEDT [6226] LOG:  checkpoint starting: time
+2025-04-04 15:16:26.147 AEDT [6226] LOG:  checkpoint complete: wrote 4 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.308 s, sync=0.002 s, total=0.312 s; sync files=4, longest=0.001 s, average=0.001 s; distance=2 kB, estimate=628 kB; lsn=0/286C0C0, redo lsn=0/286C088
+2025-04-04 15:16:51.448 AEDT [79366] ERROR:  duplicate key value violates unique constraint "users_email_key"
+2025-04-04 15:16:51.448 AEDT [79366] DETAIL:  Key (email)=(val@gmail.com) already exists.
+2025-04-04 15:16:51.448 AEDT [79366] STATEMENT:  INSERT INTO users (Email, Password, CompanyName) VALUES ($1, $2, $3) RETURNING UserID;
+2025-04-04 15:18:49.642 AEDT [79639] ERROR:  duplicate key value violates unique constraint "users_email_key"
+2025-04-04 15:18:49.642 AEDT [79639] DETAIL:  Key (email)=(val@gmail.com) already exists.
+2025-04-04 15:18:49.642 AEDT [79639] STATEMENT:  INSERT INTO users (Email, Password, CompanyName) VALUES ($1, $2, $3) RETURNING UserID;
+2025-04-04 15:21:25.138 AEDT [6226] LOG:  checkpoint starting: time
+2025-04-04 15:21:25.455 AEDT [6226] LOG:  checkpoint complete: wrote 4 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.308 s, sync=0.003 s, total=0.318 s; sync files=4, longest=0.002 s, average=0.001 s; distance=2 kB, estimate=565 kB; lsn=0/286CAF0, redo lsn=0/286CAB8
+2025-04-04 15:27:39.435 AEDT [79943] ERROR:  duplicate key value violates unique constraint "users_email_key"
+2025-04-04 15:27:39.435 AEDT [79943] DETAIL:  Key (email)=(val@gmail.com) already exists.
+2025-04-04 15:27:39.435 AEDT [79943] STATEMENT:  INSERT INTO users (Email, Password, CompanyName) VALUES ($1, $2, $3) RETURNING UserID;
+2025-04-04 15:31:25.415 AEDT [6226] LOG:  checkpoint starting: time
+2025-04-04 15:31:25.732 AEDT [6226] LOG:  checkpoint complete: wrote 4 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.311 s, sync=0.002 s, total=0.318 s; sync files=4, longest=0.001 s, average=0.001 s; distance=2 kB, estimate=509 kB; lsn=0/286D510, redo lsn=0/286D4D8
+2025-04-04 15:32:26.733 AEDT [80210] ERROR:  duplicate key value violates unique constraint "users_email_key"
+2025-04-04 15:32:26.733 AEDT [80210] DETAIL:  Key (email)=(val@gmail.com) already exists.
+2025-04-04 15:32:26.733 AEDT [80210] STATEMENT:  INSERT INTO users (Email, Password, CompanyName) VALUES ($1, $2, $3) RETURNING UserID;
+2025-04-04 15:36:25.722 AEDT [6226] LOG:  checkpoint starting: time
+2025-04-04 15:36:26.037 AEDT [6226] LOG:  checkpoint complete: wrote 4 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.308 s, sync=0.002 s, total=0.315 s; sync files=4, longest=0.001 s, average=0.001 s; distance=2 kB, estimate=458 kB; lsn=0/286DFC0, redo lsn=0/286DF88
+2025-04-04 15:37:59.931 AEDT [80475] ERROR:  duplicate key value violates unique constraint "users_email_key"
+2025-04-04 15:37:59.931 AEDT [80475] DETAIL:  Key (email)=(val@gmail.com) already exists.
+2025-04-04 15:37:59.931 AEDT [80475] STATEMENT:  INSERT INTO users (Email, Password, CompanyName) VALUES ($1, $2, $3) RETURNING UserID;
+2025-04-04 15:39:01.287 AEDT [80635] ERROR:  duplicate key value violates unique constraint "users_email_key"
+2025-04-04 15:39:01.287 AEDT [80635] DETAIL:  Key (email)=(val@gmail.com) already exists.
+2025-04-04 15:39:01.287 AEDT [80635] STATEMENT:  INSERT INTO users (Email, Password, CompanyName) VALUES ($1, $2, $3) RETURNING UserID;
