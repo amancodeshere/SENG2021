@@ -15,6 +15,9 @@ import {CustomInputError} from "./errors.js";
 import { db } from './connect.js';
 import { v4 as uuidv4 } from 'uuid';
 import { XMLParser } from 'fast-xml-parser';
+import { Price } from 'ubl-builder/lib/ubl21/CommonAggregateComponents/PriceTypeGroup.js';
+import { UdtQuantity } from 'ubl-builder/lib/ubl21/types/UnqualifiedDataTypes/UdtQuantity.js';
+import { UdtAmount } from 'ubl-builder/lib/ubl21/types/UnqualifiedDataTypes/UdtAmount.js';
 
 // ===========================================================================
 // ============== local helper functions only used in admin.js ===============
@@ -24,7 +27,7 @@ import { XMLParser } from 'fast-xml-parser';
  * Validates the required fields in the document
  */
 function validateDocument(document) {
-    const requiredFields = ['SalesOrderID', 'IssueDate', 'PartyName', 'PayableAmount', 'CurrencyCode'];
+    const requiredFields = ['IssueDate', 'PartyName', 'PayableAmount', 'CurrencyCode', 'Items'];
     return requiredFields.every(field => document[field] !== undefined);
 }
 
@@ -32,21 +35,21 @@ function validateDocument(document) {
  * Parses XML document using UBL standard
  */
 function parseXMLDocument(xmlString) {
-        try {
+    try {
         const options = {
             ignoreAttributes : false
         }; 
         const parser = new XMLParser(options);
-        let orderObj = parser.parse(xmlString);
+        let orderObj = parser.parse(xmlString).Order;
 
-        let invoiceObj = orderObj.Invoice;
+        var items = parseXMLItemsList(orderObj["cac:OrderLine"]);
 
         const document = {
-            SalesOrderID: invoiceObj['cac:OrderReference']['cbc:ID'],
-            IssueDate: invoiceObj['cbc:IssueDate'],
-            PartyName: invoiceObj['cac:AccountingCustomerParty']['cac:Party']['cac:PartyName']['cbc:Name'],
-            PayableAmount: invoiceObj['cac:LegalMonetaryTotal']['cbc:PayableAmount']['#text'],
-            CurrencyCode: invoiceObj['cac:LegalMonetaryTotal']['cbc:PayableAmount']['@_currencyID']
+            IssueDate: orderObj['cbc:IssueDate'],
+            PartyName: orderObj['cac:BuyerCustomerParty']['cac:Party']['cac:PartyName']['cbc:Name'],
+            PayableAmount: orderObj['cac:AnticipatedMonetaryTotal']['cbc:PayableAmount']['#text'],
+            CurrencyCode: orderObj['cac:AnticipatedMonetaryTotal']['cbc:PayableAmount']['@_currencyID'],
+            Items: items
         }
         
         if (!validateDocument(document)) {
@@ -59,34 +62,45 @@ function parseXMLDocument(xmlString) {
     }
 }
 
+function parseXMLItemsList(xmlItems) {
+    var items = [];
+    for(var orderLine of xmlItems) {
+        var xmlItem = orderLine['cac:LineItem'];
+        const item = {
+            Id: xmlItem['cbc:ID'],
+            ItemName: xmlItem['cac:Item']['cbc:Name'],
+            ItemDescription: xmlItem['cac:Item']['cbc:Description'],
+            ItemPrice: xmlItem['cac:Price']['cbc:PriceAmount']['#text'],
+            ItemQuantity: xmlItem['cbc:Quantity']['#text'],
+            ItemUnitCode: xmlItem['cbc:Quantity']['@_unitCode'],
+        };
+       items.push(item);
+    }
+    return items;
+}
+
 /**
  * Creates an invoice using the order-first approach
  */
 async function createInvoiceFromDocument(document) {
     return new Promise((resolve, reject) => {
         const orderData = {
-            SalesOrderID: document.SalesOrderID,
             UUID: uuidv4(),
             IssueDate: document.IssueDate,
             PartyName: document.PartyName,
             PayableAmount: document.PayableAmount,
             PayableCurrencyCode: document.CurrencyCode,
-            Items: document.Items || [{
-                ItemDescription: "Default Item",
-                BuyersItemIdentification: "12345678",
-                SellersItemIdentification: "12345678",
-                ItemAmount: document.PayableAmount,
-                ItemUnitCode: "EA"
-            }]
+            Items: document.Items
         };
+        
 
-        inputOrder(orderData.SalesOrderID, orderData.UUID, orderData.IssueDate, orderData.PartyName, orderData.PayableAmount, orderData.PayableCurrencyCode, orderData.Items, (orderErr) => {
+        inputOrder(orderData.UUID, orderData.IssueDate, orderData.PartyName, orderData.PayableAmount, orderData.PayableCurrencyCode, orderData.Items, (orderErr, result) => {
             if (orderErr) {
                 reject(new Error('Order creation failed'));
                 return;
             }
 
-            inputInvoice(orderData.SalesOrderID, (invoiceErr, result) => {
+            inputInvoice(result.OrderID, (invoiceErr, result) => {
                 if (invoiceErr) {
                     reject(new Error('Invoice creation failed'));
                     return;
@@ -120,7 +134,6 @@ export function invoiceToXml(invoiceId, companyName, callback) {
 
         invoice.setIssueDate(invoiceData.IssueDate);
         invoice.setDocumentCurrencyCode(invoiceData.CurrencyCode);
-        invoice.setOrderReference({ salesOrderID: invoiceData.SalesOrderID });
 
         const supplierPartyName = new PartyName({ name: companyName });
         const supplierParty = new Party({ partyNames: [supplierPartyName] });
@@ -132,22 +145,24 @@ export function invoiceToXml(invoiceId, companyName, callback) {
         const accountingCustomerParty = new AccountingCustomerParty({ party: customerParty })
         invoice.setAccountingCustomerParty(accountingCustomerParty);
 
-        const monetaryTotal = new MonetaryTotal({ payableAmount: invoiceData.PayableAmount });
+        const currencyAttribute = { currencyID: invoiceData.CurrencyCode };
+        const monetaryTotal = new MonetaryTotal({ payableAmount: new UdtAmount(invoiceData.PayableAmount, currencyAttribute) });
         invoice.setLegalMonetaryTotal(monetaryTotal);
 
-        const numItems = invoiceData.Items.length
         let id = 1;
         invoiceData.Items.forEach((item) => {
-            const invoiceItem = new Item({ name: item.ItemDescription });
-            const lineExtensionAmount = invoiceData.PayableAmount / numItems;
-            const invoiceLine = new InvoiceLine({ id, invoicedQuantity: item.ItemAmount, lineExtensionAmount, item: invoiceItem });
+            const invoiceItem = new Item({ name: item.ItemName, descriptions: item.ItemDescription });
+            const lineExtensionAmount = new UdtAmount(item.ItemPrice * item.ItemQuantity, currencyAttribute);
+            const itemPrice = new Price({ priceAmount: new UdtAmount(item.ItemPrice, currencyAttribute) })
+            const itemQuantity = new UdtQuantity(item.ItemQuantity, { unitCode: item.ItemUnitCode })
+            const invoiceLine = new InvoiceLine({ id, price: itemPrice, invoicedQuantity: itemQuantity ,lineExtensionAmount, item: invoiceItem});
             invoice.addInvoiceLine(invoiceLine);
             id++;
-        });
+        });   
 
         const xmlInvoice = invoice.getXml();
 
-        callback(null, xmlInvoice);
+        return callback(null, xmlInvoice);
     });
 }
 
@@ -165,14 +180,15 @@ export function viewInvoice(invoiceId, callback) {
         const items = [];
         invoice.Items.forEach((item) => {
             items.push({
+                name: item.ItemName,
                 description: item.ItemDescription,
-                amount: `${item.ItemAmount} ${item.ItemUnitCode}`,
+                price: `${invoice.CurrencyCode} ${item.ItemPrice}`,
+                quantity: `${item.ItemQuantity} ${item.ItemUnitCode}`
             });
         });
 
         callback(null, {
             invoiceId: invoice.InvoiceID,
-            salesOrderID: parseInt(invoice.SalesOrderID),
             issueDate: invoice.IssueDate,
             partyNameBuyer: invoice.PartyNameBuyer,
             payableAmount: `${invoice.CurrencyCode} ${invoice.PayableAmount}`,
@@ -224,7 +240,6 @@ export function listInvoices(partyNameBuyer, callback) {
         result.forEach((invoice) => {
             invoicesList.push({
                 invoiceId: invoice.InvoiceID,
-                salesOrderID: parseInt(invoice.SalesOrderID),
                 issueDate: invoice.IssueDate,
                 partyNameBuyer: partyNameBuyer,
                 payableAmount: `${invoice.CurrencyCode} ${invoice.PayableAmount}`,

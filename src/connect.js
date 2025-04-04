@@ -23,7 +23,7 @@ const db = new sql3.Database(dbPath, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREAT
 // make sure the orders table exists
 const sql_orders_table = `
     CREATE TABLE IF NOT EXISTS orders (
-          SalesOrderID TEXT PRIMARY KEY,
+          OrderID INTEGER PRIMARY KEY AUTOINCREMENT,
           UUID TEXT NOT NULL,
           IssueDate TEXT NOT NULL,
           PartyName TEXT NOT NULL,
@@ -40,17 +40,17 @@ db.run(sql_orders_table, (err) => {
     }
 });
 
-// make sure that the invoices table is made correctly
 const sql_order_items_table = `
     CREATE TABLE IF NOT EXISTS order_items (
         ItemID INTEGER PRIMARY KEY AUTOINCREMENT,
-        SalesOrderID TEXT NOT NULL,
-        ItemDescription TEXT NOT NULL,
-        BuyersItemIdentification INTEGER NOT NULL,
-        SellersItemIdentification INTEGER NOT NULL,
-        ItemAmount INTEGER NOT NULL,
+        OrderItemId TEXT NOT NULL,
+        OrderID TEXT NOT NULL,
+        ItemName TEXT,
+        ItemDescription TEXT,
+        ItemPrice REAL NOT NULL,
+        ItemQuantity INTEGER NOT NULL,
         ItemUnitCode TEXT NOT NULL,
-        FOREIGN KEY (SalesOrderID) REFERENCES orders(SalesOrderID) ON DELETE CASCADE
+        FOREIGN KEY (OrderID) REFERENCES orders(OrderId) ON DELETE CASCADE
     );
 `;
 
@@ -69,11 +69,7 @@ const sql_invoices_table = `
         IssueDate TEXT NOT NULL,
         PartyNameBuyer TEXT NOT NULL,
         PayableAmount REAL NOT NULL,
-        CurrencyCode TEXT NOT NULL,
-        InvoiceStartDate TEXT DEFAULT NULL,
-        InvoiceEndDate TEXT DEFAULT NULL,
-        SalesOrderID TEXT NOT NULL,
-        FOREIGN KEY (SalesOrderID) REFERENCES orders(SalesOrderID) ON DELETE CASCADE
+        CurrencyCode TEXT NOT NULL
     );
 `;
 
@@ -90,10 +86,10 @@ const sql_invoice_items_table = `
     CREATE TABLE IF NOT EXISTS invoice_items (
         InvoiceItemID INTEGER PRIMARY KEY AUTOINCREMENT,
         InvoiceID INTEGER NOT NULL,
-        ItemDescription TEXT NOT NULL,
-        BuyersItemIdentification INTEGER NOT NULL,
-        SellersItemIdentification INTEGER NOT NULL,
-        ItemAmount INTEGER NOT NULL,
+        ItemName TEXT,
+        ItemDescription TEXT,
+        ItemPrice REAL NOT NULL,
+        ItemQuantity INTEGER NOT NULL,
         ItemUnitCode TEXT NOT NULL,
         FOREIGN KEY (InvoiceID) REFERENCES invoices(InvoiceID) ON DELETE CASCADE
     );

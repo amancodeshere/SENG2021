@@ -12,43 +12,25 @@ jest.mock('../../connect.js', () => ({
 
 describe("inputOrder Function", () => {
     const validOrder = {
-        SalesOrderID: "12345678",
         UUID: "550e8400-e29b-41d4-a716-446655440000",
         IssueDate: "2025-03-06",
         PartyName: "ABC Corp",
         PayableAmount: 500,
         PayableCurrencyCode: "USD",
-        Items: [
-            {
-                ItemDescription: "Electronic Component",
-                BuyersItemIdentification: "87654321",
-                SellersItemIdentification: "12345678",
-                ItemAmount: 10,
-                ItemUnitCode: "PCS"
-            }
-        ]
-    };
+        Items: [{
+          Id: "1",
+          ItemName: "new Item",
+          ItemDescription: "This is an item",
+          ItemPrice: 250,
+          ItemQuantity: 2,
+          ItemUnitCode: "PCS"
+        }]
+      };
 
     beforeEach(() => {
         jest.clearAllMocks();
         db.get.mockImplementation((sql, params, callback) => callback(null, { count: 0 }));
     });
-
-    //  Order ID already exists
-    test("should return error when SalesOrderID already exists", (done) => {
-        db.get.mockImplementationOnce((sql, params, callback) => callback(null, { count: 1 }));
-
-        inputOrder(
-            ...Object.values(validOrder),
-            (err, result) => {
-                expect(err).toBeInstanceOf(CustomInputError);
-                expect(err.message).toBe("SalesOrderID already exists.");
-                expect(result).toBeUndefined();
-                done();
-            }
-        );
-    });
-
     //  Invalid UUID
     test("should return error for invalid UUID", (done) => {
         const invalidOrder = { ...validOrder, UUID: "invalid-uuid" };
@@ -137,14 +119,14 @@ describe("inputOrder Function", () => {
     test("should return error when an Item has invalid data", (done) => {
         const invalidOrder = {
             ...validOrder,
-            Items: [{ ItemDescription: "", BuyersItemIdentification: "123", SellersItemIdentification: "456", ItemAmount: -5, ItemUnitCode: "XYZ" }]
+            Items: [{Id: 1, ItemUnitCode: 3 }]
         };
 
         inputOrder(
             ...Object.values(invalidOrder),
             (err, result) => {
                 expect(err).toBeInstanceOf(CustomInputError);
-                expect(err.message).toMatch(/Invalid Item Description|Invalid Buyers Item ID|Invalid Sellers Item ID|Invalid Item Amount|Invalid Item Unit Code/);
+                expect(err.message).toMatch(/Invalid Item ID||Invalid Item Unit Code/);
                 done();
             }
         );
@@ -178,7 +160,7 @@ describe("inputOrder Function", () => {
             ...Object.values(validOrder),
             (err, result) => {
                 expect(err).toBeNull();
-                expect(result).toEqual({ success: true, message: "Order and items inserted successfully." });
+                expect(result).toEqual({ success: true, message: "Order and items inserted successfully.", OrderID: expect.any(Number) });
                 expect(db.exec).toHaveBeenCalledWith("COMMIT;", expect.any(Function));
                 done();
             }

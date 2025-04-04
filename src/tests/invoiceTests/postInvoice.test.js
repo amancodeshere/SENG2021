@@ -3,6 +3,7 @@ import { app } from '../../app.js';
 import { db } from '../../connect.js';
 import * as orderModule from '../../orderToDB.js';
 import * as invoiceModule from '../../invoiceToDB.js';
+import fs from "fs";
 
 jest.mock('../../connect.js', () => ({
     db: {
@@ -18,7 +19,7 @@ jest.mock('ubl-builder', () => {
     UBLBuilder: jest.fn().mockImplementation(() => ({
       parseInvoiceXML: jest.fn().mockImplementation(() => ({
         getOrderReference: jest.fn().mockReturnValue({
-          getID: jest.fn().mockReturnValue('12345678')
+          getID: jest.fn().mockReturnValue('1')
         }),
         getIssueDate: jest.fn().mockReturnValue('2025-03-06'),
         getAccountingCustomerParty: jest.fn().mockReturnValue({
@@ -43,33 +44,21 @@ jest.mock('ubl-builder', () => {
 describe('POST /api/v1/invoice/create', () => {
   const validSessionId = '123456';
   
-  const validXMLDocument = `<?xml version="1.0" encoding="UTF-8"?>
-<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
-       xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
-       xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
-  <cbc:ID>12345678</cbc:ID>
-  <cbc:IssueDate>2025-03-06</cbc:IssueDate>
-  <cac:AccountingCustomerParty>
-    <cac:Party>
-      <cac:PartyName>
-        <cbc:Name>ABC Corp</cbc:Name>
-      </cac:PartyName>
-    </cac:Party>
-  </cac:AccountingCustomerParty>
-  <cac:LegalMonetaryTotal>
-    <cbc:PayableAmount currencyID="USD">500</cbc:PayableAmount>
-  </cac:LegalMonetaryTotal>
-  <cac:OrderReference>
-    <cbc:ID>12345678</cbc:ID>
-  </cac:OrderReference>
-</Invoice>`;
+  const validXMLDocument = fs.readFileSync("./order2.xml", "utf-8");
 
   const validJSONDocument = {
-    SalesOrderID: "12345678",
     IssueDate: "2025-03-06",
     PartyName: "ABC Corp",
     PayableAmount: 500,
-    CurrencyCode: "USD"
+    CurrencyCode: "USD",
+    Items: [{
+      Id: "1",
+      ItemName: "new Item",
+      ItemDescription: "This is an item",
+      ItemPrice: 250,
+      ItemQuantity: 2,
+      ItemUnitCode: "PCS"
+    }]
   };
 
   beforeEach(() => {
@@ -85,8 +74,8 @@ describe('POST /api/v1/invoice/create', () => {
     });
 
     // Mock inputOrder and inputInvoice functions
-    orderModule.inputOrder.mockImplementation((SalesOrderId, UUID, IssueDate, PartyName, PayableAmount, PayableCurrencyCode, Items, callback) => {
-      callback(null, { orderId: 1 });
+    orderModule.inputOrder.mockImplementation((UUID, IssueDate, PartyName, PayableAmount, PayableCurrencyCode, Items, callback) => {
+      callback(null, { OrderId: 1 });
     });
     
     invoiceModule.inputInvoice.mockImplementation((SalesOrderId, callback) => {
@@ -181,7 +170,7 @@ describe('POST /api/v1/invoice/create', () => {
   });
 
   test('should handle order creation error', async () => {
-    orderModule.inputOrder.mockImplementationOnce((SalesOrderId, UUID, IssueDate, PartyName, PayableAmount, PayableCurrencyCode, Items, callback) => {
+    orderModule.inputOrder.mockImplementationOnce((UUID, IssueDate, PartyName, PayableAmount, PayableCurrencyCode, Items, callback) => {
       callback(new Error('Order creation failed'));
     });
 

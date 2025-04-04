@@ -5,11 +5,11 @@ import { CustomInputError } from './errors.js';
 /**
  * Inserts an invoice based on an existing order.
  *
- * @param {string} SalesOrderID - order ID to generate an invoice from
+ * @param {string} OrderID - order ID to generate an invoice from
  * @param {function} callback - callback to handle the result
  */
-export function inputInvoice(SalesOrderID, callback) {
-    console.log(`Creating invoice for SalesOrderID: ${SalesOrderID}`);
+export function inputInvoice(OrderID, callback) {
+    console.log(`Creating invoice for SalesOrderID: ${OrderID}`);
 
     db.exec("BEGIN TRANSACTION;", (beginErr) => {
         if (beginErr) {
@@ -21,10 +21,10 @@ export function inputInvoice(SalesOrderID, callback) {
         const sqlGetOrder = `
             SELECT IssueDate, PartyName AS PartyNameBuyer, PayableAmount, PayableCurrencyCode AS CurrencyCode
             FROM orders
-            WHERE SalesOrderID = ?;
+            WHERE OrderId = ?;
         `;
 
-        db.get(sqlGetOrder, [SalesOrderID], (orderErr, orderRow) => {
+        db.get(sqlGetOrder, [OrderID], (orderErr, orderRow) => {
             if (orderErr) {
                 console.error("SQL Error while fetching order:", orderErr.message);
                 db.exec("ROLLBACK;", () => {});
@@ -38,11 +38,11 @@ export function inputInvoice(SalesOrderID, callback) {
 
             // insert into invoices table
             const sqlInsertInvoice = `
-                INSERT INTO invoices (IssueDate, PartyNameBuyer, PayableAmount, CurrencyCode, SalesOrderID)
-                VALUES (?, ?, ?, ?, ?);
+                INSERT INTO invoices (IssueDate, PartyNameBuyer, PayableAmount, CurrencyCode)
+                VALUES (?, ?, ?, ?);
             `;
 
-            db.run(sqlInsertInvoice, [orderRow.IssueDate, orderRow.PartyNameBuyer, orderRow.PayableAmount, orderRow.CurrencyCode, SalesOrderID], function (invoiceErr) {
+            db.run(sqlInsertInvoice, [orderRow.IssueDate, orderRow.PartyNameBuyer, orderRow.PayableAmount, orderRow.CurrencyCode], function (invoiceErr) {
                 if (invoiceErr) {
                     console.error("SQL Error while inserting invoice:", invoiceErr.message);
                     db.exec("ROLLBACK;", () => {});
@@ -53,12 +53,12 @@ export function inputInvoice(SalesOrderID, callback) {
 
                 // get order items
                 const sqlGetOrderItems = `
-                    SELECT ItemDescription, BuyersItemIdentification, SellersItemIdentification, ItemAmount, ItemUnitCode
+                    SELECT ItemName, ItemDescription, ItemPrice, ItemQuantity, ItemUnitCode
                     FROM order_items
-                    WHERE SalesOrderID = ?;
+                    WHERE OrderId = ?;
                 `;
 
-                db.all(sqlGetOrderItems, [SalesOrderID], (itemsErr, itemsRows) => {
+                db.all(sqlGetOrderItems, [OrderID], (itemsErr, itemsRows) => {
                     if (itemsErr) {
                         console.error("SQL Error while fetching order items:", itemsErr.message);
                         db.exec("ROLLBACK;", () => {});
@@ -72,14 +72,14 @@ export function inputInvoice(SalesOrderID, callback) {
 
                     // insert items into invoice_items table
                     const sqlInsertInvoiceItem = `
-                        INSERT INTO invoice_items (InvoiceID, ItemDescription, BuyersItemIdentification, SellersItemIdentification, ItemAmount, ItemUnitCode)
+                        INSERT INTO invoice_items (InvoiceID, ItemName, ItemDescription, ItemPrice, ItemQuantity, ItemUnitCode)
                         VALUES (?, ?, ?, ?, ?, ?);
                     `;
 
                     let pendingItems = itemsRows.length;
 
                     for (const item of itemsRows) {
-                        db.run(sqlInsertInvoiceItem, [InvoiceID, item.ItemDescription, item.BuyersItemIdentification, item.SellersItemIdentification, item.ItemAmount, item.ItemUnitCode], function (invoiceItemErr) {
+                        db.run(sqlInsertInvoiceItem, [InvoiceID, item.ItemName, item.ItemDescription,  item.ItemPrice, item.ItemQuantity, item.ItemUnitCode], function (invoiceItemErr) {
                             if (invoiceItemErr) {
                                 console.error("SQL Error while inserting invoice item:", invoiceItemErr.message);
                                 db.exec("ROLLBACK;", () => {});
@@ -119,7 +119,7 @@ export function getInvoiceByID(InvoiceID, callback) {
 
     // get invoice from invoice table
     const sqlGetInvoice = `
-        SELECT InvoiceID, IssueDate, PartyNameBuyer, PayableAmount, CurrencyCode, SalesOrderID
+        SELECT InvoiceID, IssueDate, PartyNameBuyer, PayableAmount, CurrencyCode
         FROM invoices
         WHERE InvoiceID = ?;
     `;
@@ -136,7 +136,7 @@ export function getInvoiceByID(InvoiceID, callback) {
 
         // get invoice items from invoice_items table
         const sqlGetInvoiceItems = `
-            SELECT ItemDescription, BuyersItemIdentification, SellersItemIdentification, ItemAmount, ItemUnitCode
+            SELECT ItemName, ItemDescription, ItemPrice, ItemQuantity, ItemUnitCode
             FROM invoice_items
             WHERE InvoiceID = ?;
         `;

@@ -24,7 +24,8 @@ describe("inputInvoice Function - Database Operations", () => {
             ItemDescription: "Electronic Component",
             BuyersItemIdentification: "87654321",
             SellersItemIdentification: "12345678",
-            ItemAmount: 10,
+            ItemPrice: 10,
+            ItemQuantity: 1,
             ItemUnitCode: "PCS",
         },
     ];
