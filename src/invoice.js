@@ -182,7 +182,7 @@ export function viewInvoice(invoiceId, callback) {
             items.push({
                 name: item.ItemName,
                 description: item.ItemDescription,
-                price: item.ItemPrice,
+                price: `${invoice.CurrencyCode} ${item.ItemPrice}`,
                 quantity: `${item.ItemQuantity} ${item.ItemUnitCode}`
             });
         });

@@ -103,7 +103,7 @@ describe('Intergration tests for all routes', () => {
                 {
                     name: "new Item",
                     description: "This is an item",
-                    price: 250,
+                    price: "USD 250",
                     quantity: "2 PCS",
                 }
             ]

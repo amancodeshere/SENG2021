@@ -60,7 +60,7 @@ describe('View invoice route - Comprehensive Tests', () => {
                     {
                         name: "New Item",
                         description: "Electronic Component",
-                        price: 10,
+                        price: "USD 10",
                         quantity: "50 PCS"
                     }
                 ]
@@ -116,13 +116,13 @@ describe('View invoice route - Comprehensive Tests', () => {
                     {
                         name: "New Item",
                         description: "Electronic Component",
-                        price: 10,
+                        price: "USD 10",
                         quantity: "10 PCS"
                     },
                     {
                         name: "Other Item",
                         description: "Battery Component",
-                        price: 20,
+                        price: "USD 20",
                         quantity: "20 PCS"
                     }
                 ]
