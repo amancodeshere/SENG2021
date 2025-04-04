@@ -178,8 +178,9 @@ export function viewInvoice(invoiceId, callback) {
         const items = [];
         invoice.Items.forEach((item) => {
             items.push({
+                name: item.ItemName,
                 description: item.ItemDescription,
-                amount: `${item.ItemAmount} ${item.ItemUnitCode}`,
+                price: item.ItemAmount,
             });
         });
 

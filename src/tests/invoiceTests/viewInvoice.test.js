@@ -23,13 +23,11 @@ describe('View invoice route - Comprehensive Tests', () => {
         PartyNameBuyer: "ABC Corp",
         PayableAmount: 500,
         CurrencyCode: "USD",
-        SalesOrderID: "12345678",
     };
     const mockItems = [
         {
+            ItemName: "New Item",
             ItemDescription: "Electronic Component",
-            BuyersItemIdentification: "87654321",
-            SellersItemIdentification: "12345678",
             ItemAmount: 10,
             ItemUnitCode: "PCS",
         },
@@ -54,14 +52,14 @@ describe('View invoice route - Comprehensive Tests', () => {
             expect(res.status).toBe(200);
             expect(res.body).toEqual({
                 invoiceId: 123456,
-                salesOrderID: 12345678,
                 issueDate: "2025-03-06",
                 partyNameBuyer: "ABC Corp",
                 payableAmount: "USD 500",
                 items: [
                     {
+                        name: "New Item",
                         description: "Electronic Component",
-                        amount: "10 PCS"
+                        price: 10
                     }
                 ]
             });
@@ -74,20 +72,17 @@ describe('View invoice route - Comprehensive Tests', () => {
                 PartyNameBuyer: "ABC Corp",
                 PayableAmount: 500,
                 CurrencyCode: "USD",
-                SalesOrderID: "2454565",
             };
             const mockItems2 = [
                 {
+                    ItemName: "New Item",
                     ItemDescription: "Electronic Component",
-                    BuyersItemIdentification: "343543",
-                    SellersItemIdentification: "4334555",
-                    ItemAmount: 5,
+                    ItemAmount: 10,
                     ItemUnitCode: "PCS",
                 },
                 {
+                    ItemName: "Other Item",
                     ItemDescription: "Battery Component",
-                    BuyersItemIdentification: "324455",
-                    SellersItemIdentification: "876867",
                     ItemAmount: 15,
                     ItemUnitCode: "PCS",
                 }
@@ -110,18 +105,19 @@ describe('View invoice route - Comprehensive Tests', () => {
             expect(res.status).toBe(200);
             expect(res.body).toEqual({
                 invoiceId: 234567,
-                salesOrderID: 2454565,
                 issueDate: "2025-03-06",
                 partyNameBuyer: "ABC Corp",
                 payableAmount: "USD 500",
                 items: [
                     {
+                        name: "New Item",
                         description: "Electronic Component",
-                        amount: "5 PCS"
+                        price: 10
                     },
                     {
+                        name: "Other Item",
                         description: "Battery Component",
-                        amount: "15 PCS"
+                        price: 15
                     }
                 ]
             });

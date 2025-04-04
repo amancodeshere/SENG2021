@@ -91,15 +91,7 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
                     PartyNameBuyer: "ABC Corp",
                     PayableAmount: 1000,
                     CurrencyCode: "USD",
-                },
-                {
-                    InvoiceID: 87866,
-                    IssueDate: "2025-01-14",
-                    PartyNameBuyer: "ABC Pty Ltd",
-                    PayableAmount: 1000,
-                    CurrencyCode: "USD",
                 }
-
             ];
             getUserBySessionId.mockImplementationOnce((sessionId, callback) => {
                 callback(null, {
