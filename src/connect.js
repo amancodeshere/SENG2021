@@ -84,19 +84,23 @@ const schema = [
     SessionID SERIAL PRIMARY KEY,
     UserID INTEGER NOT NULL,
     CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    VALID BOOLEAN NOT NULL,
     FOREIGN KEY (UserID) REFERENCES users(UserID) ON DELETE CASCADE
   );`
 ];
 
-
-// run schema creation
-schema.forEach(async (query) => {
-    try {
-        await pool.query(query);
-        if (!isTestEnv) console.log('Table ensured/created.');
-    } catch (err) {
-        console.error('Error creating table:', err.message);
+async function initializeSchema() {
+    for (const query of schema) {
+        try {
+            await pool.query(query);
+            if (!isTestEnv) console.log('Table ensured/created.');
+        } catch (err) {
+            console.error('Error creating table:', err.message);
+        }
     }
-});
+}
+
+initializeSchema();
+
 
 export { pool as db };
