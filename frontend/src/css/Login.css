@@ -33,7 +33,7 @@
 
 /* Label for inputs */
 .input-label {
-    font-size: 15px;
+    font-size: 16px;
     font-weight: bold;
     color: #ffffff;
     text-align: left;
@@ -45,14 +45,14 @@ input[type="text"], input[type="password"] {
     width: 100%;
     padding: 12px;
     margin: 10px 0;
-    border: 1px solid #ddd;
+    border: 1px solid #ffffff;
     border-radius: 6px;
     font-size: 16px;
     transition: border 0.3s;
 }
 
 input[type="text"], input[type="password"] {
-    border: 1px solid #ddd;
+    border: 1px solid #ffffff;
     outline: none;
 }
 
@@ -75,7 +75,7 @@ input[type="text"], input[type="password"] {
 
 /* Error message */
 .login-error {
-    color: #c83232;
+    color: #cd3232;
     margin-top: 15px;
     font-size: 14px;
     font-weight: bold;
@@ -84,12 +84,13 @@ input[type="text"], input[type="password"] {
 /* Register text */
 .register-text {
     margin-top: 15px;
-    font-size: 14px;
+    font-size: 16px;
     color: #ffffff;
 }
 
 .register-link {
     color: #ffffff;
+    font-size: 18px;
     text-decoration: none;
     font-weight: bold;
 }
