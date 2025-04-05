@@ -76,3 +76,5 @@
 2025-04-06 04:57:14.967 AEST [5238] ERROR:  duplicate key value violates unique constraint "users_email_key"
 2025-04-06 04:57:14.967 AEST [5238] DETAIL:  Key (email)=(val@gmail.com) already exists.
 2025-04-06 04:57:14.967 AEST [5238] STATEMENT:  INSERT INTO users (Email, Password, CompanyName) VALUES ($1, $2, $3) RETURNING UserID;
+2025-04-06 05:00:21.695 AEST [2548] LOG:  checkpoint starting: time
+2025-04-06 05:00:22.006 AEST [2548] LOG:  checkpoint complete: wrote 4 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.308 s, sync=0.002 s, total=0.312 s; sync files=4, longest=0.001 s, average=0.001 s; distance=2 kB, estimate=5655 kB; lsn=0/20F96A0, redo lsn=0/20F9668
