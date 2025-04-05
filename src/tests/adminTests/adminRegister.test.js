@@ -144,7 +144,6 @@ describe('adminRegister route - Comprehensive Tests', () => {
                 .set('Content-Type', 'application/json')
                 .send(invalidUser);
             expect(res.body).toEqual({ error: expect.any(String) });
-            console.log(res.body);
             expect(res.statusCode).toBe(400);
         });
   
