@@ -8,7 +8,7 @@ export default function Landing() {
     <>
         <img className="landing-logo" src="/logo2.png" alt="TradeDocs Navigator Logo" />
         <p className="landing-text">A unified platform for invoicing and despatches, streamlining the delivery process.</p>
-        <button className="login-button" onClick={() => navigate("/login")}>Login</button>
+        <button className="get-started-button" onClick={() => navigate("/login")}>Get Started</button>
     </>
     )
 }
