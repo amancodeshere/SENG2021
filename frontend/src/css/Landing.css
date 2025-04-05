@@ -1,3 +1,11 @@
+/* General reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+}
+
 .landing-logo {
     width: 500px;
     margin-bottom: 20px;
@@ -9,7 +17,7 @@
     margin-bottom: 20px;
 }
 
-.login-button {
+.get-started-button {
     background-color: #13355c;
     color: white;
     font-size: 26px;
@@ -19,6 +27,6 @@
     cursor: pointer;
 }
 
-.login-button:hover {
-    background-color: #102844; /* Slightly darker on hover */
+.get-started-button:hover {
+    background-color: #102844;
 }

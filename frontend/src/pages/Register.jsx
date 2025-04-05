@@ -1,10 +1,10 @@
 import { useState } from "react"
-import { Link } from "react-router-dom"
 import { useNavigate } from "react-router-dom"
 import axios from "axios"
-import "../css/Login.css"
+import "../css/Register.css"
 
-export default function Login() {
+export default function Register() {
+    const [companyName, setCompanyName] = useState("")
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [error, setError] = useState("")
@@ -14,9 +14,10 @@ export default function Login() {
         e.preventDefault()
 
         try {
-            const res = await axios.post("/api/v1/admin/login", {
-              email,
-              password,
+            const res = await axios.post("/api/v1/admin/register", {
+                companyName,
+                email,
+                password,
             })
             localStorage.setItem("token", res.data.sessionId)
             navigate("/dashboard")
@@ -24,12 +25,20 @@ export default function Login() {
             setError(err.response.data.error || "Login failed.")
         }
     }
-    
+
     return (
-        <div className="login-container">
-            <img className="login-logo" src="/logo1.png" alt="TradeDocs Navigator Logo" />
-            <h2 className="login-heading">Login</h2>
-            <form onSubmit={handleSubmit} className="login-form">
+        <div className="register-container">
+            <img className="register-logo" src="/logo1.png" alt="TradeDocs Navigator Logo" />
+            <h2 className="register-heading">Register</h2>
+            <form onSubmit={handleSubmit} className="register-form">
+                <p className="input-label">Company Name</p>
+                <input
+                    type="text"
+                    placeholder="Enter company name"
+                    className="company-name-input"
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                />
                 <p className="input-label">Email</p>
                 <input
                     type="text"
@@ -46,15 +55,11 @@ export default function Login() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                 />
-                <button className="login-button">
-                    Login
+                <button className="register-button">
+                    Register
                 </button>
             </form>
-            {error && <p className="login-error">{error}</p>}
-            <p className="register-text">Don't have an account?</p>
-            <Link to="/register" className="register-link">
-                Register
-            </Link>
+            {error && <p className="register-error">{error}</p>}
         </div>
     )
 }
