@@ -53,7 +53,6 @@ const schema = [
     IssueDate DATE NOT NULL,
     PartyNameSeller Text NOT NULL,
     PartyNameBuyer TEXT NOT NULL,
-    PayableAmount REAL NOT NULL,
     CurrencyCode TEXT NOT NULL,
     InvoiceStartDate DATE DEFAULT NULL,
     InvoiceEndDate DATE DEFAULT NULL,
@@ -64,10 +63,12 @@ const schema = [
     `CREATE TABLE IF NOT EXISTS invoice_items (
     InvoiceItemID SERIAL PRIMARY KEY,
     InvoiceID INTEGER NOT NULL,
+    InvoiceItemName TEXT NOT NULL,
     ItemDescription TEXT NOT NULL,
     BuyersItemIdentification INTEGER NOT NULL,
     SellersItemIdentification INTEGER NOT NULL,
-    ItemAmount INTEGER NOT NULL,
+    ItemPrice REAL NOT NULL,
+    ItemQuantity INTEGER NOT NULL,
     ItemUnitCode TEXT NOT NULL,
     FOREIGN KEY (InvoiceID) REFERENCES invoices(InvoiceID) ON DELETE CASCADE
   );`,
