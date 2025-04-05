@@ -65,3 +65,14 @@
 2025-04-06 04:40:25.406 AEST [4618] ERROR:  duplicate key value violates unique constraint "users_email_key"
 2025-04-06 04:40:25.406 AEST [4618] DETAIL:  Key (email)=(val@gmail.com) already exists.
 2025-04-06 04:40:25.406 AEST [4618] STATEMENT:  INSERT INTO users (Email, Password, CompanyName) VALUES ($1, $2, $3) RETURNING UserID;
+2025-04-06 04:45:21.964 AEST [2548] LOG:  checkpoint starting: time
+2025-04-06 04:45:22.279 AEST [2548] LOG:  checkpoint complete: wrote 4 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.310 s, sync=0.002 s, total=0.315 s; sync files=4, longest=0.001 s, average=0.001 s; distance=2 kB, estimate=6953 kB; lsn=0/20B9590, redo lsn=0/20B9558
+2025-04-06 04:46:13.205 AEST [4904] ERROR:  cannot drop table invoices because other objects depend on it
+2025-04-06 04:46:13.205 AEST [4904] DETAIL:  constraint invoice_items_invoiceid_fkey on table invoice_items depends on table invoices
+2025-04-06 04:46:13.205 AEST [4904] HINT:  Use DROP ... CASCADE to drop the dependent objects too.
+2025-04-06 04:46:13.205 AEST [4904] STATEMENT:  drop table invoices;
+2025-04-06 04:50:21.287 AEST [2548] LOG:  checkpoint starting: time
+2025-04-06 04:50:26.679 AEST [2548] LOG:  checkpoint complete: wrote 53 buffers (0.3%); 0 WAL file(s) added, 0 removed, 0 recycled; write=5.371 s, sync=0.015 s, total=5.392 s; sync files=46, longest=0.002 s, average=0.001 s; distance=254 kB, estimate=6283 kB; lsn=0/20F8DB0, redo lsn=0/20F8D78
+2025-04-06 04:57:14.967 AEST [5238] ERROR:  duplicate key value violates unique constraint "users_email_key"
+2025-04-06 04:57:14.967 AEST [5238] DETAIL:  Key (email)=(val@gmail.com) already exists.
+2025-04-06 04:57:14.967 AEST [5238] STATEMENT:  INSERT INTO users (Email, Password, CompanyName) VALUES ($1, $2, $3) RETURNING UserID;
