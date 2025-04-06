@@ -79,7 +79,7 @@ describe('Intergration tests for all routes', () => {
 
         // input invoice into database from XML order
         res = await request(app)
-              .post('/api/v1/invoice/create')
+              .post('/api/v2/invoice/create')
               .set('sessionid', sessionId)
               .set('Content-Type', 'application/json')
               .send(validJSONDocument);
@@ -91,7 +91,7 @@ describe('Intergration tests for all routes', () => {
 
         // view invoice
         res = await request(app)
-            .get(`/api/v1/invoice/${invoiceId1}`)
+            .get(`/api/v2/invoice/${invoiceId1}`)
             .set('sessionid', sessionId);
         expect(res.status).toBe(200);
         expect(res.body).toEqual({
@@ -111,7 +111,7 @@ describe('Intergration tests for all routes', () => {
 
         // convert invoice into xml
         res = await request(app)
-            .get(`/api/v1/invoice/${invoiceId1}/xml`)
+            .get(`/api/v2/invoice/${invoiceId1}/xml`)
             .set('sessionid', sessionId);
 
         expect(res.status).toBe(200);
@@ -127,7 +127,7 @@ describe('Intergration tests for all routes', () => {
 
         // input second invoice
         res = await request(app)
-            .post('/api/v1/invoice/create')
+            .post('/api/v2/invoice/create')
             .set('sessionid', sessionId)
             .set('Content-Type', 'application/xml')
             .send(validXMLDocument);
@@ -140,7 +140,7 @@ describe('Intergration tests for all routes', () => {
 
         //ViewInvoiceList
         res = await request(app)
-            .get('/api/v1/invoices/list')
+            .get('/api/v2/invoices/list')
             .set('sessionid', sessionId)
             .query({ partyNameBuyer: 'ABC Corp' });
         expect(res.status).toBe(200);

@@ -1,25 +1,24 @@
 import request from 'supertest';
-import { app } from '../../app.js';
-import { db } from '../../connect.js';
-import * as orderModule from '../../orderToDB.js';
-import * as invoiceModule from '../../invoiceToDB.js';
-import fs from "fs";
+import { app } from '../../../app.js';
+import { db } from '../../../connect.js';
+import * as orderModule from '../../../orderToDB.js';
+import * as invoiceModule from '../../../invoiceToDB.js';
 
-jest.mock('../../connect.js', () => ({
+jest.mock('../../../connect.js', () => ({
     db: {
         exec: jest.fn(),
         get: jest.fn(),
         run: jest.fn(),
         all: jest.fn(),
     },
-}));jest.mock('../../orderToDB.js');
-jest.mock('../../invoiceToDB.js');
+}));jest.mock('../../../orderToDB.js');
+jest.mock('../../../invoiceToDB.js');
 jest.mock('ubl-builder', () => {
   return {
     UBLBuilder: jest.fn().mockImplementation(() => ({
       parseInvoiceXML: jest.fn().mockImplementation(() => ({
         getOrderReference: jest.fn().mockReturnValue({
-          getID: jest.fn().mockReturnValue('1')
+          getID: jest.fn().mockReturnValue('12345678')
         }),
         getIssueDate: jest.fn().mockReturnValue('2025-03-06'),
         getAccountingCustomerParty: jest.fn().mockReturnValue({
@@ -41,24 +40,36 @@ jest.mock('ubl-builder', () => {
   };
 });
 
-describe('POST /api/v2/invoice/create', () => {
+describe('POST /api/v1/invoice/create', () => {
   const validSessionId = '123456';
   
-  const validXMLDocument = fs.readFileSync("./order2.xml", "utf-8");
+  const validXMLDocument = `<?xml version="1.0" encoding="UTF-8"?>
+<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
+       xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+       xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+  <cbc:ID>12345678</cbc:ID>
+  <cbc:IssueDate>2025-03-06</cbc:IssueDate>
+  <cac:AccountingCustomerParty>
+    <cac:Party>
+      <cac:PartyName>
+        <cbc:Name>ABC Corp</cbc:Name>
+      </cac:PartyName>
+    </cac:Party>
+  </cac:AccountingCustomerParty>
+  <cac:LegalMonetaryTotal>
+    <cbc:PayableAmount currencyID="USD">500</cbc:PayableAmount>
+  </cac:LegalMonetaryTotal>
+  <cac:OrderReference>
+    <cbc:ID>12345678</cbc:ID>
+  </cac:OrderReference>
+</Invoice>`;
 
   const validJSONDocument = {
+    SalesOrderID: "12345678",
     IssueDate: "2025-03-06",
     PartyName: "ABC Corp",
     PayableAmount: 500,
-    CurrencyCode: "USD",
-    Items: [{
-      Id: "1",
-      ItemName: "new Item",
-      ItemDescription: "This is an item",
-      ItemPrice: 250,
-      ItemQuantity: 2,
-      ItemUnitCode: "PCS"
-    }]
+    CurrencyCode: "USD"
   };
 
   beforeEach(() => {
@@ -75,7 +86,7 @@ describe('POST /api/v2/invoice/create', () => {
 
     // Mock inputOrder and inputInvoice functions
     orderModule.inputOrder.mockImplementation((UUID, IssueDate, PartyName, PayableAmount, PayableCurrencyCode, Items, callback) => {
-      callback(null, { OrderId: 1 });
+      callback(null, { orderId: 1 });
     });
     
     invoiceModule.inputInvoice.mockImplementation((SalesOrderId, callback) => {
@@ -85,7 +96,7 @@ describe('POST /api/v2/invoice/create', () => {
 
   test('should successfully create invoice from XML document', async () => {
     const response = await request(app)
-      .post('/api/v2/invoice/create')
+      .post('/api/v1/invoice/create')
       .set('sessionid', validSessionId)
       .set('Content-Type', 'application/xml')
       .send(validXMLDocument);
@@ -98,7 +109,7 @@ describe('POST /api/v2/invoice/create', () => {
 
   test('should successfully create invoice from JSON document', async () => {
     const response = await request(app)
-      .post('/api/v2/invoice/create')
+      .post('/api/v1/invoice/create')
       .set('sessionid', validSessionId)
       .set('Content-Type', 'application/json')
       .send(validJSONDocument);
@@ -111,7 +122,7 @@ describe('POST /api/v2/invoice/create', () => {
 
   test('should return error when sessionId is missing', async () => {
     const response = await request(app)
-      .post('/api/v2/invoice/create')
+      .post('/api/v1/invoice/create')
       .set('Content-Type', 'application/json')
       .send(validJSONDocument);
 
@@ -121,7 +132,7 @@ describe('POST /api/v2/invoice/create', () => {
 
   test('should return error when sessionId is invalid', async () => {
     const response = await request(app)
-      .post('/api/v2/invoice/create')
+      .post('/api/v1/invoice/create')
       .set('sessionid', 'invalid-session-id')
       .set('Content-Type', 'application/json')
       .send(validJSONDocument);
@@ -132,7 +143,7 @@ describe('POST /api/v2/invoice/create', () => {
 
   test('should return error when document is missing', async () => {
     const response = await request(app)
-      .post('/api/v2/invoice/create')
+      .post('/api/v1/invoice/create')
       .set('sessionid', validSessionId)
       .set('Content-Type', 'application/json')
       .send({});
@@ -145,7 +156,7 @@ describe('POST /api/v2/invoice/create', () => {
     const malformedXML = '<invalid>xml</invalid>';
 
     const response = await request(app)
-      .post('/api/v2/invoice/create')
+      .post('/api/v1/invoice/create')
       .set('sessionid', validSessionId)
       .set('Content-Type', 'application/xml')
       .send(malformedXML);
@@ -160,7 +171,7 @@ describe('POST /api/v2/invoice/create', () => {
     });
 
     const response = await request(app)
-      .post('/api/v2/invoice/create')
+      .post('/api/v1/invoice/create')
       .set('sessionid', validSessionId)
       .set('Content-Type', 'application/json')
       .send(validJSONDocument);
@@ -175,7 +186,7 @@ describe('POST /api/v2/invoice/create', () => {
     });
 
     const response = await request(app)
-      .post('/api/v2/invoice/create')
+      .post('/api/v1/invoice/create')
       .set('sessionid', validSessionId)
       .set('Content-Type', 'application/json')
       .send(validJSONDocument);
@@ -186,7 +197,7 @@ describe('POST /api/v2/invoice/create', () => {
 
   test('parseXML error - not XML', async () => {
     const response = await request(app)
-      .post('/api/v2/invoice/create')
+      .post('/api/v1/invoice/create')
       .set('sessionid', validSessionId)
 
     expect(response.status).toBe(400);
@@ -198,7 +209,7 @@ describe('POST /api/v2/invoice/create', () => {
       callback(new Error('Invoice creation failed'));
     });
     const response = await request(app)
-      .post('/api/v2/invoice/create')
+      .post('/api/v1/invoice/create')
       .set('sessionid', validSessionId)
       .set('Content-Type', 'application/json')
       .send(validJSONDocument);
