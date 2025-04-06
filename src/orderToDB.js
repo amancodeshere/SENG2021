@@ -96,12 +96,14 @@ export async function inputOrder(SalesOrderID, UUID, IssueDate, PartyNameBuyer,
 
 
         for (const item of Items) {
-            if (!isValidItemID(item.SellersItemIdentification))
-                throw new CustomInputError('Invalid Sellers Item ID.');
-            if (!isValidItemID(item.BuyersItemIdentification))
-                throw new CustomInputError('Invalid Buyers Item ID.');
-            if (typeof item.ItemAmount !== 'number' || item.ItemAmount < 0)
-                throw new CustomInputError('Invalid Item Amount.');
+            if (!item.OrderItemId || typeof item.OrderItemId !== 'string')
+                throw new CustomInputError('Missing or invalid OrderItemId.');
+            if (!item.ItemName || typeof item.ItemName !== 'string')
+                throw new CustomInputError('Missing or invalid Item Name.');
+            if (typeof item.ItemPrice !== 'number' || item.ItemPrice < 0)
+                throw new CustomInputError('Invalid Item Price.');
+            if (typeof item.ItemQuantity !== 'number' || item.ItemQuantity < 0)
+                throw new CustomInputError('Invalid Item Quantity.');
             if (!isValidUnitCode(item.ItemUnitCode))
                 throw new CustomInputError('Invalid Item Unit Code.');
             if (typeof item.ItemDescription !== 'string' || !item.ItemDescription.trim())
@@ -120,9 +122,9 @@ export async function inputOrder(SalesOrderID, UUID, IssueDate, PartyNameBuyer,
 
         for (const item of Items) {
             await db.query(`
-                INSERT INTO order_items (SalesOrderID, ItemDescription, BuyersItemIdentification, SellersItemIdentification, ItemAmount, ItemUnitCode)
-                VALUES ($1, $2, $3, $4, $5, $6);
-            `, [SalesOrderID, item.ItemDescription, item.BuyersItemIdentification, item.SellersItemIdentification, item.ItemAmount, item.ItemUnitCode]);
+                INSERT INTO order_items (OrderItemId, SalesOrderID, ItemName, ItemDescription, ItemPrice, ItemQuantity, ItemUnitCode)
+                VALUES ($1, $2, $3, $4, $5, $6, $7);
+            `, [item.OrderItemId, SalesOrderID, item.ItemName, item.ItemDescription, item.ItemPrice, item.ItemQuantity, item.ItemUnitCode]);
         }
 
 

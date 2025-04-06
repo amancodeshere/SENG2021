@@ -39,11 +39,12 @@ const schema = [
 
     `CREATE TABLE IF NOT EXISTS order_items (
     ItemID SERIAL PRIMARY KEY,
+    OrderItemId TEXT NOT NULL,
     SalesOrderID TEXT NOT NULL,
-    ItemDescription TEXT NOT NULL,
-    BuyersItemIdentification INTEGER NOT NULL,
-    SellersItemIdentification INTEGER NOT NULL,
-    ItemAmount INTEGER NOT NULL,
+    ItemName TEXT NOT NULL,
+    ItemDescription TEXT Not NULL,
+    ItemPrice REAL NOT NULL,
+    ItemQuantity INTEGER NOT NULL,
     ItemUnitCode TEXT NOT NULL,
     FOREIGN KEY (SalesOrderID) REFERENCES orders(SalesOrderID) ON DELETE CASCADE
   );`,

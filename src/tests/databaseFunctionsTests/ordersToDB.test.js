@@ -1,8 +1,8 @@
 import {
     inputOrder,
-    getOrderBySalesOrderID,
-    getOrderIdsByPartyName,
-    deleteOrderById
+        getOrderBySalesOrderID,
+        getOrderIdsByPartyName,
+        deleteOrderById
 } from '../../orderToDB.js';
 import { db } from '../../connect.js';
 import { CustomInputError } from '../../errors.js';
@@ -31,10 +31,11 @@ describe('ordersToDB.js full test coverage', () => {
     };
     const mockItems = [
         {
-            ItemDescription: 'Widget A',
-            BuyersItemIdentification: '12345678',
-            SellersItemIdentification: '87654321',
-            ItemAmount: 10,
+            OrderItemId: 'ITEM123',
+            ItemName: 'Widget A',
+            ItemDescription: 'High-quality widget',
+            ItemPrice: 50,
+            ItemQuantity: 10,
             ItemUnitCode: 'EA'
         }
     ];
@@ -61,7 +62,7 @@ describe('ordersToDB.js full test coverage', () => {
 
         it('should succeed on valid input', async () => {
             db.query
-                .mockResolvedValueOnce({ rows: [{ count: '0' }] })
+                .mockResolvedValueOnce({ rows: [{ count: '0' }] }) // Check SalesOrderID
                 .mockResolvedValueOnce({}) // BEGIN
                 .mockResolvedValueOnce({}) // Insert order
                 .mockResolvedValueOnce({}) // Insert item
@@ -77,8 +78,8 @@ describe('ordersToDB.js full test coverage', () => {
 
         it('should rollback on query failure', async () => {
             db.query
-                .mockResolvedValueOnce({ rows: [{ count: '0' }] })
-                .mockRejectedValueOnce(new Error('fail'));
+                .mockResolvedValueOnce({ rows: [{ count: '0' }] }) // Check SalesOrderID
+                .mockRejectedValueOnce(new Error('fail')); // BEGIN fails or insert fails
 
 
             await inputOrder(mockSalesOrderId, mockOrder.uuid, mockOrder.issuedate, mockOrder.partynamebuyer, mockOrder.partynameseller, mockOrder.payableamount, mockOrder.payablecurrencycode, mockItems, (err) => {
@@ -159,21 +160,27 @@ describe('ordersToDB.js full test coverage', () => {
 
         it('should rollback if order not found', async () => {
             db.query
-                .mockResolvedValueOnce({})
-                .mockResolvedValueOnce({ rowCount: 0 })
-                .mockResolvedValueOnce({});
+                .mockResolvedValueOnce({}) // BEGIN
+                .mockResolvedValueOnce({}) // DELETE order_items
+                .mockResolvedValueOnce({ rowCount: 0 }) // DELETE orders
+                .mockResolvedValueOnce({}); // ROLLBACK
+
+
             await deleteOrderById(mockSalesOrderId, err => {
                 expect(err).toBeInstanceOf(CustomInputError);
-                expect(err.message).toMatch("Error committing delete transaction.");
+                expect(err.message).toMatch(/Order not found/);
             });
         });
 
 
         it('should succeed', async () => {
             db.query
-                .mockResolvedValueOnce({})
-                .mockResolvedValueOnce({ rowCount: 1 })
-                .mockResolvedValueOnce({});
+                .mockResolvedValueOnce({}) // BEGIN
+                .mockResolvedValueOnce({}) // DELETE order_items
+                .mockResolvedValueOnce({ rowCount: 1 }) // DELETE orders
+                .mockResolvedValueOnce({}); // COMMIT
+
+
             await deleteOrderById(mockSalesOrderId, (err, res) => {
                 expect(err).toBeNull();
                 expect(res).toHaveProperty('success', true);
