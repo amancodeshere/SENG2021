@@ -48,7 +48,7 @@ describe('View invoice route - Comprehensive Tests', () => {
             });
 
             const res = await request(app)
-                .get('/api/v1/invoice/123456')
+                .get('/api/v2/invoice/123456')
                 .set('sessionid', '123');
             expect(res.status).toBe(200);
             expect(res.body).toEqual({
@@ -104,7 +104,7 @@ describe('View invoice route - Comprehensive Tests', () => {
             });
 
             const res = await request(app)
-                .get('/api/v1/invoice/234567')
+                .get('/api/v2/invoice/234567')
                 .set('sessionid', '123');
             expect(res.status).toBe(200);
             expect(res.body).toEqual({
@@ -143,7 +143,7 @@ describe('View invoice route - Comprehensive Tests', () => {
                 return callback(new CustomInputError("Invoice not found."));
             });
             const res = await request(app)
-                .get('/api/v1/invoice/123')
+                .get('/api/v2/invoice/123')
                 .set('sessionid', '1234');
             expect(res.body).toEqual({ error: "Invoice not found." });
             expect(res.status).toBe(404);
@@ -154,7 +154,7 @@ describe('View invoice route - Comprehensive Tests', () => {
                 return callback(new CustomInputError("Session not found."));
             });
             const res = await request(app)
-                .get('/api/v1/invoice/123')
+                .get('/api/v2/invoice/123')
                 .set('sessionid', '1234');
             expect(res.body).toEqual({ error: "Session not found." });
             expect(res.status).toBe(401);
