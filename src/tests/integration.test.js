@@ -9,7 +9,7 @@ const VALID_COMPANY_NAME = 'Valid Pty Ltd';
 const VALID_PASSWORD = 'Password123';
 
 
-describe('Integration tests for all routes', async () => {
+describe('Integration tests for all routes', () => {
 
     it('Fix the tests later', () => {
         expect(1).toBe(1);
