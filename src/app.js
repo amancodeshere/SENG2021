@@ -61,12 +61,12 @@ app.post('/api/v1/admin/login', (req, res) => {
 });
 
 // Create new invoice
-app.post('/api/v1/invoice/create', (req, res) => {
+app.post('/api/v2/invoice/create', (req, res) => {
     handlePostInvoice(req, res);
 });
 
 // view an invoice
-app.get('/api/v1/invoice/:invoiceid', (req, res) => {
+app.get('/api/v2/invoice/:invoiceid', (req, res) => {
     const sessionId = parseInt(req.headers.sessionid);
     const invoiceId = req.params.invoiceid;
 
@@ -85,7 +85,7 @@ app.get('/api/v1/invoice/:invoiceid', (req, res) => {
 });
 
 // create UBL XML invoice
-app.get('/api/v1/invoice/:invoiceid/xml', (req, res) => {
+app.get('/api/v2/invoice/:invoiceid/xml', (req, res) => {
     const sessionId = parseInt(req.headers.sessionid);
     const invoiceId = req.params.invoiceid;
 

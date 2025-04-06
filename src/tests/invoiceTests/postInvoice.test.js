@@ -41,7 +41,7 @@ jest.mock('ubl-builder', () => {
   };
 });
 
-describe('POST /api/v1/invoice/create', () => {
+describe('POST /api/v2/invoice/create', () => {
   const validSessionId = '123456';
   
   const validXMLDocument = fs.readFileSync("./order2.xml", "utf-8");
@@ -85,7 +85,7 @@ describe('POST /api/v1/invoice/create', () => {
 
   test('should successfully create invoice from XML document', async () => {
     const response = await request(app)
-      .post('/api/v1/invoice/create')
+      .post('/api/v2/invoice/create')
       .set('sessionid', validSessionId)
       .set('Content-Type', 'application/xml')
       .send(validXMLDocument);
@@ -98,7 +98,7 @@ describe('POST /api/v1/invoice/create', () => {
 
   test('should successfully create invoice from JSON document', async () => {
     const response = await request(app)
-      .post('/api/v1/invoice/create')
+      .post('/api/v2/invoice/create')
       .set('sessionid', validSessionId)
       .set('Content-Type', 'application/json')
       .send(validJSONDocument);
@@ -111,7 +111,7 @@ describe('POST /api/v1/invoice/create', () => {
 
   test('should return error when sessionId is missing', async () => {
     const response = await request(app)
-      .post('/api/v1/invoice/create')
+      .post('/api/v2/invoice/create')
       .set('Content-Type', 'application/json')
       .send(validJSONDocument);
 
@@ -121,7 +121,7 @@ describe('POST /api/v1/invoice/create', () => {
 
   test('should return error when sessionId is invalid', async () => {
     const response = await request(app)
-      .post('/api/v1/invoice/create')
+      .post('/api/v2/invoice/create')
       .set('sessionid', 'invalid-session-id')
       .set('Content-Type', 'application/json')
       .send(validJSONDocument);
@@ -132,7 +132,7 @@ describe('POST /api/v1/invoice/create', () => {
 
   test('should return error when document is missing', async () => {
     const response = await request(app)
-      .post('/api/v1/invoice/create')
+      .post('/api/v2/invoice/create')
       .set('sessionid', validSessionId)
       .set('Content-Type', 'application/json')
       .send({});
@@ -145,7 +145,7 @@ describe('POST /api/v1/invoice/create', () => {
     const malformedXML = '<invalid>xml</invalid>';
 
     const response = await request(app)
-      .post('/api/v1/invoice/create')
+      .post('/api/v2/invoice/create')
       .set('sessionid', validSessionId)
       .set('Content-Type', 'application/xml')
       .send(malformedXML);
@@ -160,7 +160,7 @@ describe('POST /api/v1/invoice/create', () => {
     });
 
     const response = await request(app)
-      .post('/api/v1/invoice/create')
+      .post('/api/v2/invoice/create')
       .set('sessionid', validSessionId)
       .set('Content-Type', 'application/json')
       .send(validJSONDocument);
@@ -175,7 +175,7 @@ describe('POST /api/v1/invoice/create', () => {
     });
 
     const response = await request(app)
-      .post('/api/v1/invoice/create')
+      .post('/api/v2/invoice/create')
       .set('sessionid', validSessionId)
       .set('Content-Type', 'application/json')
       .send(validJSONDocument);
@@ -186,7 +186,7 @@ describe('POST /api/v1/invoice/create', () => {
 
   test('parseXML error - not XML', async () => {
     const response = await request(app)
-      .post('/api/v1/invoice/create')
+      .post('/api/v2/invoice/create')
       .set('sessionid', validSessionId)
 
     expect(response.status).toBe(400);
@@ -198,7 +198,7 @@ describe('POST /api/v1/invoice/create', () => {
       callback(new Error('Invoice creation failed'));
     });
     const response = await request(app)
-      .post('/api/v1/invoice/create')
+      .post('/api/v2/invoice/create')
       .set('sessionid', validSessionId)
       .set('Content-Type', 'application/json')
       .send(validJSONDocument);

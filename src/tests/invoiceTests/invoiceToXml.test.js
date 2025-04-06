@@ -71,7 +71,7 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
                 callback(null, { ...mockInvoice, Items: mockItems });
             });
             const res = await request(app)
-                .get('/api/v1/invoice/123456/xml')
+                .get('/api/v2/invoice/123456/xml')
                 .set('sessionid', '123');
             expect(typeof res.text).toBe('string');
             expect(res.status).toBe(200);
@@ -101,7 +101,7 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
                 callback(null, { ...mockInvoice2, Items: mockItems2 });
             });
             const res = await request(app)
-                .get('/api/v1/invoice/234567/xml')
+                .get('/api/v2/invoice/234567/xml')
                 .set('sessionid', '123');
             expect(typeof res.text).toBe('string');
             expect(res.status).toBe(200);
@@ -140,7 +140,7 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
                     callback(null, { ...mockInvoice2, Items: mockItems2 });
                 });
             const res = await request(app)
-                .get('/api/v1/invoice/123456/xml')
+                .get('/api/v2/invoice/123456/xml')
                 .set('sessionid', '123');
             expect(typeof res.text).toBe('string');
             expect(res.status).toBe(200);
@@ -157,7 +157,7 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
             expect(res.text).toContain('<cbc:LineExtensionAmount currencyID="USD">10</');
             expect(res.text).toContain('<cbc:Name>Item</');
             const res2 = await request(app)
-                .get('/api/v1/invoice/234567/xml')
+                .get('/api/v2/invoice/234567/xml')
                 .set('sessionid', '123');
             expect(typeof res.text).toBe('string');
             expect(res2.status).toBe(200);
@@ -193,7 +193,7 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
                 return callback(new CustomInputError('Invoice not found.'));
             });
             const res = await request(app)
-                .get('/api/v1/invoice/123/xml')
+                .get('/api/v2/invoice/123/xml')
                 .set('sessionid', '1234');
             expect(res.body).toEqual({ error: "Invoice not found." });
             expect(res.status).toBe(404);
@@ -204,7 +204,7 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
                 return callback(new CustomInputError('Session not found.'));
             });
             const res = await request(app)
-                .get('/api/v1/invoice/123/xml')
+                .get('/api/v2/invoice/123/xml')
                 .set('sessionid', '1234');
             expect(res.body).toEqual({ error: "Session not found." });
             expect(res.status).toBe(401);
