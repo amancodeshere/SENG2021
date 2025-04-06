@@ -1,0 +1,326 @@
+2025-03-28 17:36:22.126 AEDT [47363] LOG:  starting PostgreSQL 16.3 (Postgres.app) on aarch64-apple-darwin21.6.0, compiled by Apple clang version 14.0.0 (clang-1400.0.29.102), 64-bit
+2025-03-28 17:36:22.132 AEDT [47363] LOG:  listening on IPv6 address "::1", port 5432
+2025-03-28 17:36:22.132 AEDT [47363] LOG:  listening on IPv4 address "127.0.0.1", port 5432
+2025-03-28 17:36:22.132 AEDT [47363] LOG:  listening on Unix socket "/tmp/.s.PGSQL.5432"
+2025-03-28 17:36:22.134 AEDT [47366] LOG:  database system was shut down at 2025-03-28 17:36:21 AEDT
+2025-03-28 17:36:22.136 AEDT [47363] LOG:  database system is ready to accept connections
+2025-03-28 17:37:04.424 AEDT [48057] ERROR:  syntax error at or near "." at character 1
+2025-03-28 17:37:04.424 AEDT [48057] STATEMENT:  .tables
+	user
+	;
+2025-03-28 17:37:08.668 AEDT [48057] ERROR:  syntax error at or near "." at character 1
+2025-03-28 17:37:08.668 AEDT [48057] STATEMENT:  .tables;
+2025-03-28 17:37:19.833 AEDT [48057] ERROR:  syntax error at or near "." at character 15
+2025-03-28 17:37:19.833 AEDT [48057] STATEMENT:  select * from .;
+2025-03-28 17:37:23.683 AEDT [48057] ERROR:  syntax error at or near "clwer" at character 1
+2025-03-28 17:37:23.683 AEDT [48057] STATEMENT:  clwer
+	;
+2025-03-28 17:37:46.609 AEDT [47363] LOG:  received fast shutdown request
+2025-03-28 17:37:46.610 AEDT [47363] LOG:  aborting any active transactions
+2025-03-28 17:37:46.615 AEDT [47363] LOG:  background worker "logical replication launcher" (PID 47369) exited with exit code 1
+2025-03-28 17:37:46.616 AEDT [47364] LOG:  shutting down
+2025-03-28 17:37:46.617 AEDT [47364] LOG:  checkpoint starting: shutdown immediate
+2025-03-28 17:37:46.689 AEDT [47364] LOG:  checkpoint complete: wrote 940 buffers (5.7%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.049 s, sync=0.022 s, total=0.073 s; sync files=308, longest=0.001 s, average=0.001 s; distance=4315 kB, estimate=4315 kB; lsn=0/193CD60, redo lsn=0/193CD60
+2025-03-28 17:37:46.691 AEDT [47363] LOG:  database system is shut down
+2025-03-28 17:37:54.205 AEDT [48128] LOG:  starting PostgreSQL 16.8 (Postgres.app) on aarch64-apple-darwin21.6.0, compiled by Apple clang version 14.0.0 (clang-1400.0.29.102), 64-bit
+2025-03-28 17:37:54.208 AEDT [48128] LOG:  listening on IPv6 address "::1", port 5432
+2025-03-28 17:37:54.208 AEDT [48128] LOG:  listening on IPv4 address "127.0.0.1", port 5432
+2025-03-28 17:37:54.209 AEDT [48128] LOG:  listening on Unix socket "/tmp/.s.PGSQL.5432"
+2025-03-28 17:37:54.211 AEDT [48131] LOG:  database system was shut down at 2025-03-28 17:37:46 AEDT
+2025-03-28 17:37:54.214 AEDT [48128] LOG:  database system is ready to accept connections
+2025-03-28 17:39:00.896 AEDT [48491] ERROR:  syntax error at or near "ls" at character 1
+2025-03-28 17:39:00.896 AEDT [48491] STATEMENT:  ls
+	;
+2025-03-28 17:39:05.857 AEDT [48491] ERROR:  syntax error at or near "clear" at character 1
+2025-03-28 17:39:05.857 AEDT [48491] STATEMENT:  clear
+	;
+2025-03-28 17:42:54.209 AEDT [48129] LOG:  checkpoint starting: time
+2025-03-28 17:42:58.507 AEDT [48129] LOG:  checkpoint complete: wrote 45 buffers (0.3%); 0 WAL file(s) added, 0 removed, 0 recycled; write=4.287 s, sync=0.007 s, total=4.299 s; sync files=11, longest=0.002 s, average=0.001 s; distance=268 kB, estimate=268 kB; lsn=0/19800A8, redo lsn=0/1980070
+2025-03-28 17:51:34.059 AEDT [50042] ERROR:  syntax error at or near "grent" at character 1
+2025-03-28 17:51:34.059 AEDT [50042] STATEMENT:  grent all PRIVILEGES ON DATABASE seng_db TO seng_user;
+2025-03-28 17:52:54.439 AEDT [48129] LOG:  checkpoint starting: time
+2025-03-28 17:54:30.449 AEDT [48129] LOG:  checkpoint complete: wrote 944 buffers (5.8%); 1 WAL file(s) added, 0 removed, 0 recycled; write=95.970 s, sync=0.023 s, total=96.011 s; sync files=306, longest=0.001 s, average=0.001 s; distance=4326 kB, estimate=4326 kB; lsn=0/1DB99C8, redo lsn=0/1DB9990
+2025-03-28 17:56:07.421 AEDT [51179] ERROR:  syntax error at or near "users" at character 1
+2025-03-28 17:56:07.421 AEDT [51179] STATEMENT:  users;
+2025-03-28 17:56:10.488 AEDT [51179] ERROR:  syntax error at or near "user" at character 1
+2025-03-28 17:56:10.488 AEDT [51179] STATEMENT:  user;
+2025-03-28 18:00:22.072 AEDT [51297] FATAL:  database "seng2021" does not exist
+2025-03-28 18:00:22.072 AEDT [51298] FATAL:  database "seng2021" does not exist
+2025-03-28 18:00:22.072 AEDT [51296] FATAL:  database "seng2021" does not exist
+2025-03-28 18:00:22.072 AEDT [51305] FATAL:  database "seng2021" does not exist
+2025-03-28 18:00:22.072 AEDT [51303] FATAL:  database "seng2021" does not exist
+2025-03-28 18:00:22.073 AEDT [51299] FATAL:  database "seng2021" does not exist
+2025-03-28 18:00:22.076 AEDT [51307] FATAL:  database "seng2021" does not exist
+2025-03-28 18:01:34.530 AEDT [51337] FATAL:  database "seng_DB" does not exist
+2025-03-28 18:01:34.530 AEDT [51346] FATAL:  database "seng_DB" does not exist
+2025-03-28 18:01:34.530 AEDT [51339] FATAL:  database "seng_DB" does not exist
+2025-03-28 18:01:34.530 AEDT [51348] FATAL:  database "seng_DB" does not exist
+2025-03-28 18:01:34.530 AEDT [51338] FATAL:  database "seng_DB" does not exist
+2025-03-28 18:01:34.530 AEDT [51341] FATAL:  database "seng_DB" does not exist
+2025-03-28 18:01:34.530 AEDT [51344] FATAL:  database "seng_DB" does not exist
+2025-03-28 18:02:34.180 AEDT [51366] ERROR:  permission denied for schema public at character 28
+2025-03-28 18:02:34.180 AEDT [51366] STATEMENT:  CREATE TABLE IF NOT EXISTS orders (
+	    SalesOrderID TEXT PRIMARY KEY,
+	    UUID TEXT NOT NULL,
+	    IssueDate DATE NOT NULL,
+	    PartyName TEXT NOT NULL,
+	    PayableAmount REAL NOT NULL,
+	    PayableCurrencyCode TEXT NOT NULL
+	  );
+2025-03-28 18:02:34.183 AEDT [51367] ERROR:  permission denied for schema public at character 28
+2025-03-28 18:02:34.183 AEDT [51367] STATEMENT:  CREATE TABLE IF NOT EXISTS order_items (
+	    ItemID SERIAL PRIMARY KEY,
+	    SalesOrderID TEXT NOT NULL,
+	    ItemDescription TEXT NOT NULL,
+	    BuyersItemIdentification INTEGER NOT NULL,
+	    SellersItemIdentification INTEGER NOT NULL,
+	    ItemAmount INTEGER NOT NULL,
+	    ItemUnitCode TEXT NOT NULL,
+	    FOREIGN KEY (SalesOrderID) REFERENCES orders(SalesOrderID) ON DELETE CASCADE
+	  );
+2025-03-28 18:02:34.183 AEDT [51369] ERROR:  permission denied for schema public at character 28
+2025-03-28 18:02:34.183 AEDT [51369] STATEMENT:  CREATE TABLE IF NOT EXISTS invoice_items (
+	    InvoiceItemID SERIAL PRIMARY KEY,
+	    InvoiceID INTEGER NOT NULL,
+	    ItemDescription TEXT NOT NULL,
+	    BuyersItemIdentification INTEGER NOT NULL,
+	    SellersItemIdentification INTEGER NOT NULL,
+	    ItemAmount INTEGER NOT NULL,
+	    ItemUnitCode TEXT NOT NULL,
+	    FOREIGN KEY (InvoiceID) REFERENCES invoices(InvoiceID) ON DELETE CASCADE
+	  );
+2025-03-28 18:02:34.183 AEDT [51372] ERROR:  permission denied for schema public at character 28
+2025-03-28 18:02:34.183 AEDT [51372] STATEMENT:  CREATE TABLE IF NOT EXISTS invoices (
+	    InvoiceID SERIAL PRIMARY KEY,
+	    IssueDate DATE NOT NULL,
+	    PartyNameBuyer TEXT NOT NULL,
+	    PayableAmount REAL NOT NULL,
+	    CurrencyCode TEXT NOT NULL,
+	    InvoiceStartDate DATE DEFAULT NULL,
+	    InvoiceEndDate DATE DEFAULT NULL,
+	    SalesOrderID TEXT NOT NULL,
+	    FOREIGN KEY (SalesOrderID) REFERENCES orders(SalesOrderID) ON DELETE CASCADE
+	  );
+2025-03-28 18:02:34.184 AEDT [51374] ERROR:  permission denied for schema public at character 28
+2025-03-28 18:02:34.184 AEDT [51374] STATEMENT:  CREATE TABLE IF NOT EXISTS users (
+	    UserID SERIAL PRIMARY KEY,
+	    Email TEXT UNIQUE NOT NULL,
+	    Password TEXT NOT NULL,
+	    CompanyName TEXT NOT NULL
+	  );
+2025-03-28 18:02:34.184 AEDT [51375] ERROR:  permission denied for schema public at character 28
+2025-03-28 18:02:34.184 AEDT [51375] STATEMENT:  CREATE TABLE IF NOT EXISTS sessions (
+	    SessionID SERIAL PRIMARY KEY,
+	    UserID INTEGER NOT NULL,
+	    NumLogins INTEGER DEFAULT 0 NOT NULL,
+	    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	    FOREIGN KEY (UserID) REFERENCES users(UserID) ON DELETE CASCADE
+	  );
+2025-03-28 18:02:54.438 AEDT [48129] LOG:  checkpoint starting: time
+2025-03-28 18:02:54.554 AEDT [48129] LOG:  checkpoint complete: wrote 2 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.104 s, sync=0.002 s, total=0.117 s; sync files=2, longest=0.002 s, average=0.001 s; distance=0 kB, estimate=3893 kB; lsn=0/1DB9B10, redo lsn=0/1DB9AD8
+2025-03-28 18:03:46.124 AEDT [51397] ERROR:  permission denied for schema public at character 28
+2025-03-28 18:03:46.124 AEDT [51397] STATEMENT:  CREATE TABLE IF NOT EXISTS orders (
+	    SalesOrderID TEXT PRIMARY KEY,
+	    UUID TEXT NOT NULL,
+	    IssueDate DATE NOT NULL,
+	    PartyName TEXT NOT NULL,
+	    PayableAmount REAL NOT NULL,
+	    PayableCurrencyCode TEXT NOT NULL
+	  );
+2025-03-28 18:03:46.124 AEDT [51404] ERROR:  permission denied for schema public at character 28
+2025-03-28 18:03:46.124 AEDT [51404] STATEMENT:  CREATE TABLE IF NOT EXISTS users (
+	    UserID SERIAL PRIMARY KEY,
+	    Email TEXT UNIQUE NOT NULL,
+	    Password TEXT NOT NULL,
+	    CompanyName TEXT NOT NULL
+	  );
+2025-03-28 18:03:46.126 AEDT [51406] ERROR:  permission denied for schema public at character 28
+2025-03-28 18:03:46.126 AEDT [51406] STATEMENT:  CREATE TABLE IF NOT EXISTS invoice_items (
+	    InvoiceItemID SERIAL PRIMARY KEY,
+	    InvoiceID INTEGER NOT NULL,
+	    ItemDescription TEXT NOT NULL,
+	    BuyersItemIdentification INTEGER NOT NULL,
+	    SellersItemIdentification INTEGER NOT NULL,
+	    ItemAmount INTEGER NOT NULL,
+	    ItemUnitCode TEXT NOT NULL,
+	    FOREIGN KEY (InvoiceID) REFERENCES invoices(InvoiceID) ON DELETE CASCADE
+	  );
+2025-03-28 18:03:46.126 AEDT [51399] ERROR:  permission denied for schema public at character 28
+2025-03-28 18:03:46.126 AEDT [51399] STATEMENT:  CREATE TABLE IF NOT EXISTS invoices (
+	    InvoiceID SERIAL PRIMARY KEY,
+	    IssueDate DATE NOT NULL,
+	    PartyNameBuyer TEXT NOT NULL,
+	    PayableAmount REAL NOT NULL,
+	    CurrencyCode TEXT NOT NULL,
+	    InvoiceStartDate DATE DEFAULT NULL,
+	    InvoiceEndDate DATE DEFAULT NULL,
+	    SalesOrderID TEXT NOT NULL,
+	    FOREIGN KEY (SalesOrderID) REFERENCES orders(SalesOrderID) ON DELETE CASCADE
+	  );
+2025-03-28 18:03:46.127 AEDT [51400] ERROR:  permission denied for schema public at character 28
+2025-03-28 18:03:46.127 AEDT [51400] STATEMENT:  CREATE TABLE IF NOT EXISTS order_items (
+	    ItemID SERIAL PRIMARY KEY,
+	    SalesOrderID TEXT NOT NULL,
+	    ItemDescription TEXT NOT NULL,
+	    BuyersItemIdentification INTEGER NOT NULL,
+	    SellersItemIdentification INTEGER NOT NULL,
+	    ItemAmount INTEGER NOT NULL,
+	    ItemUnitCode TEXT NOT NULL,
+	    FOREIGN KEY (SalesOrderID) REFERENCES orders(SalesOrderID) ON DELETE CASCADE
+	  );
+2025-03-28 18:03:46.127 AEDT [51407] ERROR:  permission denied for schema public at character 28
+2025-03-28 18:03:46.127 AEDT [51407] STATEMENT:  CREATE TABLE IF NOT EXISTS sessions (
+	    SessionID SERIAL PRIMARY KEY,
+	    UserID INTEGER NOT NULL,
+	    NumLogins INTEGER DEFAULT 0 NOT NULL,
+	    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	    FOREIGN KEY (UserID) REFERENCES users(UserID) ON DELETE CASCADE
+	  );
+2025-03-28 18:04:34.469 AEDT [51425] ERROR:  permission denied for schema public at character 28
+2025-03-28 18:04:34.469 AEDT [51425] STATEMENT:  CREATE TABLE IF NOT EXISTS invoices (
+	    InvoiceID SERIAL PRIMARY KEY,
+	    IssueDate DATE NOT NULL,
+	    PartyNameBuyer TEXT NOT NULL,
+	    PayableAmount REAL NOT NULL,
+	    CurrencyCode TEXT NOT NULL,
+	    InvoiceStartDate DATE DEFAULT NULL,
+	    InvoiceEndDate DATE DEFAULT NULL,
+	    SalesOrderID TEXT NOT NULL,
+	    FOREIGN KEY (SalesOrderID) REFERENCES orders(SalesOrderID) ON DELETE CASCADE
+	  );
+2025-03-28 18:04:34.470 AEDT [51434] ERROR:  permission denied for schema public at character 28
+2025-03-28 18:04:34.470 AEDT [51434] STATEMENT:  CREATE TABLE IF NOT EXISTS sessions (
+	    SessionID SERIAL PRIMARY KEY,
+	    UserID INTEGER NOT NULL,
+	    NumLogins INTEGER DEFAULT 0 NOT NULL,
+	    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	    FOREIGN KEY (UserID) REFERENCES users(UserID) ON DELETE CASCADE
+	  );
+2025-03-28 18:04:34.470 AEDT [51429] ERROR:  permission denied for schema public at character 28
+2025-03-28 18:04:34.470 AEDT [51429] STATEMENT:  CREATE TABLE IF NOT EXISTS users (
+	    UserID SERIAL PRIMARY KEY,
+	    Email TEXT UNIQUE NOT NULL,
+	    Password TEXT NOT NULL,
+	    CompanyName TEXT NOT NULL
+	  );
+2025-03-28 18:04:34.470 AEDT [51424] ERROR:  permission denied for schema public at character 28
+2025-03-28 18:04:34.470 AEDT [51424] STATEMENT:  CREATE TABLE IF NOT EXISTS orders (
+	    SalesOrderID TEXT PRIMARY KEY,
+	    UUID TEXT NOT NULL,
+	    IssueDate DATE NOT NULL,
+	    PartyName TEXT NOT NULL,
+	    PayableAmount REAL NOT NULL,
+	    PayableCurrencyCode TEXT NOT NULL
+	  );
+2025-03-28 18:04:34.470 AEDT [51432] ERROR:  permission denied for schema public at character 28
+2025-03-28 18:04:34.470 AEDT [51432] STATEMENT:  CREATE TABLE IF NOT EXISTS invoice_items (
+	    InvoiceItemID SERIAL PRIMARY KEY,
+	    InvoiceID INTEGER NOT NULL,
+	    ItemDescription TEXT NOT NULL,
+	    BuyersItemIdentification INTEGER NOT NULL,
+	    SellersItemIdentification INTEGER NOT NULL,
+	    ItemAmount INTEGER NOT NULL,
+	    ItemUnitCode TEXT NOT NULL,
+	    FOREIGN KEY (InvoiceID) REFERENCES invoices(InvoiceID) ON DELETE CASCADE
+	  );
+2025-03-28 18:04:34.470 AEDT [51427] ERROR:  permission denied for schema public at character 28
+2025-03-28 18:04:34.470 AEDT [51427] STATEMENT:  CREATE TABLE IF NOT EXISTS order_items (
+	    ItemID SERIAL PRIMARY KEY,
+	    SalesOrderID TEXT NOT NULL,
+	    ItemDescription TEXT NOT NULL,
+	    BuyersItemIdentification INTEGER NOT NULL,
+	    SellersItemIdentification INTEGER NOT NULL,
+	    ItemAmount INTEGER NOT NULL,
+	    ItemUnitCode TEXT NOT NULL,
+	    FOREIGN KEY (SalesOrderID) REFERENCES orders(SalesOrderID) ON DELETE CASCADE
+	  );
+2025-03-28 18:05:34.512 AEDT [51445] ERROR:  permission denied for schema public at character 28
+2025-03-28 18:05:34.512 AEDT [51445] STATEMENT:  CREATE TABLE IF NOT EXISTS orders (
+	    SalesOrderID TEXT PRIMARY KEY,
+	    UUID TEXT NOT NULL,
+	    IssueDate DATE NOT NULL,
+	    PartyName TEXT NOT NULL,
+	    PayableAmount REAL NOT NULL,
+	    PayableCurrencyCode TEXT NOT NULL
+	  );
+2025-03-28 18:05:34.513 AEDT [51448] ERROR:  permission denied for schema public at character 28
+2025-03-28 18:05:34.513 AEDT [51448] STATEMENT:  CREATE TABLE IF NOT EXISTS invoices (
+	    InvoiceID SERIAL PRIMARY KEY,
+	    IssueDate DATE NOT NULL,
+	    PartyNameBuyer TEXT NOT NULL,
+	    PayableAmount REAL NOT NULL,
+	    CurrencyCode TEXT NOT NULL,
+	    InvoiceStartDate DATE DEFAULT NULL,
+	    InvoiceEndDate DATE DEFAULT NULL,
+	    SalesOrderID TEXT NOT NULL,
+	    FOREIGN KEY (SalesOrderID) REFERENCES orders(SalesOrderID) ON DELETE CASCADE
+	  );
+2025-03-28 18:05:34.515 AEDT [51450] ERROR:  permission denied for schema public at character 28
+2025-03-28 18:05:34.515 AEDT [51450] STATEMENT:  CREATE TABLE IF NOT EXISTS order_items (
+	    ItemID SERIAL PRIMARY KEY,
+	    SalesOrderID TEXT NOT NULL,
+	    ItemDescription TEXT NOT NULL,
+	    BuyersItemIdentification INTEGER NOT NULL,
+	    SellersItemIdentification INTEGER NOT NULL,
+	    ItemAmount INTEGER NOT NULL,
+	    ItemUnitCode TEXT NOT NULL,
+	    FOREIGN KEY (SalesOrderID) REFERENCES orders(SalesOrderID) ON DELETE CASCADE
+	  );
+2025-03-28 18:05:34.515 AEDT [51453] ERROR:  permission denied for schema public at character 28
+2025-03-28 18:05:34.515 AEDT [51453] STATEMENT:  CREATE TABLE IF NOT EXISTS sessions (
+	    SessionID SERIAL PRIMARY KEY,
+	    UserID INTEGER NOT NULL,
+	    NumLogins INTEGER DEFAULT 0 NOT NULL,
+	    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	    FOREIGN KEY (UserID) REFERENCES users(UserID) ON DELETE CASCADE
+	  );
+2025-03-28 18:05:34.516 AEDT [51451] ERROR:  permission denied for schema public at character 28
+2025-03-28 18:05:34.516 AEDT [51451] STATEMENT:  CREATE TABLE IF NOT EXISTS invoice_items (
+	    InvoiceItemID SERIAL PRIMARY KEY,
+	    InvoiceID INTEGER NOT NULL,
+	    ItemDescription TEXT NOT NULL,
+	    BuyersItemIdentification INTEGER NOT NULL,
+	    SellersItemIdentification INTEGER NOT NULL,
+	    ItemAmount INTEGER NOT NULL,
+	    ItemUnitCode TEXT NOT NULL,
+	    FOREIGN KEY (InvoiceID) REFERENCES invoices(InvoiceID) ON DELETE CASCADE
+	  );
+2025-03-28 18:05:34.516 AEDT [51456] ERROR:  permission denied for schema public at character 28
+2025-03-28 18:05:34.516 AEDT [51456] STATEMENT:  CREATE TABLE IF NOT EXISTS users (
+	    UserID SERIAL PRIMARY KEY,
+	    Email TEXT UNIQUE NOT NULL,
+	    Password TEXT NOT NULL,
+	    CompanyName TEXT NOT NULL
+	  );
+2025-03-28 18:09:16.929 AEDT [51833] ERROR:  syntax error at or near "." at character 1
+2025-03-28 18:09:16.929 AEDT [51833] STATEMENT:  .tables;
+2025-03-28 18:09:20.816 AEDT [51833] ERROR:  syntax error at or near "tables" at character 1
+2025-03-28 18:09:20.816 AEDT [51833] STATEMENT:  tables;
+2025-03-28 18:12:54.540 AEDT [48129] LOG:  checkpoint starting: time
+2025-03-28 18:12:56.000 AEDT [48129] LOG:  checkpoint complete: wrote 15 buffers (0.1%); 0 WAL file(s) added, 0 removed, 0 recycled; write=1.444 s, sync=0.006 s, total=1.460 s; sync files=13, longest=0.001 s, average=0.001 s; distance=20 kB, estimate=3506 kB; lsn=0/1DBED18, redo lsn=0/1DBECE0
+2025-03-28 18:12:59.606 AEDT [52218] ERROR:  relation "users" does not exist
+2025-03-28 18:12:59.606 AEDT [52218] STATEMENT:  CREATE TABLE IF NOT EXISTS sessions (
+	    SessionID SERIAL PRIMARY KEY,
+	    UserID INTEGER NOT NULL,
+	    NumLogins INTEGER DEFAULT 0 NOT NULL,
+	    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	    FOREIGN KEY (UserID) REFERENCES users(UserID) ON DELETE CASCADE
+	  );
+2025-03-28 18:12:59.606 AEDT [52213] ERROR:  relation "invoices" does not exist
+2025-03-28 18:12:59.606 AEDT [52213] STATEMENT:  CREATE TABLE IF NOT EXISTS invoice_items (
+	    InvoiceItemID SERIAL PRIMARY KEY,
+	    InvoiceID INTEGER NOT NULL,
+	    ItemDescription TEXT NOT NULL,
+	    BuyersItemIdentification INTEGER NOT NULL,
+	    SellersItemIdentification INTEGER NOT NULL,
+	    ItemAmount INTEGER NOT NULL,
+	    ItemUnitCode TEXT NOT NULL,
+	    FOREIGN KEY (InvoiceID) REFERENCES invoices(InvoiceID) ON DELETE CASCADE
+	  );
+2025-03-28 18:14:59.679 AEDT [52259] ERROR:  syntax error at or near "*" at character 15
+2025-03-28 18:14:59.679 AEDT [52259] STATEMENT:  select * from *;
+2025-03-28 18:15:04.519 AEDT [52259] ERROR:  syntax error at or near "clear" at character 1
+2025-03-28 18:15:04.519 AEDT [52259] STATEMENT:  clear
+	;
+2025-03-28 18:17:54.994 AEDT [48129] LOG:  checkpoint starting: time
+2025-03-28 18:18:05.088 AEDT [48129] LOG:  checkpoint complete: wrote 99 buffers (0.6%); 0 WAL file(s) added, 0 removed, 0 recycled; write=10.062 s, sync=0.021 s, total=10.095 s; sync files=81, longest=0.002 s, average=0.001 s; distance=399 kB, estimate=3195 kB; lsn=0/1E22948, redo lsn=0/1E22910
