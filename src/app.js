@@ -7,7 +7,7 @@ import {
     adminRegister,
     adminLogin
 } from './admin.js';
-import { invoiceToXml, viewInvoice, validateInvoice, listInvoices } from './invoice.js';
+import { invoiceToXml, viewInvoice, validateInvoice, listInvoices, v1viewInvoice, v1invoiceToXml, v1listInvoices, v1handlePostInvoice } from './invoice.js';
 import { getUserBySessionId } from "./UsersToDB.js";
 import { handlePostInvoice } from './invoice.js';
 import { healthCheck } from './health.js';
@@ -117,7 +117,7 @@ app.post('/api/v1/invoice/validate', (req, res) => {
 });
 
 // View an list of invoices by partyNameBuyer
-app.get('/api/v1/invoices/list', (req, res) => {
+app.get('/api/v2/invoices/list', (req, res) => {
     const sessionId = parseInt(req.headers.sessionid);
     const partyNameBuyer = req.query.partyNameBuyer
 
@@ -138,6 +138,75 @@ app.get('/api/v1/invoices/list', (req, res) => {
 app.get('/', (req, res) => {
     res.send('🚀 Server is running!');
 });
+
+// ===========================================================================
+// ========================== outdated v1 routes =============================
+// ===========================================================================
+
+// Create new invoice
+app.post('/api/v1/invoice/create', (req, res) => {
+    v1handlePostInvoice(req, res);
+});
+
+// view an invoice
+app.get('/api/v1/invoice/:invoiceid', (req, res) => {
+    const sessionId = parseInt(req.headers.sessionid);
+    const invoiceId = req.params.invoiceid;
+
+    getUserBySessionId(sessionId, (sessionErr, user) => {
+        if (sessionErr) {
+            return res.status(401).json({ error: sessionErr.message });
+        }
+
+        v1viewInvoice(invoiceId, (err, result) => {
+            if (err) {
+                return res.status(404).json({ error: err.message });
+            }
+            res.status(200).json(result);
+        });
+    });
+});
+
+// create UBL XML invoice
+app.get('/api/v1/invoice/:invoiceid/xml', (req, res) => {
+    const sessionId = parseInt(req.headers.sessionid);
+    const invoiceId = req.params.invoiceid;
+
+    getUserBySessionId(sessionId, (sessionErr, user) => {
+        if (sessionErr) {
+            return res.status(401).json({ error: sessionErr.message });
+        }
+
+        v1invoiceToXml(invoiceId, user.company, (invoiceErr, invoiceResult) => {
+            if (invoiceErr) {
+                return res.status(404).json({ error: invoiceErr.message });
+            }
+            res.status(200)
+                .set('Content-Type', 'application/xml')
+                .send(invoiceResult);
+        });
+    });
+});
+
+// View an list of invoices by partyNameBuyer
+app.get('/api/v1/invoices/list', (req, res) => {
+    const sessionId = parseInt(req.headers.sessionid);
+    const partyNameBuyer = req.query.partyNameBuyer
+
+    getUserBySessionId(sessionId, (sessionErr, user) => {
+        if (sessionErr) {
+            return res.status(401).json({ error: sessionErr.message });
+        }
+
+        v1listInvoices(partyNameBuyer, (err, result) => {
+            if (err) {
+                return res.status(400).json({ error: err.message });
+            }
+            res.status(200).json(result);
+        });
+    });
+});
+
 
 // ===========================================================================
 // ============================= ROUTES ABOVE ================================
