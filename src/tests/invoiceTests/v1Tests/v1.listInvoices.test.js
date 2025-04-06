@@ -1,14 +1,14 @@
 import request from 'supertest';
-import { app } from '../../app.js';
-import { getInvoicesByCompanyName } from '../../invoiceToDB.js';
-import { getUserBySessionId } from '../../UsersToDB.js';
-import { CustomInputError } from '../../errors.js';
+import { app } from '../../../app.js';
+import { getInvoicesByCompanyName } from '../../../invoiceToDB.js';
+import { getUserBySessionId } from '../../../UsersToDB.js';
+import { CustomInputError } from '../../../errors.js';
 
-jest.mock('../../UsersToDB.js', () => ({
+jest.mock('../../../UsersToDB.js', () => ({
     getUserBySessionId: jest.fn()
 }));
 
-jest.mock('../../invoiceToDB.js', () => ({
+jest.mock('../../../invoiceToDB.js', () => ({
     getInvoicesByCompanyName: jest.fn()
 }));
 
@@ -24,6 +24,7 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
             PartyNameBuyer: "ABC Corp",
             PayableAmount: 500,
             CurrencyCode: "USD",
+            SalesOrderID: "12345678",
         }
     ];
 
@@ -41,13 +42,14 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
             });
 
             const res = await request(app)
-                .get('/api/v2/invoices/list')
+                .get('/api/v1/invoices/list')
                 .set('sessionid', '123')
                 .query({ partyNameBuyer: 'ABC Corp' });
             expect(res.status).toBe(200);
             expect(res.body).toEqual([
                 {
                     invoiceId: 123456,
+                    salesOrderID: 123456,
                     issueDate: "2025-03-06",
                     partyNameBuyer: "ABC Corp",
                     payableAmount: "USD 500"
@@ -69,7 +71,7 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
             });
 
             const res = await request(app)
-                .get('/api/v2/invoices/list')
+                .get('/api/v1/invoices/list')
                 .set('sessionid', '123')
                 .query({ partyNameBuyer: 'ABC Corp' });
             expect(res.status).toBe(200);
@@ -84,6 +86,7 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
                     PartyNameBuyer: "ABC Corp",
                     PayableAmount: 500,
                     CurrencyCode: "USD",
+                    SalesOrderID: "2454565",
                 },
                 {
                     InvoiceID: 87865,
@@ -91,6 +94,7 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
                     PartyNameBuyer: "ABC Corp",
                     PayableAmount: 1000,
                     CurrencyCode: "USD",
+                    SalesOrderID: "324553",
                 }
             ];
             getUserBySessionId.mockImplementationOnce((sessionId, callback) => {
@@ -105,19 +109,21 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
             });
 
             const res = await request(app)
-                .get('/api/v2/invoices/list')
+                .get('/api/v1/invoices/list')
                 .set('sessionid', '123')
                 .query({ partyNameBuyer: 'ABC Corp' });
             expect(res.status).toBe(200);
             expect(res.body).toEqual([
                 {
                     invoiceId: 234567,
+                    salesOrderID: 123456,
                     issueDate: "2025-03-06",
                     partyNameBuyer: "ABC Corp",
                     payableAmount: "USD 500"
                 },
                 {
                     invoiceId: 87865,
+                    salesOrderID: 123456,
                     issueDate: "2025-01-14",
                     partyNameBuyer: "ABC Corp",
                     payableAmount: "USD 1000"
@@ -136,7 +142,7 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
                 });
             });
             const res = await request(app)
-                .get('/api/v2/invoices/list')
+                .get('/api/v1/invoices/list')
                 .set('sessionid', '123')
                 .query({ partyNameBuyer: '@BC Corp' });
             expect(res.body).toEqual({ error: expect.any(String) });
@@ -148,7 +154,7 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
                 return callback(new CustomInputError("Session not found."));
             });
             const res = await request(app)
-                .get('/api/v2/invoices/list')
+                .get('/api/v1/invoices/list')
                 .set('sessionid', '123')
                 .query({ partyNameBuyer: 'ABC Corp' });
             expect(res.body).toEqual({ error: "Session not found." });

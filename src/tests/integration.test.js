@@ -140,7 +140,7 @@ describe('Intergration tests for all routes', () => {
 
         //ViewInvoiceList
         res = await request(app)
-            .get('/api/v1/invoices/list')
+            .get('/api/v2/invoices/list')
             .set('sessionid', sessionId)
             .query({ partyNameBuyer: 'ABC Corp' });
         expect(res.status).toBe(200);
