@@ -2,6 +2,7 @@ import { db } from './connect.js';
 import { CustomInputError } from './errors.js';
 import bcrypt from 'bcrypt';
 
+
 /**
  * Adds a user to the database and initializes their session.
  */
@@ -25,7 +26,7 @@ export function userInput(email, password, company, callback) {
             const userID = userResult.rows[0].userid;
 
             const sessionResult = await db.query(
-                `INSERT INTO sessions (UserID) VALUES ($1) RETURNING SessionID;`,
+                `INSERT INTO sessions (UserID, VALID) VALUES ($1, true) RETURNING SessionID;`,
                 [userID]
             );
 
@@ -77,7 +78,7 @@ export function updateUserSession(email, callback) {
 
             try {
                 const sessionRes = await db.query(
-                    `INSERT INTO sessions (UserID) VALUES ($1) RETURNING SessionID;`,
+                    `INSERT INTO sessions (UserID, VALID) VALUES ($1, true) RETURNING SessionID;`,
                     [userID]
                 );
                 const sessionID = sessionRes.rows[0].sessionid;
@@ -109,7 +110,7 @@ export function getSessionsByEmail(email, callback) {
         .then((res1) => {
             if (res1.rows.length === 0) return callback(new CustomInputError("User not found."));
             const userID = res1.rows[0].userid;
-            db.query(`SELECT SessionID, CreatedAt FROM sessions WHERE UserID = $1;`, [userID])
+            db.query(`SELECT SessionID, CreatedAt, VALID FROM sessions WHERE UserID = $1;`, [userID])
                 .then((res2) => {
                     if (res2.rows.length === 0) return callback(new CustomInputError("No sessions found for this user."));
                     callback(null, { userID, sessions: res2.rows });
@@ -133,9 +134,9 @@ export function getUserBySessionId(sessionId, callback) {
         return callback(new CustomInputError("Invalid session ID."));
     }
 
-    db.query(`SELECT UserID FROM sessions WHERE SessionID = $1;`, [sessionId])
+    db.query(`SELECT UserID FROM sessions WHERE SessionID = $1 AND VALID = true;`, [sessionId])
         .then((res1) => {
-            if (res1.rows.length === 0) return callback(new CustomInputError("Session not found."));
+            if (res1.rows.length === 0) return callback(new CustomInputError("Session not found or is invalid."));
             const userId = res1.rows[0].userid;
             db.query(`SELECT Email, CompanyName FROM users WHERE UserID = $1;`, [userId])
                 .then((res2) => {
@@ -157,4 +158,24 @@ export function getUserBySessionId(sessionId, callback) {
         });
 }
 
+
+/**
+ * Invalidates a session by flipping the valid boolean to false.
+ */
+export function invalidateSession(sessionId, callback) {
+    if (typeof sessionId !== "number") {
+        return callback(new CustomInputError("Invalid session ID."));
+    }
+
+
+    db.query(`UPDATE sessions SET VALID = false WHERE SessionID = $1 RETURNING *;`, [sessionId])
+        .then(res => {
+            if (res.rowCount === 0) return callback(new CustomInputError("Session not found or already invalidated."));
+            callback(null, { success: true, message: "Session invalidated." });
+        })
+        .catch(err => {
+            console.error("SQL Error while invalidating session:", err.message);
+            return callback(new CustomInputError("Database error while invalidating session."));
+        });
+}
 
