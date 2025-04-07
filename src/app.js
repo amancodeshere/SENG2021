@@ -116,7 +116,7 @@ app.get('/api/v2/invoice/:invoiceid/xml', (req, res) => {
 });
 
 // update an invoice
-app.put('/api/invoice/:id', (req, res) => {
+app.put('/api/v1/invoice/:id', (req, res) => {
     const sessionId = parseInt(req.headers.sessionid, 10);
     const invoiceId = parseInt(req.params.id, 10);
     const { toUpdate, newData } = req.body;

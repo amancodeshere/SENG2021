@@ -12,7 +12,7 @@ jest.mock('../../connect.js', () => ({
 }));
 
 
-describe('PUT /api/invoice/:id - Invoice Update Endpoint', () => {
+describe('PUT /api/v1/invoice/:id - Invoice Update Endpoint', () => {
     const sessionId = 101;
     const invoiceId = 1;
 
@@ -29,7 +29,7 @@ describe('PUT /api/invoice/:id - Invoice Update Endpoint', () => {
 
 
         const res = await request(app)
-            .put(`/api/invoice/${invoiceId}`)
+            .put(`/api/v1/invoice/${invoiceId}`)
             .set('sessionid', sessionId)
             .send({ toUpdate: 'PayableAmount', newData: 1000 });
 
@@ -41,7 +41,7 @@ describe('PUT /api/invoice/:id - Invoice Update Endpoint', () => {
 
     it('should return 400 if sessionId is missing', async () => {
         const res = await request(app)
-            .put(`/api/invoice/${invoiceId}`)
+            .put(`/api/v1/invoice/${invoiceId}`)
             .send({ toUpdate: 'PayableAmount', newData: 1000 });
 
 
@@ -52,7 +52,7 @@ describe('PUT /api/invoice/:id - Invoice Update Endpoint', () => {
 
     it('should return 400 if sessionId is not a number', async () => {
         const res = await request(app)
-            .put(`/api/invoice/${invoiceId}`)
+            .put(`/api/v1/invoice/${invoiceId}`)
             .set('sessionid', 'abc')
             .send({ toUpdate: 'PayableAmount', newData: 1000 });
 
@@ -69,7 +69,7 @@ describe('PUT /api/invoice/:id - Invoice Update Endpoint', () => {
 
 
         const res = await request(app)
-            .put(`/api/invoice/${invoiceId}`)
+            .put(`/api/v1/invoice/${invoiceId}`)
             .set('sessionid', sessionId)
             .send({ toUpdate: 'invalidField', newData: 'someValue' });
 
@@ -86,7 +86,7 @@ describe('PUT /api/invoice/:id - Invoice Update Endpoint', () => {
 
 
         const res = await request(app)
-            .put(`/api/invoice/${invoiceId}`)
+            .put(`/api/v1/invoice/${invoiceId}`)
             .set('sessionid', sessionId)
             .send({ toUpdate: 'PayableAmount' });
 
@@ -106,7 +106,7 @@ describe('PUT /api/invoice/:id - Invoice Update Endpoint', () => {
 
 
         const res = await request(app)
-            .put(`/api/invoice/${invoiceId}`)
+            .put(`/api/v1/invoice/${invoiceId}`)
             .set('sessionid', sessionId)
             .send({ toUpdate: 'PayableAmount', newData: 2500 });
 
@@ -126,7 +126,7 @@ describe('PUT /api/invoice/:id - Invoice Update Endpoint', () => {
 
 
         const res = await request(app)
-            .put(`/api/invoice/${invoiceId}`)
+            .put(`/api/v1/invoice/${invoiceId}`)
             .set('sessionid', sessionId)
             .send({ toUpdate: 'PayableAmount', newData: 2500 });
 
@@ -146,7 +146,7 @@ describe('PUT /api/invoice/:id - Invoice Update Endpoint', () => {
 
 
         const res = await request(app)
-            .put(`/api/invoice/${invoiceId}`)
+            .put(`/api/v1/invoice/${invoiceId}`)
             .set('sessionid', sessionId)
             .send({ toUpdate: 'PayableAmount', newData: 2500 });
 
