@@ -5,7 +5,7 @@ import bodyParser from 'body-parser';
 import swaggerUi from "swagger-ui-express";
 import {
     adminRegister,
-    adminLogin
+    adminLogin, adminLogout
 } from './admin.js';
 import { invoiceToXml, viewInvoice, validateInvoice, listInvoices, v1viewInvoice, v1invoiceToXml, v1listInvoices, v1handlePostInvoice } from './invoice.js';
 import { getUserBySessionId } from "./UsersToDB.js";
@@ -59,6 +59,23 @@ app.post('/api/v1/admin/login', (req, res) => {
         res.status(200).json(result);
     });
 });
+
+// Logout route
+app.post('/api/v1/admin/logout', (req, res) => {
+    const sessionIdHeader = req.headers.sessionid;
+    const sessionId = parseInt(sessionIdHeader, 10);
+    if (!sessionIdHeader || isNaN(sessionId)) {
+        return res.status(400).json({ error: "Invalid or missing session ID." });
+    }
+    logout(sessionId, (err, result) => {
+        if (err) {
+            return res.status(400).json({ error: err.message });
+        }
+        return res.status(200).json(result);
+    });
+});
+
+
 
 // Create new invoice
 app.post('/api/v2/invoice/create', (req, res) => {
