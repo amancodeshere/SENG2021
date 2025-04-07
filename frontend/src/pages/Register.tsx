@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, FormEvent } from "react"
 import { useNavigate } from "react-router-dom"
 import axios from "axios"
 import "../css/Register.css"
@@ -10,7 +10,7 @@ export default function Register() {
     const [error, setError] = useState("")
     const navigate = useNavigate()
     
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault()
 
         try {
@@ -21,14 +21,19 @@ export default function Register() {
             })
             localStorage.setItem("token", res.data.sessionId)
             navigate("/dashboard")
-        } catch (err) {
-            setError(err.response.data.error || "Login failed.")
+        } catch (err: unknown) {
+            console.error("Register error:", err) // 👈 add this
+            setError(
+                axios.isAxiosError(err) && err.response?.data?.error 
+                    ? err.response.data.error 
+                    : "Registration failed."
+            )
         }
     }
 
     return (
         <div className="register-container">
-            <img className="register-logo" src="/logo1.png" alt="TradeDocs Navigator Logo" />
+            <img className="register-logo" src="/logo2.png" alt="TradeDocs Navigator Logo" />
             <h2 className="register-heading">Register</h2>
             <form onSubmit={handleSubmit} className="register-form">
                 <p className="input-label">Company Name</p>
