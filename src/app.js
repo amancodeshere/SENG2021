@@ -62,9 +62,8 @@ app.post('/api/v1/admin/login', (req, res) => {
 
 // Logout route
 app.post('/api/v1/admin/logout', (req, res) => {
-    const sessionIdHeader = req.headers.sessionid;
-    const sessionId = parseInt(sessionIdHeader, 10);
-    if (!sessionIdHeader || isNaN(sessionId)) {
+    const sessionId = parseInt(req.headers.sessionid);
+    if (isNaN(sessionId)) {
         return res.status(400).json({ error: "Invalid or missing session ID." });
     }
     logout(sessionId, (err, result) => {
@@ -74,7 +73,6 @@ app.post('/api/v1/admin/logout', (req, res) => {
         return res.status(200).json(result);
     });
 });
-
 
 
 // Create new invoice
