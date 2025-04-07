@@ -66,7 +66,7 @@ app.post('/api/v1/admin/logout', (req, res) => {
     if (isNaN(sessionId)) {
         return res.status(400).json({ error: "Invalid or missing session ID." });
     }
-    logout(sessionId, (err, result) => {
+    adminLogout(sessionId, (err, result) => {
         if (err) {
             return res.status(400).json({ error: err.message });
         }
