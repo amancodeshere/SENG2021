@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, FormEvent } from "react"
 import { Link } from "react-router-dom"
 import { useNavigate } from "react-router-dom"
 import axios from "axios"
@@ -10,7 +10,7 @@ export default function Login() {
     const [error, setError] = useState("")
     const navigate = useNavigate()
     
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault()
 
         try {
@@ -20,14 +20,18 @@ export default function Login() {
             })
             localStorage.setItem("token", res.data.sessionId)
             navigate("/dashboard")
-        } catch (err) {
-            setError(err.response.data.error || "Login failed.")
+        } catch (err: unknown) {
+            setError(
+                axios.isAxiosError(err) && err.response?.data?.error 
+                    ? err.response.data.error 
+                    : "Login failed."
+            )
         }
     }
     
     return (
         <div className="login-container">
-            <img className="login-logo" src="/logo1.png" alt="TradeDocs Navigator Logo" />
+            <img className="login-logo" src="/logo2.png" alt="TradeDocs Navigator Logo" />
             <h2 className="login-heading">Login</h2>
             <form onSubmit={handleSubmit} className="login-form">
                 <p className="input-label">Email</p>
