@@ -7,7 +7,17 @@ import {
     adminRegister,
     adminLogin, adminLogout
 } from './admin.js';
-import { invoiceToXml, viewInvoice, validateInvoice, listInvoices, v1viewInvoice, v1invoiceToXml, v1listInvoices, v1handlePostInvoice } from './invoice.js';
+import {
+    invoiceToXml,
+    viewInvoice,
+    validateInvoice,
+    listInvoices,
+    v1viewInvoice,
+    v1invoiceToXml,
+    v1listInvoices,
+    v1handlePostInvoice,
+    updateInvoice
+} from './invoice.js';
 import { getUserBySessionId } from "./UsersToDB.js";
 import { handlePostInvoice } from './invoice.js';
 import { healthCheck } from './health.js';
@@ -116,6 +126,31 @@ app.get('/api/v2/invoice/:invoiceid/xml', (req, res) => {
             res.status(200)
                 .set('Content-Type', 'application/xml')
                 .send(invoiceResult);
+        });
+    });
+});
+
+// update an invoice
+app.put('/api/invoice/:id', (req, res) => {
+    const sessionId = parseInt(req.headers.sessionid, 10);
+    const invoiceId = parseInt(req.params.id, 10);
+    const { toUpdate, newData } = req.body;
+
+
+    if (!sessionId || isNaN(sessionId)) {
+        return res.status(400).json({ error: 'Invalid or missing session ID.' });
+    }
+
+    getUserBySessionId(sessionId, (sessionErr, user) => {
+        if (sessionErr) {
+            return res.status(401).json({ error: sessionErr.message });
+        }
+
+        updateInvoice(invoiceId, toUpdate, newData, user.company, (err, result) => {
+            if (err) {
+                return res.status(400).json({ error: err.message });
+            }
+            res.status(200).json(result);
         });
     });
 });

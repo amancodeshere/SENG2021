@@ -559,3 +559,41 @@ export async function v1handlePostInvoice(req, res) {
     }
 }
 
+
+/**
+ * Updates a field on an invoice record by ID.
+ * @param {number} invoiceId - ID of the invoice to update.
+ * @param {string} toUpdate - Field to update (e.g., 'PayableAmount').
+ * @param {string|number} newData - New value to set.
+ * @param {string} company - Optional company ownership validation.
+ * @param {function} callback - Callback function (err, result)
+ */
+export function updateInvoice(invoiceId, toUpdate, newData, company, callback) {
+    const allowedFields = ['PayableAmount', 'CurrencyCode', 'IssueDate'];
+
+
+    if (!allowedFields.includes(toUpdate)) {
+        return callback(new CustomInputError('Invalid field for update.'));
+    }
+
+
+    if (newData === undefined || newData === null || newData === '') {
+        return callback(new CustomInputError('New data value required.'));
+    }
+
+
+    const query = `UPDATE invoices SET ${toUpdate} = $1 WHERE invoiceid = $2 RETURNING *;`;
+
+
+    db.query(query, [newData, invoiceId])
+        .then(result => {
+            if (!result.rowCount) {
+                return callback(new CustomInputError('Invoice not found or update failed.'));
+            }
+            callback(null, { message: 'Invoice updated successfully.' });
+        })
+        .catch(err => {
+            console.error('Invoice update DB error:', err.message);
+            callback(new CustomInputError('Database error during invoice update.'));
+        });
+}
