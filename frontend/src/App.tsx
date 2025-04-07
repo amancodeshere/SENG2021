@@ -4,7 +4,9 @@ import Landing from './pages/Landing'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
-import PrivateRoute from "./PrivateRoute"
+import Orders from "./pages/Orders";
+import DespatchesPage from "./pages/DespatchesPage";
+import Invoices from "./pages/InvoicesPage";
 
 export default function App() {
   return (
@@ -13,7 +15,10 @@ export default function App() {
         <Route path="/" element={<Landing />}/>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/orders" element={<Orders />} />
+        <Route path="/invoices" element={<Invoices />} />
+        <Route path="/despatches" element={<DespatchesPage />} />
       </Routes>
     </main>
   )
