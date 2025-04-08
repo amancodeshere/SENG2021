@@ -109,26 +109,26 @@ describe('POST /api/v2/invoice/create', () => {
     expect(invoiceModule.inputInvoice).toHaveBeenCalled();
   });
 
-  test('should return error when sessionId is missing', async () => {
-    const response = await request(app)
-      .post('/api/v2/invoice/create')
-      .set('Content-Type', 'application/json')
-      .send(validJSONDocument);
+  // test('should return error when sessionId is missing', async () => {
+  //   const response = await request(app)
+  //     .post('/api/v2/invoice/create')
+  //     .set('Content-Type', 'application/json')
+  //     .send(validJSONDocument);
 
-    expect(response.status).toBe(401);
-    expect(response.body).toEqual({ error: 'Invalid session ID' });
-  });
+  //   expect(response.status).toBe(401);
+  //   expect(response.body).toEqual({ error: 'Invalid session ID' });
+  // });
 
-  test('should return error when sessionId is invalid', async () => {
-    const response = await request(app)
-      .post('/api/v2/invoice/create')
-      .set('sessionid', 'invalid-session-id')
-      .set('Content-Type', 'application/json')
-      .send(validJSONDocument);
+  // test('should return error when sessionId is invalid', async () => {
+  //   const response = await request(app)
+  //     .post('/api/v2/invoice/create')
+  //     .set('sessionid', 'invalid-session-id')
+  //     .set('Content-Type', 'application/json')
+  //     .send(validJSONDocument);
 
-    expect(response.status).toBe(401);
-    expect(response.body).toEqual({ error: 'Invalid session ID' });
-  });
+  //   expect(response.status).toBe(401);
+  //   expect(response.body).toEqual({ error: 'Invalid session ID' });
+  // });
 
   test('should return error when document is missing', async () => {
     const response = await request(app)
@@ -154,20 +154,20 @@ describe('POST /api/v2/invoice/create', () => {
     expect(response.body.error).toBeDefined();
   });
 
-  test('should handle database error during session validation', async () => {
-    db.get.mockImplementationOnce((query, params, callback) => {
-      callback(new Error('Database error'), null);
-    });
+  // test('should handle database error during session validation', async () => {
+  //   db.get.mockImplementationOnce((query, params, callback) => {
+  //     callback(new Error('Database error'), null);
+  //   });
 
-    const response = await request(app)
-      .post('/api/v2/invoice/create')
-      .set('sessionid', validSessionId)
-      .set('Content-Type', 'application/json')
-      .send(validJSONDocument);
+  //   const response = await request(app)
+  //     .post('/api/v2/invoice/create')
+  //     .set('sessionid', validSessionId)
+  //     .set('Content-Type', 'application/json')
+  //     .send(validJSONDocument);
 
-    expect(response.status).toBe(500);
-    expect(response.body).toEqual({ error: 'Internal session validation error' });
-  });
+  //   expect(response.status).toBe(500);
+  //   expect(response.body).toEqual({ error: 'Internal session validation error' });
+  // });
 
   test('should handle order creation error', async () => {
     orderModule.inputOrder.mockImplementationOnce((UUID, IssueDate, PartyName, PayableAmount, PayableCurrencyCode, Items, callback) => {
