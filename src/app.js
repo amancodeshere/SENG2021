@@ -5,7 +5,7 @@ import bodyParser from 'body-parser';
 import swaggerUi from "swagger-ui-express";
 import {
     adminRegister,
-    adminLogin
+    adminLogin, adminLogout
 } from './admin.js';
 import {
     invoiceToXml,
@@ -69,6 +69,21 @@ app.post('/api/v1/admin/login', (req, res) => {
         res.status(200).json(result);
     });
 });
+
+// Logout route
+app.post('/api/v1/admin/logout', (req, res) => {
+    const sessionId = parseInt(req.headers.sessionid);
+    if (isNaN(sessionId)) {
+        return res.status(400).json({ error: "Invalid or missing session ID." });
+    }
+    adminLogout(sessionId, (err, result) => {
+        if (err) {
+            return res.status(400).json({ error: err.message });
+        }
+        return res.status(200).json(result);
+    });
+});
+
 
 // Create new invoice
 app.post('/api/v2/invoice/create', (req, res) => {

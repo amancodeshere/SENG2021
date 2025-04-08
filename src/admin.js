@@ -1,7 +1,7 @@
 import { isValidPartyName } from './helperFunctions.js';
 import validator from 'validator';
 import { CustomInputError } from './errors.js';
-import { updateUserSession, validateUser, userInput } from './UsersToDB.js';
+import {updateUserSession, validateUser, userInput, invalidateSession} from './UsersToDB.js';
 
 // global constants
 const MIN_BUSINESS_NAME_LENGTH = 3;
@@ -79,5 +79,25 @@ export function adminLogin(email, password, callback) {
                 callback(null, { sessionId: sessionResult.sessionID });
             });
         }
+    });
+}
+
+
+/**
+ * Logs out the user by invalidating their session.
+ *
+ * @param {number} sessionId - The session ID to invalidate
+ * @param {function} callback - Callback to handle result or error
+ */
+export function adminLogout(sessionId, callback) {
+    if (typeof sessionId !== 'number' || isNaN(sessionId)) {
+        return callback(new Error('Invalid session ID.'));
+    }
+
+    invalidateSession(sessionId, (err) => {
+        if (err) {
+            return callback(err);
+        }
+        callback(null, { message: "Logged out successfully." });
     });
 }
