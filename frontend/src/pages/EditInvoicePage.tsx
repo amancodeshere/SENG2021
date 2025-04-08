@@ -30,7 +30,7 @@ export default function EditInvoicePage() {
       
       setIsLoading(true)
       try {
-        const res = await fetch(`/v2/invoice/${invoiceId}`, {
+        const res = await fetch(`/api/v2/invoice/${invoiceId}`, {
           headers: {
             sessionid: sessionId,
           },

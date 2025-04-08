@@ -1,6 +1,5 @@
 import { useState, FormEvent } from "react"
-import { Link } from "react-router-dom"
-import { useNavigate } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import axios from "axios"
 import "../css/Login.css"
 
@@ -21,11 +20,7 @@ export default function Login() {
             localStorage.setItem("token", res.data.sessionId)
             navigate("/dashboard")
         } catch (err: unknown) {
-            setError(
-                axios.isAxiosError(err) && err.response?.data?.error 
-                    ? err.response.data.error 
-                    : "Login failed."
-            )
+            setError(err.response.data.error || "Login failed.")
         }
     }
     

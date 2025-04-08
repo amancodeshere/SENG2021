@@ -6,7 +6,7 @@ export default function CreateInvoiceForm({ reloadInvoices }: { reloadInvoices: 
   const navigate = useNavigate();
   const [xmlData, setXmlData] = useState("");
   const [loading, setLoading] = useState(false);
-  const sessionId = Number(localStorage.getItem("sessionId"));
+  const sessionId = Number(localStorage.getItem("token"));
 
   const handleSubmit = async () => {
     setLoading(true);

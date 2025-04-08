@@ -1,7 +1,5 @@
-const API_URL = "https://seng2021-production-e448.up.railway.app";
-
 export async function login(email: string, password: string) {
-  const res = await fetch(`${API_URL}/v1/admin/login`, {
+  const res = await fetch('/api/v1/admin/login', {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
@@ -10,7 +8,7 @@ export async function login(email: string, password: string) {
 }
 
 export async function logout(sessionId: number) {
-  const res = await fetch(`${API_URL}/v1/admin/logout`, {
+  const res = await fetch('/api/v1/admin/logout', {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ sessionId }),
@@ -19,21 +17,21 @@ export async function logout(sessionId: number) {
 }
 
 export async function fetchInvoices(sessionId: number, buyerName = "") {
-  const res = await fetch(`${API_URL}/v2/invoices/list?partyNameBuyer=${encodeURIComponent(buyerName)}`, {
+  const res = await fetch(`/api/v2/invoices/list?partyNameBuyer=${encodeURIComponent(buyerName)}`, {
     headers: { sessionid: sessionId.toString() },
   });
   return res.json();
 }
 
 export async function fetchInvoiceDetails(sessionId: number, invoiceId: number) {
-  const res = await fetch(`${API_URL}/v2/invoice/${invoiceId}`, {
+  const res = await fetch(`/api/v2/invoice/${invoiceId}`, {
     headers: { sessionid: sessionId.toString() },
   });
   return res.json();
 }
 
 export async function updateInvoice(sessionId: number, invoiceId: number, payableAmount: string) {
-  const res = await fetch(`${API_URL}/v1/invoice/${invoiceId}`, {
+  const res = await fetch(`/api/v1/invoice/${invoiceId}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -45,7 +43,7 @@ export async function updateInvoice(sessionId: number, invoiceId: number, payabl
 }
 
 export async function validateInvoiceXML(invoiceXml: string) {
-  const res = await fetch(`${API_URL}/v1/invoice/validate`, {
+  const res = await fetch('/api/v1/invoice/validate', {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ invoice: invoiceXml }),
@@ -54,7 +52,7 @@ export async function validateInvoiceXML(invoiceXml: string) {
 }
 
 export async function downloadInvoiceXML(sessionId: number, invoiceId: number) {
-  const res = await fetch(`${API_URL}/v2/invoice/${invoiceId}/xml`, {
+  const res = await fetch(`/api/v2/invoice/${invoiceId}/xml`, {
     headers: { sessionid: sessionId.toString() },
   });
   if (!res.ok) throw new Error("Error fetching XML");
@@ -62,7 +60,7 @@ export async function downloadInvoiceXML(sessionId: number, invoiceId: number) {
 }
 
 export async function createInvoice(sessionId: number, orderXml: string) {
-    const res = await fetch(`${API_URL}/v2/invoice/create`, {
+    const res = await fetch('/api/v2/invoice/create', {
       method: "POST",
       headers: {
         "Content-Type": "application/xml",
