@@ -262,7 +262,7 @@ describe('invalidateSession', () => {
 
         await invalidateSession(1, (err, res) => {
             expect(err).toBeInstanceOf(CustomInputError);
-            expect(err.message).toMatch(/Database error while invalidating session/);
+            expect(err.message).toMatch("Database error while invalidating session");
         });
     });
 });
