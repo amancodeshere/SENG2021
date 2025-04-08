@@ -72,7 +72,14 @@ app.post('/api/v1/admin/login', (req, res) => {
 
 // Create new invoice
 app.post('/api/v2/invoice/create', (req, res) => {
-    handlePostInvoice(req, res);
+    getUserBySessionId(sessionId, (sessionErr, user) => {
+        if (sessionErr) {
+            return res.status(401).json({ error: sessionErr.message });
+        }
+
+        handlePostInvoice(req, res);
+    });
+    
 });
 
 // view an invoice

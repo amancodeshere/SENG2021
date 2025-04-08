@@ -254,26 +254,6 @@ export function listInvoices(partyNameBuyer, callback) {
  * @description Handles the POST /api/invoice request
  */
 export async function handlePostInvoice(req, res) {
-    try {
-        const sessionId = req.headers['sessionid'];
-        if (!sessionId) {
-            return res.status(401).json({ error: 'Invalid session ID' });
-        }
-
-        try {
-            const validSession = await new Promise((resolve, reject) => {
-                db.get('SELECT * FROM sessions WHERE sessionId = ?', [sessionId], (err, row) => {
-                    if (err) return reject(new Error('Database error while checking session'));
-                    resolve(row);
-                });
-            });
-
-            if (!validSession) {
-                return res.status(401).json({ error: 'Invalid session ID' });
-            }
-        } catch (err) {
-            return res.status(500).json({ error: 'Internal session validation error' });
-        }
 
         let document;
         const contentType = req.headers['content-type'];
