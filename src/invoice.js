@@ -254,7 +254,7 @@ export function listInvoices(partyNameBuyer, callback) {
  * @description Handles the POST /api/invoice request
  */
 export async function handlePostInvoice(req, res) {
-
+    try {
         let document;
         const contentType = req.headers['content-type'];
 
