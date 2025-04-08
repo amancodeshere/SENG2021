@@ -11,11 +11,10 @@ export default function ValidateXMLForm({ sessionId }) {
     e.preventDefault()
     setIsValidating(true)
     try {
-      const res = await fetch("/v1/invoice/validate", {
+      const res = await fetch("/api/v1/invoice/validate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          sessionid,
         },
         body: JSON.stringify({ invoice: xml }),
       })

@@ -19,7 +19,7 @@ export default function InvoicesPage() {
     setIsLoading(true)
     try {
       const res = await fetch(
-        `/v2/invoices/list?partyNameBuyer=${encodeURIComponent(buyerName)}`,
+        `/api/v2/invoices/list?partyNameBuyer=${encodeURIComponent(buyerName)}`,
         {
           headers: {
             sessionid: sessionId,

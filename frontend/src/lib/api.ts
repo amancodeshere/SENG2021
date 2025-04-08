@@ -30,12 +30,12 @@ export async function fetchInvoiceDetails(sessionId: number, invoiceId: number) 
   return res.json();
 }
 
-export async function updateInvoice(sessionId: number, invoiceId: number, payableAmount: string) {
+export async function updateInvoice(sessionId: string, invoiceId: number, payableAmount: string) {
   const res = await fetch(`/api/v1/invoice/${invoiceId}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
-      sessionid: sessionId.toString(),
+      sessionid: sessionId,
     },
     body: JSON.stringify({ toUpdate: "payableAmount", newData: payableAmount }),
   });
