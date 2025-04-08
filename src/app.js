@@ -72,6 +72,7 @@ app.post('/api/v1/admin/login', (req, res) => {
 
 // Create new invoice
 app.post('/api/v2/invoice/create', (req, res) => {
+    const sessionId = parseInt(req.headers.sessionid);
     getUserBySessionId(sessionId, (sessionErr, user) => {
         if (sessionErr) {
             return res.status(401).json({ error: sessionErr.message });
