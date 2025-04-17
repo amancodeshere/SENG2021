@@ -19,7 +19,7 @@ export default function Login() {
             })
             localStorage.setItem("token", res.data.sessionId)
             navigate("/dashboard")
-        } catch (err: unknown) {
+        } catch (err: any) {
             setError(err.response.data.error || "Login failed.")
         }
     }

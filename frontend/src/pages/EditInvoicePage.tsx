@@ -19,7 +19,7 @@ export default function EditInvoicePage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
 
-  const sessionId = localStorage.getItem("sessionId")
+  const sessionId = localStorage.getItem("token")
 
   useEffect(() => {
     const fetchInvoice = async () => {

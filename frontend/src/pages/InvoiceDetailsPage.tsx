@@ -11,7 +11,7 @@ export default function InvoicesPage() {
   const [invoices, setInvoices] = useState([])
   const [isLoading, setIsLoading] = useState(false)
 
-  const sessionId = localStorage.getItem("sessionId")
+  const sessionId = localStorage.getItem("token")
   const navigate = useNavigate()
 
   const fetchInvoices = async () => {
