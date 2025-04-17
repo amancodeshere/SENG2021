@@ -5,8 +5,8 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Orders from "./pages/Orders";
-import DespatchesPage from "./pages/DespatchesPage";
-import Invoices from "./pages/InvoicesPage";
+import Despatches from "./pages/Despatches";
+import Invoices from "./pages/Invoices";
 
 export default function App() {
   return (
@@ -18,7 +18,7 @@ export default function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/orders" element={<Orders />} />
         <Route path="/invoices" element={<Invoices />} />
-        <Route path="/despatches" element={<DespatchesPage />} />
+        <Route path="/despatches" element={<Despatches />} />
       </Routes>
     </main>
   )

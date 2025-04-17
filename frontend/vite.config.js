@@ -17,7 +17,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://seng2021-production-e448.up.railway.app',
+        target: 'https://seng2021-production.up.railway.app',
         changeOrigin: true,
       },
     },

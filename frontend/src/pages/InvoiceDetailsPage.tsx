@@ -11,14 +11,14 @@ export default function InvoicesPage() {
   const [invoices, setInvoices] = useState([])
   const [isLoading, setIsLoading] = useState(false)
 
-  const sessionId = localStorage.getItem("sessionId")
+  const sessionId = localStorage.getItem("token")
   const navigate = useNavigate()
 
   const fetchInvoices = async () => {
     setIsLoading(true)
     try {
       const res = await fetch(
-        `/v2/invoices/list?partyNameBuyer=${encodeURIComponent(buyerName)}`,
+        `/api/v2/invoices/list?partyNameBuyer=${encodeURIComponent(buyerName)}`,
         {
           headers: {
             sessionid: sessionId,
@@ -162,7 +162,7 @@ export default function InvoicesPage() {
   )
 
   function handleDownload(id) {
-    fetch(`/v2/invoice/${id}/xml`, {
+    fetch(`/api/v2/invoice/${id}/xml`, {
       headers: {
         sessionid: sessionId,
       },

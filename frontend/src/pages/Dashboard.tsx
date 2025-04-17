@@ -1,14 +1,24 @@
 import { useNavigate } from "react-router-dom"
 import { LogOut } from "lucide-react"
 import { Button } from "../components/ui/button"
+import { logout } from "../lib/api.ts"
 import "../css/Dashboard.css"
 
 export default function Dashboard() {
   const navigate = useNavigate()
 
   const handleLogout = () => {
-    localStorage.removeItem("token")
-    navigate("/login")
+    const sessionId = localStorage.getItem("token")
+    if (sessionId) {
+      try {
+        const res = logout(sessionId)
+        console.log(res)
+        localStorage.removeItem("token")
+        navigate("/")
+      } catch (err) {
+        console.error(err)
+      }
+    }
   }
 
   return (
