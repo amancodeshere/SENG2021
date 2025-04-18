@@ -34,82 +34,103 @@ function validateDocument(document) {
 /**
  * Parses XML document using UBL standard
  */
-export function parseXMLDocument(xml) {
+function parseXMLDocument(xmlString) {
+    const clean = xmlString
+        .replace(/xmlns(:\w+)?="[^"]*"/g, '')
+        .replace(/<\w+:(\w+)/g, '<$1')
+        .replace(/<\/\w+:(\w+)/g, '</$1');
+
+    let root;
     try {
-        const parser = new XMLParser({ ignoreAttributes: false });
-        const orderObj = parser.parse(xml).Order;
-        const items   = orderObj["cac:OrderLine"].map(line => {
-            const li = line['cac:LineItem'];
-            return {
-                OrderItemId: uuidv4().slice(0,8),
-                ItemName:        li['cac:Item']['cbc:Name'],
-                ItemDescription: li['cac:Item']['cbc:Description'],
-                ItemPrice:       parseFloat(li['cac:Price']['cbc:PriceAmount']['#text']),
-                ItemQuantity:    parseFloat(li['cbc:Quantity']['#text']),
-                ItemUnitCode:    li['cbc:Quantity']['@_unitCode']
-            };
+        const parser = new XMLParser({
+            ignoreAttributes: false,
+            attributeNamePrefix: '@_',
+            textNodeName: '#text',
+        });
+        const json = parser.parse(clean);
+        root = json.Order;
+    } catch (e) {
+        throw new CustomInputError('Invalid XML document');
+    }
+
+    if (!root) {
+        throw new CustomInputError('Root <Order> element not found');
+    }
+
+    const lines = Array.isArray(root.OrderLine)
+        ? root.OrderLine
+        : [root.OrderLine];
+
+
+    const items = lines.map(line => {
+        const li = line.LineItem;
+        return {
+            OrderItemId:     uuidv4().slice(0,8),
+            ItemName:        li.Item.Name,
+            ItemDescription: li.Item.Description,
+            ItemPrice:       parseFloat(li.Price.PriceAmount['#text']),
+            ItemQuantity:    parseFloat(li.Quantity['#text']),
+            ItemUnitCode:    li.Quantity['@_unitCode'],
+        };
+    });
+
+    const doc = {
+        IssueDate:     root.IssueDate,
+        PartyName:     root.BuyerCustomerParty.Party.PartyName.Name,
+        PayableAmount: parseFloat(root.AnticipatedMonetaryTotal.PayableAmount['#text']),
+        CurrencyCode:  root.AnticipatedMonetaryTotal.PayableAmount['@_currencyID'],
+        Items:         items
+    };
+
+    ['IssueDate','PartyName','PayableAmount','CurrencyCode','Items']
+        .forEach(f => {
+            if (doc[f] == null) {
+                throw new CustomInputError(`Missing required field: ${f}`);
+            }
         });
 
-        const doc = {
-            IssueDate:        orderObj['cbc:IssueDate'],
-            PartyName:        orderObj['cac:BuyerCustomerParty']['cac:Party']['cac:PartyName']['cbc:Name'],
-            PayableAmount:    parseFloat(orderObj['cac:AnticipatedMonetaryTotal']['cbc:PayableAmount']['#text']),
-            CurrencyCode:     orderObj['cac:AnticipatedMonetaryTotal']['cbc:PayableAmount']['@_currencyID'],
-            Items:            items
-        };
-
-        // minimal required‑fields check
-        ['IssueDate','PartyName','PayableAmount','CurrencyCode','Items']
-            .forEach(f => {
-                if (doc[f] == null) throw new CustomInputError(`Missing ${f}`);
-            });
-
-        return doc;
-    } catch (e) {
-        throw e instanceof CustomInputError
-            ? e
-            : new CustomInputError('Invalid XML document');
-    }
+    return doc;
 }
 
 /**
  * Creates an invoice using the order-first approach
  */
-export function createInvoiceFromDocument(document, sellerCompany) {
+async function createInvoiceFromDocument(document, sellerCompany) {
     return new Promise((resolve, reject) => {
-        const salesOrderId = uuidv4().slice(0,8);
-        const orderPayload = {
-            SalesOrderID:       salesOrderId,
-            UUID:               uuidv4(),
-            IssueDate:          document.IssueDate,
-            PartyNameBuyer:     document.PartyName,
-            PartyNameSeller:    sellerCompany,
-            PayableAmount:      document.PayableAmount,
-            PayableCurrencyCode:document.CurrencyCode,
-            Items:              document.Items
-        };
-
+        const SalesOrderID       = uuidv4().slice(0,8);
+        const UUID               = uuidv4();
+        const IssueDate          = document.IssueDate;
+        const PartyNameBuyer     = document.PartyName;
+        const PartyNameSeller    = sellerCompany;
+        const PayableAmount      = parseFloat(document.PayableAmount);
+        const PayableCurrencyCode= document.CurrencyCode;
+        const Items = document.Items.map(item => ({
+            OrderItemId:    uuidv4().slice(0,8),
+            ItemName:       item.ItemName,
+            ItemDescription:item.ItemDescription,
+            ItemPrice:      parseFloat(item.ItemPrice),
+            ItemQuantity:   parseFloat(item.ItemQuantity),
+            ItemUnitCode:   item.ItemUnitCode
+        }));
 
         inputOrder(
-            orderPayload.SalesOrderID,
-            orderPayload.UUID,
-            orderPayload.IssueDate,
-            orderPayload.PartyNameBuyer,
-            orderPayload.PartyNameSeller,
-            orderPayload.PayableAmount,
-            orderPayload.PayableCurrencyCode,
-            orderPayload.Items,
-            (orderErr, orderResult) => {
-                if (orderErr) {
-                    return reject(new Error('Order creation failed: ' + orderErr.message));
-                }
-                // now create the invoice record
-                inputInvoice(orderPayload.SalesOrderID, (invErr, invRes) => {
-                    if (invErr) {
-                        return reject(new Error('Invoice creation failed: ' + invErr.message));
+            SalesOrderID,
+            UUID,
+            IssueDate,
+            PartyNameBuyer,
+            PartyNameSeller,
+            PayableAmount,
+            PayableCurrencyCode,
+            Items,
+            (orderErr, orderRes) => {
+                if (orderErr) return reject(new Error("Order creation failed: " + orderErr.message));
+                inputInvoice(
+                    SalesOrderID,
+                    (invErr, invRes) => {
+                        if (invErr) return reject(new Error("Invoice creation failed: " + invErr.message));
+                        resolve(invRes.InvoiceID);
                     }
-                    resolve(invRes.InvoiceID);
-                });
+                );
             }
         );
     });
@@ -259,7 +280,7 @@ export function listInvoices(partyNameBuyer, callback) {
  * - headers:
  *    • sessionid: <number>
  *    • content-type: application/xml
- * - body: a UBL `<Order>` XML string
+ * - body: a UBL `<Order>` XML string or equivalent JSON
  */
 export async function handlePostInvoice(req, res) {
     const sessionId = parseInt(req.headers.sessionid, 10);
@@ -267,34 +288,25 @@ export async function handlePostInvoice(req, res) {
         return res.status(401).json({ error: 'Invalid session ID' });
     }
 
-    // 1) verify & load session → find user → grab companyName
+    // load session & user & company in one go
     let userCompany;
     try {
-        const sessionRow = await new Promise((resolve, reject) => {
-            db.query('SELECT * FROM sessions WHERE sessionid = ?', [sessionId], (err, row) => {
-                if (err) return reject(new Error('Database error while checking session'));
-                resolve(row);
-            });
-        });
-        if (!sessionRow) {
+        const { rows } = await db.query(`
+      SELECT u.companyname
+        FROM sessions s
+        JOIN users u ON s.userid = u.userid
+       WHERE s.sessionid = $1
+    `, [ sessionId ]);
+
+        if (rows.length === 0) {
             return res.status(401).json({ error: 'Invalid session ID' });
         }
-
-        const userRow = await new Promise((resolve, reject) => {
-            db.query('SELECT * FROM users WHERE userid = ?', [sessionRow.userid], (err, row) => {
-                if (err) return reject(new Error('Database error while retrieving user'));
-                resolve(row);
-            });
-        });
-        if (!userRow) {
-            return res.status(400).json({ error: 'User or company not found' });
-        }
-        userCompany = userRow.companyname;
+        userCompany = rows[0].companyname;
     } catch (err) {
+        console.error('Session/user lookup error:', err);
         return res.status(500).json({ error: 'Internal session/user validation error' });
     }
 
-    // 2) parse & validate the incoming document
     let document;
     const ct = req.headers['content-type'];
     try {
@@ -302,8 +314,8 @@ export async function handlePostInvoice(req, res) {
             document = parseXMLDocument(req.body);
         } else if (ct === 'application/json') {
             document = req.body;
-            if (!validateDocument(document)) {
-                return res.status(400).json({ error: 'Missing required fields in document' });
+            if (!document.IssueDate || !document.PartyName || !document.PayableAmount || !document.CurrencyCode || !Array.isArray(document.Items)) {
+                throw new CustomInputError('Missing required fields in JSON payload');
             }
         } else {
             return res.status(400).json({ error: 'Invalid content type' });
@@ -312,7 +324,6 @@ export async function handlePostInvoice(req, res) {
         return res.status(400).json({ error: err.message });
     }
 
-    // 3) create order -> create invoice
     try {
         const invoiceId = await createInvoiceFromDocument(document, userCompany);
         return res.status(200).json({ invoiceId });
