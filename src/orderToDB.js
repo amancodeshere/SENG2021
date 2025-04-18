@@ -82,7 +82,6 @@ export async function inputOrder(SalesOrderID, UUID, IssueDate, PartyNameBuyer,
             return callback(new CustomInputError('SalesOrderID already exists.'));
         }
 
-
         if (!validateUUID(UUID)) throw new CustomInputError('Invalid UUID.');
         if (!isValidIssueDate(IssueDate)) throw new CustomInputError('Invalid Issue Date.');
         if (!isValidPartyName(PartyNameBuyer)) throw new CustomInputError('Invalid Buyer Party Name.');
@@ -93,7 +92,6 @@ export async function inputOrder(SalesOrderID, UUID, IssueDate, PartyNameBuyer,
             throw new CustomInputError('Invalid Payable Currency Code.');
         if (!Array.isArray(Items) || Items.length === 0)
             throw new CustomInputError('Invalid Items list.');
-
 
         for (const item of Items) {
             if (!item.OrderItemId || typeof item.OrderItemId !== 'string')
@@ -110,15 +108,12 @@ export async function inputOrder(SalesOrderID, UUID, IssueDate, PartyNameBuyer,
                 throw new CustomInputError('Invalid Item Description.');
         }
 
-
         await db.query('BEGIN');
-
 
         await db.query(`
             INSERT INTO orders (SalesOrderID, UUID, IssueDate, PartyNameBuyer, PartyNameSeller, PayableAmount, PayableCurrencyCode)
             VALUES ($1, $2, $3, $4, $5, $6, $7);
         `, [SalesOrderID, UUID, IssueDate, PartyNameBuyer, PartyNameSeller, PayableAmount, PayableCurrencyCode]);
-
 
         for (const item of Items) {
             await db.query(`
@@ -126,7 +121,6 @@ export async function inputOrder(SalesOrderID, UUID, IssueDate, PartyNameBuyer,
                 VALUES ($1, $2, $3, $4, $5, $6, $7);
             `, [item.OrderItemId, SalesOrderID, item.ItemName, item.ItemDescription, item.ItemPrice, item.ItemQuantity, item.ItemUnitCode]);
         }
-
 
         await db.query('COMMIT');
         callback(null, { success: true, message: 'Order and items inserted successfully.' });

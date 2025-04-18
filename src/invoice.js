@@ -34,80 +34,84 @@ function validateDocument(document) {
 /**
  * Parses XML document using UBL standard
  */
-function parseXMLDocument(xmlString) {
+export function parseXMLDocument(xml) {
     try {
-        const options = {
-            ignoreAttributes : false
-        }; 
-        const parser = new XMLParser(options);
-        let orderObj = parser.parse(xmlString).Order;
+        const parser = new XMLParser({ ignoreAttributes: false });
+        const orderObj = parser.parse(xml).Order;
+        const items   = orderObj["cac:OrderLine"].map(line => {
+            const li = line['cac:LineItem'];
+            return {
+                OrderItemId: uuidv4().slice(0,8),
+                ItemName:        li['cac:Item']['cbc:Name'],
+                ItemDescription: li['cac:Item']['cbc:Description'],
+                ItemPrice:       parseFloat(li['cac:Price']['cbc:PriceAmount']['#text']),
+                ItemQuantity:    parseFloat(li['cbc:Quantity']['#text']),
+                ItemUnitCode:    li['cbc:Quantity']['@_unitCode']
+            };
+        });
 
-        var items = parseXMLItemsList(orderObj["cac:OrderLine"]);
-
-        const document = {
-            IssueDate: orderObj['cbc:IssueDate'],
-            PartyName: orderObj['cac:BuyerCustomerParty']['cac:Party']['cac:PartyName']['cbc:Name'],
-            PayableAmount: orderObj['cac:AnticipatedMonetaryTotal']['cbc:PayableAmount']['#text'],
-            CurrencyCode: orderObj['cac:AnticipatedMonetaryTotal']['cbc:PayableAmount']['@_currencyID'],
-            Items: items
-        }
-        
-        if (!validateDocument(document)) {
-            throw new CustomInputError('Missing required fields in document');
-        }
-
-        return document;
-    } catch (error) {
-        throw new CustomInputError('Invalid XML document');
-    }
-}
-
-function parseXMLItemsList(xmlItems) {
-    var items = [];
-    for(var orderLine of xmlItems) {
-        var xmlItem = orderLine['cac:LineItem'];
-        const item = {
-            Id: xmlItem['cbc:ID'],
-            ItemName: xmlItem['cac:Item']['cbc:Name'],
-            ItemDescription: xmlItem['cac:Item']['cbc:Description'],
-            ItemPrice: xmlItem['cac:Price']['cbc:PriceAmount']['#text'],
-            ItemQuantity: xmlItem['cbc:Quantity']['#text'],
-            ItemUnitCode: xmlItem['cbc:Quantity']['@_unitCode'],
+        const doc = {
+            IssueDate:        orderObj['cbc:IssueDate'],
+            PartyName:        orderObj['cac:BuyerCustomerParty']['cac:Party']['cac:PartyName']['cbc:Name'],
+            PayableAmount:    parseFloat(orderObj['cac:AnticipatedMonetaryTotal']['cbc:PayableAmount']['#text']),
+            CurrencyCode:     orderObj['cac:AnticipatedMonetaryTotal']['cbc:PayableAmount']['@_currencyID'],
+            Items:            items
         };
-       items.push(item);
+
+        // minimal required‑fields check
+        ['IssueDate','PartyName','PayableAmount','CurrencyCode','Items']
+            .forEach(f => {
+                if (doc[f] == null) throw new CustomInputError(`Missing ${f}`);
+            });
+
+        return doc;
+    } catch (e) {
+        throw e instanceof CustomInputError
+            ? e
+            : new CustomInputError('Invalid XML document');
     }
-    return items;
 }
 
 /**
  * Creates an invoice using the order-first approach
  */
-async function createInvoiceFromDocument(document) {
+export function createInvoiceFromDocument(document, sellerCompany) {
     return new Promise((resolve, reject) => {
-        const orderData = {
-            UUID: uuidv4(),
-            IssueDate: document.IssueDate,
-            PartyName: document.PartyName,
-            PayableAmount: document.PayableAmount,
-            PayableCurrencyCode: document.CurrencyCode,
-            Items: document.Items
+        const salesOrderId = uuidv4().slice(0,8);
+        const orderPayload = {
+            SalesOrderID:       salesOrderId,
+            UUID:               uuidv4(),
+            IssueDate:          document.IssueDate,
+            PartyNameBuyer:     document.PartyName,
+            PartyNameSeller:    sellerCompany,
+            PayableAmount:      document.PayableAmount,
+            PayableCurrencyCode:document.CurrencyCode,
+            Items:              document.Items
         };
-        
 
-        inputOrder(orderData.UUID, orderData.IssueDate, orderData.PartyName, orderData.PayableAmount, orderData.PayableCurrencyCode, orderData.Items, (orderErr, result) => {
-            if (orderErr) {
-                reject(new Error('Order creation failed'));
-                return;
-            }
 
-            inputInvoice(result.OrderID, (invoiceErr, result) => {
-                if (invoiceErr) {
-                    reject(new Error('Invoice creation failed'));
-                    return;
+        inputOrder(
+            orderPayload.SalesOrderID,
+            orderPayload.UUID,
+            orderPayload.IssueDate,
+            orderPayload.PartyNameBuyer,
+            orderPayload.PartyNameSeller,
+            orderPayload.PayableAmount,
+            orderPayload.PayableCurrencyCode,
+            orderPayload.Items,
+            (orderErr, orderResult) => {
+                if (orderErr) {
+                    return reject(new Error('Order creation failed: ' + orderErr.message));
                 }
-                resolve(result.InvoiceID);
-            });
-        });
+                // now create the invoice record
+                inputInvoice(orderPayload.SalesOrderID, (invErr, invRes) => {
+                    if (invErr) {
+                        return reject(new Error('Invoice creation failed: ' + invErr.message));
+                    }
+                    resolve(invRes.InvoiceID);
+                });
+            }
+        );
     });
 }
 
@@ -251,57 +255,69 @@ export function listInvoices(partyNameBuyer, callback) {
 }
 
 /**
- * @description Handles the POST /api/invoice request
+ * POST /api/v2/invoice/create
+ * - headers:
+ *    • sessionid: <number>
+ *    • content-type: application/xml
+ * - body: a UBL `<Order>` XML string
  */
 export async function handlePostInvoice(req, res) {
+    const sessionId = parseInt(req.headers.sessionid, 10);
+    if (isNaN(sessionId)) {
+        return res.status(401).json({ error: 'Invalid session ID' });
+    }
+
+    // 1) verify & load session → find user → grab companyName
+    let userCompany;
     try {
-        const sessionId = req.headers['sessionid'];
-        if (!sessionId) {
+        const sessionRow = await new Promise((resolve, reject) => {
+            db.query('SELECT * FROM sessions WHERE sessionid = ?', [sessionId], (err, row) => {
+                if (err) return reject(new Error('Database error while checking session'));
+                resolve(row);
+            });
+        });
+        if (!sessionRow) {
             return res.status(401).json({ error: 'Invalid session ID' });
         }
 
-        try {
-            const validSession = await new Promise((resolve, reject) => {
-                db.get('SELECT * FROM sessions WHERE sessionId = ?', [sessionId], (err, row) => {
-                    if (err) return reject(new Error('Database error while checking session'));
-                    resolve(row);
-                });
+        const userRow = await new Promise((resolve, reject) => {
+            db.query('SELECT * FROM users WHERE userid = ?', [sessionRow.userid], (err, row) => {
+                if (err) return reject(new Error('Database error while retrieving user'));
+                resolve(row);
             });
+        });
+        if (!userRow) {
+            return res.status(400).json({ error: 'User or company not found' });
+        }
+        userCompany = userRow.companyname;
+    } catch (err) {
+        return res.status(500).json({ error: 'Internal session/user validation error' });
+    }
 
-            if (!validSession) {
-                return res.status(401).json({ error: 'Invalid session ID' });
+    // 2) parse & validate the incoming document
+    let document;
+    const ct = req.headers['content-type'];
+    try {
+        if (ct === 'application/xml') {
+            document = parseXMLDocument(req.body);
+        } else if (ct === 'application/json') {
+            document = req.body;
+            if (!validateDocument(document)) {
+                return res.status(400).json({ error: 'Missing required fields in document' });
             }
-        } catch (err) {
-            return res.status(500).json({ error: 'Internal session validation error' });
+        } else {
+            return res.status(400).json({ error: 'Invalid content type' });
         }
+    } catch (err) {
+        return res.status(400).json({ error: err.message });
+    }
 
-        let document;
-        const contentType = req.headers['content-type'];
-
-        try {
-            if (contentType === 'application/xml') {
-                document = parseXMLDocument(req.body);
-            } else if (contentType === 'application/json') {
-                document = req.body;
-
-                if (!validateDocument(document)) {
-                    return res.status(400).json({ error: 'Missing required fields in document' });
-                }
-            } else {
-                return res.status(400).json({ error: 'Invalid content type' });
-            }
-        } catch (err) {
-            return res.status(400).json({ error: err.message });
-        }
-
-        try {
-            const invoiceId = await createInvoiceFromDocument(document);
-            return res.status(200).json({ invoiceId });
-        } catch (err) {
-            return res.status(400).json({ error: err.message });
-        }
-    } catch (error) {
-        return res.status(500).json({ error: 'Internal server error' });
+    // 3) create order -> create invoice
+    try {
+        const invoiceId = await createInvoiceFromDocument(document, userCompany);
+        return res.status(200).json({ invoiceId });
+    } catch (err) {
+        return res.status(400).json({ error: err.message });
     }
 }
 
