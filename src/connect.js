@@ -66,7 +66,6 @@ const schema = [
           InvoiceID INTEGER NOT NULL,
           InvoiceItemName TEXT NOT NULL,
           ItemDescription TEXT NOT NULL,
-          BuyersItemIdentification INTEGER NOT NULL,
           SellersItemIdentification INTEGER NOT NULL,
           ItemPrice REAL NOT NULL,
           ItemQuantity INTEGER NOT NULL,

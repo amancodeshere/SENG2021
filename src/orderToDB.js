@@ -61,79 +61,111 @@ export function isValidItemID(itemID) {
 // ===========================================================================
 
 
+
 /**
- * Inserts an order and its items into the database after validation.
- *
- * @param {string} SalesOrderID - identifier for sales order.
- * @param {string} UUID - identifier the order
- * @param {string} IssueDate - issue date of order.
- * @param {string} PartyNameBuyer - buyer party name
- * @param {string} PartyNameSeller - seller party name
- * @param {number} PayableAmount - amount payable for order
- * @param {string} PayableCurrencyCode - currency code of payable amount
- * @param {Array} Items - Array of items (each item is an object)
- * @param {function} callback - callback function to handle the result
+ * Inserts an order and its items into the database.
  */
-export async function inputOrder(SalesOrderID, UUID, IssueDate, PartyNameBuyer,
-                                 PartyNameSeller, PayableAmount, PayableCurrencyCode, Items, callback) {
+export async function inputOrder(
+    SalesOrderID,
+    UUID,
+    IssueDate,
+    PartyNameBuyer,
+    PartyNameSeller,
+    PayableAmount,
+    PayableCurrencyCode,
+    Items,
+    callback
+) {
     try {
-        const checkRes = await db.query(`SELECT COUNT(*) FROM orders WHERE SalesOrderID = $1;`, [SalesOrderID]);
-        if (parseInt(checkRes.rows[0].count) > 0) {
-            return callback(new CustomInputError('SalesOrderID already exists.'));
+        // 1) validate inputs
+        const existing = await db.query(
+            "SELECT COUNT(*) FROM orders WHERE salesorderid=$1",
+            [SalesOrderID]
+        );
+        if (parseInt(existing.rows[0].count, 10) > 0) {
+            throw new CustomInputError("SalesOrderID already exists.");
         }
-
-
-        if (!validateUUID(UUID)) throw new CustomInputError('Invalid UUID.');
-        if (!isValidIssueDate(IssueDate)) throw new CustomInputError('Invalid Issue Date.');
-        if (!isValidPartyName(PartyNameBuyer)) throw new CustomInputError('Invalid Buyer Party Name.');
-        if (!isValidPartyName(PartyNameSeller)) throw new CustomInputError('Invalid Seller Party Name.');
-        if (typeof PayableAmount !== 'number' || PayableAmount < 0)
-            throw new CustomInputError('Invalid Payable Amount.');
+        if (!validateUUID(UUID)) throw new CustomInputError("Invalid UUID.");
+        if (!isValidIssueDate(IssueDate)) throw new CustomInputError("Invalid IssueDate.");
+        if (!isValidPartyName(PartyNameBuyer))
+            throw new CustomInputError("Invalid Buyer party name.");
+        if (!isValidPartyName(PartyNameSeller))
+            throw new CustomInputError("Invalid Seller party name.");
+        if (typeof PayableAmount !== "number" || PayableAmount < 0)
+            throw new CustomInputError("Invalid payable amount.");
         if (!isValidCurrencyCode(PayableCurrencyCode))
-            throw new CustomInputError('Invalid Payable Currency Code.');
+            throw new CustomInputError("Invalid currency code.");
         if (!Array.isArray(Items) || Items.length === 0)
-            throw new CustomInputError('Invalid Items list.');
+            throw new CustomInputError("Items list may not be empty.");
 
-
-        for (const item of Items) {
-            if (!item.OrderItemId || typeof item.OrderItemId !== 'string')
-                throw new CustomInputError('Missing or invalid OrderItemId.');
-            if (!item.ItemName || typeof item.ItemName !== 'string')
-                throw new CustomInputError('Missing or invalid Item Name.');
-            if (typeof item.ItemPrice !== 'number' || item.ItemPrice < 0)
-                throw new CustomInputError('Invalid Item Price.');
-            if (typeof item.ItemQuantity !== 'number' || item.ItemQuantity < 0)
-                throw new CustomInputError('Invalid Item Quantity.');
-            if (!isValidUnitCode(item.ItemUnitCode))
-                throw new CustomInputError('Invalid Item Unit Code.');
-            if (typeof item.ItemDescription !== 'string' || !item.ItemDescription.trim())
-                throw new CustomInputError('Invalid Item Description.');
+        for (const it of Items) {
+            if (!it.OrderItemId || typeof it.OrderItemId !== "string")
+                throw new CustomInputError("Invalid OrderItemId.");
+            if (!it.ItemName || typeof it.ItemName !== "string")
+                throw new CustomInputError("Invalid ItemName.");
+            if (typeof it.ItemPrice !== "number" || it.ItemPrice < 0)
+                throw new CustomInputError("Invalid ItemPrice.");
+            if (typeof it.ItemQuantity !== "number" || it.ItemQuantity < 0)
+                throw new CustomInputError("Invalid ItemQuantity.");
+            if (!isValidUnitCode(it.ItemUnitCode))
+                throw new CustomInputError("Invalid ItemUnitCode.");
+            if (!it.ItemDescription || typeof it.ItemDescription !== "string")
+                throw new CustomInputError("Invalid ItemDescription.");
         }
 
+        // 2) transactionally insert
+        await db.query("BEGIN");
 
-        await db.query('BEGIN');
+        await db.query(
+            `
+                INSERT INTO orders
+                (salesorderid, uuid, issuedate,
+                 partynamebuyer, partynameseller,
+                 payableamount, payablecurrencycode)
+                VALUES ($1,$2,$3,$4,$5,$6,$7)
+            `,
+            [
+                SalesOrderID,
+                UUID,
+                IssueDate,
+                PartyNameBuyer,
+                PartyNameSeller,
+                PayableAmount,
+                PayableCurrencyCode,
+            ]
+        );
 
-
-        await db.query(`
-            INSERT INTO orders (SalesOrderID, UUID, IssueDate, PartyNameBuyer, PartyNameSeller, PayableAmount, PayableCurrencyCode)
-            VALUES ($1, $2, $3, $4, $5, $6, $7);
-        `, [SalesOrderID, UUID, IssueDate, PartyNameBuyer, PartyNameSeller, PayableAmount, PayableCurrencyCode]);
-
-
-        for (const item of Items) {
-            await db.query(`
-                INSERT INTO order_items (OrderItemId, SalesOrderID, ItemName, ItemDescription, ItemPrice, ItemQuantity, ItemUnitCode)
-                VALUES ($1, $2, $3, $4, $5, $6, $7);
-            `, [item.OrderItemId, SalesOrderID, item.ItemName, item.ItemDescription, item.ItemPrice, item.ItemQuantity, item.ItemUnitCode]);
+        for (const it of Items) {
+            await db.query(
+                `
+                    INSERT INTO order_items
+                    (orderitemid, salesorderid, itemname,
+                     itemdescription, itemprice,
+                     itemquantity, itemunitcode)
+                    VALUES ($1,$2,$3,$4,$5,$6,$7)
+                `,
+                [
+                    it.OrderItemId,
+                    SalesOrderID,
+                    it.ItemName,
+                    it.ItemDescription,
+                    it.ItemPrice,
+                    it.ItemQuantity,
+                    it.ItemUnitCode,
+                ]
+            );
         }
 
-
-        await db.query('COMMIT');
-        callback(null, { success: true, message: 'Order and items inserted successfully.' });
+        await db.query("COMMIT");
+        callback(null, { success: true, message: "Order & items inserted." });
     } catch (err) {
-        console.error("Error inserting order and items:", err.message || err);
-        await db.query('ROLLBACK');
-        return callback(err instanceof CustomInputError ? err : new CustomInputError('Error processing order insert.'));
+        await db.query("ROLLBACK");
+        console.error("Error inserting order:", err.message || err);
+        callback(
+            err instanceof CustomInputError
+                ? err
+                : new CustomInputError("Error processing order insert.")
+        );
     }
 }
 
