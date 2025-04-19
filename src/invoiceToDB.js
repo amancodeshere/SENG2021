@@ -5,80 +5,70 @@ import { CustomInputError } from './errors.js';
 /**
  * Inserts a new invoice (and its items) for the given SalesOrderID.
  *
- * @param {string} salesOrderId
+ * @param SalesOrderID
  * @param {function} callback (err, { InvoiceID })
  */
-export function inputInvoice(salesOrderId, callback) {
-    const insertInvoiceSql = `
-    INSERT INTO invoices
-      (IssueDate, PartyNameSeller, PartyNameBuyer, CurrencyCode, SalesOrderID)
-    SELECT
-      o.IssueDate,
-      o.PartyNameSeller,
-      o.PartyNameBuyer,
-      o.PayableCurrencyCode,
-      o.SalesOrderID
-    FROM orders o
-    WHERE o.SalesOrderID = $1
-    RETURNING InvoiceID;
-  `;
+export async function inputInvoice(SalesOrderID, callback) {
+    try {
+        await db.query('BEGIN');
 
-    db.query(insertInvoiceSql, [salesOrderId])
-        .then(invoiceRes => {
-            if (invoiceRes.rowCount === 0) {
-                throw new CustomInputError('No such order to invoice.');
-            }
-            const invoiceId = invoiceRes.rows[0].invoiceid;
+        const orderResult = await db.query(
+            `SELECT IssueDate, PartyNameBuyer, PartyNameSeller, PayableCurrencyCode AS CurrencyCode
+         FROM orders
+        WHERE SalesOrderID = $1;`,
+            [SalesOrderID]
+        );
+        if (orderResult.rows.length === 0) {
+            await db.query('ROLLBACK');
+            return callback(new CustomInputError("Order not found."));
+        }
+        const order = orderResult.rows[0];
 
-            const fetchItemsSql = `
-        SELECT
-          ItemID,
-          ItemName,
-          ItemDescription,
-          ItemPrice,
-          ItemQuantity,
-          ItemUnitCode
-        FROM order_items
-        WHERE SalesOrderID = $1;
-      `;
-            return db.query(fetchItemsSql, [salesOrderId])
-                .then(itemsRes => {
-                    if (!itemsRes.rows.length) {
-                        throw new CustomInputError('Order has no items to invoice.');
-                    }
-                    const insertItemPromises = itemsRes.rows.map(item =>
-                        db.query(
-                            `INSERT INTO invoice_items
-                (InvoiceID,
-                 InvoiceItemName,
-                 ItemDescription,
-                 SellersItemIdentification,
-                 ItemPrice,
-                 ItemQuantity,
-                 ItemUnitCode)
-               VALUES ($1,$2,$3,$4,$5,$6,$7);`,
-                            [
-                                invoiceId,
-                                item.itemname,
-                                item.itemdescription,
-                                item.itemid,
-                                item.itemprice,
-                                item.itemquantity,
-                                item.itemunitcode
-                            ]
-                        )
-                    );
-                    return Promise.all(insertItemPromises)
-                        .then(() => ({ invoiceId }));
-                });
-        })
-        .then(({ invoiceId }) => {
-            callback(null, { InvoiceID: invoiceId });
-        })
-        .catch(err => {
-            console.error('Invoice creation error:', err.message || err);
-            callback(err instanceof CustomInputError ? err : new CustomInputError('Error creating invoice.'));
-        });
+        const invoiceInsert = await db.query(
+            `INSERT INTO invoices
+         (IssueDate, PartyNameBuyer, PartyNameSeller, CurrencyCode, SalesOrderID)
+       VALUES ($1,$2,$3,$4,$5)
+       RETURNING InvoiceID;`,
+            [order.issuedate, order.partynamebuyer, order.partynameseller, order.currencycode, SalesOrderID]
+        );
+        const InvoiceID = invoiceInsert.rows[0].invoiceid;
+
+        const itemsResult = await db.query(
+            `SELECT ItemID, ItemName, ItemDescription, ItemPrice, ItemQuantity, ItemUnitCode
+         FROM order_items
+        WHERE SalesOrderID = $1;`,
+            [SalesOrderID]
+        );
+        if (itemsResult.rows.length === 0) {
+            await db.query('ROLLBACK');
+            return callback(new CustomInputError("No items found for this order."));
+        }
+
+        for (const item of itemsResult.rows) {
+            await db.query(
+                `INSERT INTO invoice_items
+           (InvoiceID, InvoiceItemName, ItemDescription, SellersItemIdentification,
+            ItemPrice, ItemQuantity, ItemUnitCode)
+         VALUES ($1,$2,$3,$4,$5,$6,$7);`,
+                [
+                    InvoiceID,
+                    item.itemname,
+                    item.itemdescription,
+                    item.itemid,
+                    item.itemprice,
+                    item.itemquantity,
+                    item.itemunitcode
+                ]
+            );
+        }
+
+        await db.query('COMMIT');
+        callback(null, { success: true, message: "Invoice created successfully.", InvoiceID });
+    } catch (err) {
+        console.error("Invoice creation error:", err.message);
+        await db.query('ROLLBACK');
+        callback(new CustomInputError("Error during invoice creation."));
+    }
 }
 
 
@@ -89,23 +79,32 @@ export function inputInvoice(salesOrderId, callback) {
  * @param {number} InvoiceID - The ID of the invoice to retrieve.
  * @param {function} callback - Callback to handle result or error.
  */
+/**
+ * Fetches an invoice and its items by InvoiceID.
+ */
 export function getInvoiceByID(InvoiceID, callback) {
     db.query(
         `SELECT InvoiceID, IssueDate, PartyNameBuyer, PartyNameSeller, CurrencyCode, SalesOrderID
-         FROM invoices WHERE InvoiceID = $1;`,
+         FROM invoices
+         WHERE InvoiceID = $1;`,
         [InvoiceID]
     )
-        .then(invoiceRes => {
-            if (invoiceRes.rows.length === 0) return callback(new CustomInputError("Invoice not found."));
-            const invoice = invoiceRes.rows[0];
+        .then(invRes => {
+            if (invRes.rows.length === 0) {
+                return callback(new CustomInputError("Invoice not found."));
+            }
+            const invoice = invRes.rows[0];
 
-
-            db.query(
-                `SELECT InvoiceItemName, ItemDescription, SellersItemIdentification, ItemPrice, ItemQuantity, ItemUnitCode
-                 FROM invoice_items WHERE InvoiceID = $1;`,
+            return db.query(
+                `SELECT InvoiceItemName, ItemDescription, SellersItemIdentification,
+                ItemPrice, ItemQuantity, ItemUnitCode
+                FROM invoice_items
+                WHERE InvoiceID = $1;`,
                 [InvoiceID]
             )
-                .then(itemRes => callback(null, { ...invoice, Items: itemRes.rows }))
+                .then(itemRes => {
+                    callback(null, { ...invoice, Items: itemRes.rows });
+                })
                 .catch(err => {
                     console.error("Fetch invoice items error:", err.message);
                     callback(new CustomInputError("Database error while fetching invoice items."));

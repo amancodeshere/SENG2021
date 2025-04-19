@@ -152,42 +152,64 @@ export function invoiceToXml(invoiceId, companyName, callback) {
             return callback(err);
         }
 
-        const invoice = new Invoice(invoiceId, {});
-        invoice.addProperty('xmlns', 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2');
-        invoice.addProperty('xmlns:cac', 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        invoice.addProperty('xmlns:cbc', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+        try {
+            const invoice = new Invoice(invoiceId, {});
 
-        invoice.setIssueDate(invoiceData.IssueDate);
-        invoice.setDocumentCurrencyCode(invoiceData.CurrencyCode);
+            const supplierPartyName = new PartyName({ name: companyName });
+            invoice.setAccountingSupplierParty(
+                new AccountingSupplierParty({
+                    party: new Party({ partyNames: [supplierPartyName] })
+                })
+            );
 
-        const supplierPartyName = new PartyName({ name: companyName });
-        const supplierParty = new Party({ partyNames: [supplierPartyName] });
-        const accountingSupplierParty = new AccountingSupplierParty({ party: supplierParty })
-        invoice.setAccountingSupplierParty(accountingSupplierParty);
+            const customerPartyName = new PartyName({ name: invoiceData.partynamebuyer });
+            invoice.setAccountingCustomerParty(
+                new AccountingCustomerParty({
+                    party: new Party({ partyNames: [customerPartyName] })
+                })
+            );
 
-        const customerPartyName = new PartyName({ name: invoiceData.PartyNameBuyer });
-        const customerParty = new Party({ partyNames: [customerPartyName] });
-        const accountingCustomerParty = new AccountingCustomerParty({ party: customerParty })
-        invoice.setAccountingCustomerParty(accountingCustomerParty);
+            const currencyAttr = { currencyID: invoiceData.currencycode };
+            invoice.setLegalMonetaryTotal(
+                new MonetaryTotal({
+                    payableAmount: new UdtAmount(invoiceData.payableamount, currencyAttr)
+                })
+            );
 
-        const currencyAttribute = { currencyID: invoiceData.CurrencyCode };
-        const monetaryTotal = new MonetaryTotal({ payableAmount: new UdtAmount(invoiceData.PayableAmount, currencyAttribute) });
-        invoice.setLegalMonetaryTotal(monetaryTotal);
+            let lineId = 1;
+            invoiceData.Items.forEach(item => {
+                const lineItem = new Item({
+                    name: item.invoiceitemname,
+                    descriptions: item.itemdescription
+                });
+                const lineAmount = new UdtAmount(
+                    item.itemprice * item.itemquantity,
+                    currencyAttr
+                );
+                const price = new Price({
+                    priceAmount: new UdtAmount(item.itemprice, currencyAttr)
+                });
+                const qty = new UdtQuantity(item.itemquantity, {
+                    unitCode: item.itemunitcode
+                });
 
-        let id = 1;
-        invoiceData.Items.forEach((item) => {
-            const invoiceItem = new Item({ name: item.ItemName, descriptions: item.ItemDescription });
-            const lineExtensionAmount = new UdtAmount(item.ItemPrice * item.ItemQuantity, currencyAttribute);
-            const itemPrice = new Price({ priceAmount: new UdtAmount(item.ItemPrice, currencyAttribute) })
-            const itemQuantity = new UdtQuantity(item.ItemQuantity, { unitCode: item.ItemUnitCode })
-            const invoiceLine = new InvoiceLine({ id, price: itemPrice, invoicedQuantity: itemQuantity ,lineExtensionAmount, item: invoiceItem});
-            invoice.addInvoiceLine(invoiceLine);
-            id++;
-        });   
+                invoice.addInvoiceLine(
+                    new InvoiceLine({
+                        id: lineId++,
+                        price,
+                        invoicedQuantity: qty,
+                        lineExtensionAmount: lineAmount,
+                        item: lineItem
+                    })
+                );
+            });
 
-        const xmlInvoice = invoice.getXml();
-
-        return callback(null, xmlInvoice);
+            const xml = invoice.getXml();
+            callback(null, xml);
+        } catch (e) {
+            console.error("Error generating XML invoice:", e.message);
+            callback(new CustomInputError("Error generating XML invoice."));
+        }
     });
 }
 
@@ -197,27 +219,27 @@ export function invoiceToXml(invoiceId, companyName, callback) {
  * @param {function} callback 
  */
 export function viewInvoice(invoiceId, callback) {
-    getInvoiceByID(invoiceId, (err, invoice) => {
-        if (err) {
-            return callback(err);
-        }
+    getInvoiceByID(invoiceId, (err, invoiceData) => {
+        if (err) return callback(err);
 
-        const items = [];
-        invoice.Items.forEach((item) => {
-            items.push({
-                name: item.ItemName,
-                description: item.ItemDescription,
-                price: `${invoice.CurrencyCode} ${item.ItemPrice}`,
-                quantity: `${item.ItemQuantity} ${item.ItemUnitCode}`
-            });
-        });
+        // Build line‑items for JSON
+        const items = invoiceData.Items.map(it => ({
+            name:        it.invoiceitemname,
+            description: it.itemdescription,
+            price:       `${invoiceData.currencycode} ${it.itemprice}`,
+            quantity:    `${it.itemquantity} ${it.itemunitcode}`
+        }));
 
-        callback(null, {
-            invoiceId: invoice.InvoiceID,
-            issueDate: invoice.IssueDate,
-            partyNameBuyer: invoice.PartyNameBuyer,
-            payableAmount: `${invoice.CurrencyCode} ${invoice.PayableAmount}`,
-            items: items
+        // Compute total payable
+        const total = invoiceData.Items
+            .reduce((sum, it) => sum + Number(it.itemprice) * Number(it.itemquantity), 0);
+
+        return callback(null, {
+            invoiceId:      invoiceData.invoiceid,
+            issueDate:      invoiceData.issuedate,
+            partyNameBuyer: invoiceData.partynamebuyer,
+            payableAmount:  `${invoiceData.currencycode} ${total}`,
+            items
         });
     });
 }
