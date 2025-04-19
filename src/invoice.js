@@ -270,31 +270,37 @@ export async function validateInvoice(invoice, callback) {
  * @param {function} callback 
  */
 export function listInvoices(partyNameBuyer, callback) {
-    if(!isValidPartyName(partyNameBuyer)) {
+    if (!isValidPartyName(partyNameBuyer)) {
         return callback(new CustomInputError("partyNameBuyer contains invalid characters."));
     }
 
-    getInvoicesByCompanyName(partyNameBuyer, (err, result) => {
-        const invoicesList = [];
+    const sql = `
+    SELECT
+      i.invoiceid       AS invoiceid,
+      i.issuedate       AS issuedate,
+      i.partynamebuyer  AS partynamebuyer,
+      o.payableamount   AS payableamount,
+      o.payablecurrencycode AS payablecurrencycode
+    FROM invoices i
+    JOIN orders o
+      ON i.salesorderid = o.salesorderid
+    WHERE i.partynamebuyer = $1;
+  `;
 
-        if (err) {
-            if (err.message === "No invoices found for this company.") {
-                return callback(null, invoicesList);
-            }
-            return callback(err);
-        }
-
-        result.forEach((invoice) => {
-            invoicesList.push({
-                invoiceId: invoice.InvoiceID,
-                issueDate: invoice.IssueDate,
-                partyNameBuyer: partyNameBuyer,
-                payableAmount: `${invoice.CurrencyCode} ${invoice.PayableAmount}`,
-            });
+    db.query(sql, [partyNameBuyer])
+        .then(result => {
+            const invoicesList = result.rows.map(row => ({
+                invoiceId:      row.invoiceid,
+                issueDate:      row.issuedate,
+                partyNameBuyer: row.partynamebuyer,
+                payableAmount:  `${row.payablecurrencycode} ${row.payableamount}`,
+            }));
+            callback(null, invoicesList);
+        })
+        .catch(err => {
+            console.error("List invoices DB error:", err.message);
+            callback(new CustomInputError("Database error while listing invoices."));
         });
-
-        callback(null, invoicesList);
-    });
 }
 
 /**
