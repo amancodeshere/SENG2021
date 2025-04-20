@@ -18,19 +18,23 @@ beforeEach(() => {
 
 describe('View invoice route - Comprehensive Tests', () => {
     const mockInvoice = {
-        InvoiceID: 123456,
-        IssueDate: "2025-03-06",
-        PartyNameBuyer: "ABC Corp",
-        PayableAmount: 500,
-        CurrencyCode: "USD",
+        invoiceid: 123456,
+        issuedate: '2025-03-06',
+        partynamebuyer: 'Buyer Pty',
+        partynameseller: 'Seller Co',
+        currencycode: 'USD',
+        salesorderid: 123456
     };
+
     const mockItems = [
         {
-            ItemName: "New Item",
-            ItemDescription: "Electronic Component",
-            ItemPrice: 10,
-            ItemQuantity: 50,
-            ItemUnitCode: "PCS",
+            invoiceitemname: 'Item 1',
+            itemdescription: 'Electronic Component',
+            buyersitemidentification: 1,
+            sellersitemidentification: 2,
+            itemprice: 10,
+            itemquantity: 50,
+            itemunitcode: 'EA'
         },
     ];
 
@@ -39,8 +43,8 @@ describe('View invoice route - Comprehensive Tests', () => {
             getUserBySessionId.mockImplementationOnce((sessionId, callback) => {
                 callback(null, {
                     userId: 1,
-                    email: "abc@gmail.com",
-                    company: "ABC Pty Ltd"
+                    email: 'abc@gmail.com',
+                    company: 'Seller Co'
                 });
             });
             getInvoiceByID.mockImplementationOnce((InvoiceID, callback) => {
@@ -53,15 +57,15 @@ describe('View invoice route - Comprehensive Tests', () => {
             expect(res.status).toBe(200);
             expect(res.body).toEqual({
                 invoiceId: 123456,
-                issueDate: "2025-03-06",
-                partyNameBuyer: "ABC Corp",
-                payableAmount: "USD 500",
+                issueDate: '2025-03-06',
+                partyNameBuyer: 'Buyer Pty',
+                payableAmount: 'USD 500',
                 items: [
                     {
-                        name: "New Item",
-                        description: "Electronic Component",
-                        price: "USD 10",
-                        quantity: "50 PCS"
+                        name: 'Item 1',
+                        description: 'Electronic Component',
+                        price: 'USD 10',
+                        quantity: '50 EA'
                     }
                 ]
             });
@@ -69,34 +73,39 @@ describe('View invoice route - Comprehensive Tests', () => {
 
         test('Viewing an invoice with multiple items successfully', async () => {
             const mockInvoice2 = {
-                InvoiceID: 234567,
-                IssueDate: "2025-03-06",
-                PartyNameBuyer: "ABC Corp",
-                PayableAmount: 500,
-                CurrencyCode: "USD",
+                invoiceid: 234567,
+                issuedate: "2025-03-06",
+                partynamebuyer: 'Buyer Pty',
+                partynameseller: 'Seller Co',
+                currencycode: 'USD',
+                salesorderid: 234567 
             };
             const mockItems2 = [
                 {
-                    ItemName: "New Item",
-                    ItemDescription: "Electronic Component",
-                    ItemPrice: 10,
-                    ItemQuantity: 10,
-                    ItemUnitCode: "PCS",
+                    invoiceitemname: 'New Item',
+                    itemdescription: 'Electronic Component',
+                    buyersitemidentification: 1,
+                    sellersitemidentification: 2,
+                    itemprice: 10,
+                    itemquantity: 10,
+                    itemunitcode: 'PCS',
                 },
                 {
-                    ItemName: "Other Item",
-                    ItemDescription: "Battery Component",
-                    ItemPrice: 20,
-                    ItemQuantity: 20,
-                    ItemUnitCode: "PCS",
+                    invoiceitemname: 'Other Item',
+                    itemdescription: "Battery Component",
+                    buyersitemidentification: 1,
+                    sellersitemidentification: 2,
+                    itemprice: 20,
+                    itemquantity: 20,
+                    itemunitcode: 'PCS',
                 }
             ];
 
             getUserBySessionId.mockImplementationOnce((sessionId, callback) => {
                 callback(null, {
                     userId: 1,
-                    email: "abc@gmail.com",
-                    company: "ABC Pty Ltd"
+                    email: 'abc@gmail.com',
+                    company: 'Seller Co'
                 });
             });
             getInvoiceByID.mockImplementationOnce((InvoiceID, callback) => {
@@ -109,21 +118,21 @@ describe('View invoice route - Comprehensive Tests', () => {
             expect(res.status).toBe(200);
             expect(res.body).toEqual({
                 invoiceId: 234567,
-                issueDate: "2025-03-06",
-                partyNameBuyer: "ABC Corp",
-                payableAmount: "USD 500",
+                issueDate: '2025-03-06',
+                partyNameBuyer: 'Buyer Pty',
+                payableAmount: 'USD 500',
                 items: [
                     {
-                        name: "New Item",
-                        description: "Electronic Component",
-                        price: "USD 10",
-                        quantity: "10 PCS"
+                        name: 'New Item',
+                        description: 'Electronic Component',
+                        price: 'USD 10',
+                        quantity: '10 PCS'
                     },
                     {
-                        name: "Other Item",
-                        description: "Battery Component",
-                        price: "USD 20",
-                        quantity: "20 PCS"
+                        name: 'Other Item',
+                        description: 'Battery Component',
+                        price: 'USD 20',
+                        quantity: '20 PCS'
                     }
                 ]
             });
