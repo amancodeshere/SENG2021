@@ -1,6 +1,7 @@
 import request from 'supertest';
 import { app } from '../../app.js';
 import { getInvoicesByCompanyName } from '../../invoiceToDB.js';
+import { listInvoices } from '../../invoice.js';
 import { getUserBySessionId } from '../../UsersToDB.js';
 import { CustomInputError } from '../../errors.js';
 
@@ -8,35 +9,34 @@ jest.mock('../../UsersToDB.js', () => ({
     getUserBySessionId: jest.fn()
 }));
 
-jest.mock('../../invoiceToDB.js', () => ({
-    getInvoicesByCompanyName: jest.fn()
+jest.mock('../../invoice.js', () => ({
+    listInvoices: jest.fn()
 }));
 
 beforeEach(() => {
     jest.clearAllMocks();
 });
 
-describe('invoiceToXml route - Comprehensive Tests', () => {
+describe('listInvoices route - Comprehensive Tests', () => {
     const mockInvoicesList = [
         {
-            InvoiceID: 123456,
-            IssueDate: "2025-03-06",
-            PartyNameBuyer: "ABC Corp",
-            PayableAmount: 500,
-            CurrencyCode: "USD",
+            invoiceId: 123456,
+            issueDate: '2025-03-06',
+            partyNameBuyer: 'Buyer Pty',
+            payableAmount: 'USD 500'
         }
     ];
 
-    describe('Testing successful viewInvoice', () => {
+    describe('Testing successful listInvoices', () => {
         test('Correct return value', async () => {
             getUserBySessionId.mockImplementationOnce((sessionId, callback) => {
                 callback(null, {
                     userId: 1,
                     email: "abc@gmail.com",
-                    company: "ABC Pty Ltd"
+                    company: 'Seller Co'
                 });
             });
-            getInvoicesByCompanyName.mockImplementationOnce((PartyNameBuyer, callback) => {
+            listInvoices.mockImplementationOnce((partyNameBuyer, callback) => {
                 callback(null, mockInvoicesList);
             });
 
@@ -45,14 +45,7 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
                 .set('sessionid', '123')
                 .query({ partyNameBuyer: 'ABC Corp' });
             expect(res.status).toBe(200);
-            expect(res.body).toEqual([
-                {
-                    invoiceId: 123456,
-                    issueDate: "2025-03-06",
-                    partyNameBuyer: "ABC Corp",
-                    payableAmount: "USD 500"
-                }
-            ]);
+            expect(res.body).toEqual(mockInvoicesList);
         });
 
         test('Viewing an empty list successfully when no invoices for partyNameBuyer found', async () => {
@@ -64,8 +57,8 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
                     company: "ABC Pty Ltd"
                 });
             });
-            getInvoicesByCompanyName.mockImplementationOnce((PartyNameBuyer, callback) => {
-                callback(new CustomInputError("No invoices found for this company."));
+            listInvoices.mockImplementationOnce((partyNameBuyer, callback) => {
+                callback(null, []);
             });
 
             const res = await request(app)
@@ -77,39 +70,7 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
         });
 
         test('Viewing a list of multiple invoices successfully', async () => {
-            const mockInvoice2 = [
-                {
-                    InvoiceID: 234567,
-                    IssueDate: "2025-03-06",
-                    PartyNameBuyer: "ABC Corp",
-                    PayableAmount: 500,
-                    CurrencyCode: "USD",
-                },
-                {
-                    InvoiceID: 87865,
-                    IssueDate: "2025-01-14",
-                    PartyNameBuyer: "ABC Corp",
-                    PayableAmount: 1000,
-                    CurrencyCode: "USD",
-                }
-            ];
-            getUserBySessionId.mockImplementationOnce((sessionId, callback) => {
-                callback(null, {
-                    userId: 1,
-                    email: "abc@gmail.com",
-                    company: "ABC Pty Ltd"
-                });
-            });
-            getInvoicesByCompanyName.mockImplementationOnce((PartyNameBuyer, callback) => {
-                callback(null, mockInvoice2);
-            });
-
-            const res = await request(app)
-                .get('/api/v2/invoices/list')
-                .set('sessionid', '123')
-                .query({ partyNameBuyer: 'ABC Corp' });
-            expect(res.status).toBe(200);
-            expect(res.body).toEqual([
+            const mockInvoicesList2 = [
                 {
                     invoiceId: 234567,
                     issueDate: "2025-03-06",
@@ -122,7 +83,25 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
                     partyNameBuyer: "ABC Corp",
                     payableAmount: "USD 1000"
                 }
-            ]);
+            ];
+
+            getUserBySessionId.mockImplementationOnce((sessionId, callback) => {
+                callback(null, {
+                    userId: 1,
+                    email: "abc@gmail.com",
+                    company: "ABC Pty Ltd"
+                });
+            });
+            listInvoices.mockImplementationOnce((partyNameBuyer, callback) => {
+                callback(null, mockInvoicesList2);
+            });
+
+            const res = await request(app)
+                .get('/api/v2/invoices/list')
+                .set('sessionid', '123')
+                .query({ partyNameBuyer: 'ABC Corp' });
+            expect(res.status).toBe(200);
+            expect(res.body).toEqual(mockInvoicesList2);
         });
     });
 
@@ -135,11 +114,14 @@ describe('invoiceToXml route - Comprehensive Tests', () => {
                     company: "ABC Pty Ltd"
                 });
             });
+            listInvoices.mockImplementationOnce((partyNameBuyer, callback) => {
+                callback(new CustomInputError("partyNameBuyer contains invalid characters."));
+            });
             const res = await request(app)
                 .get('/api/v2/invoices/list')
                 .set('sessionid', '123')
                 .query({ partyNameBuyer: '@BC Corp' });
-            expect(res.body).toEqual({ error: expect.any(String) });
+            expect(res.body).toEqual({ error: "partyNameBuyer contains invalid characters." });
             expect(res.status).toBe(400);
         });
 
