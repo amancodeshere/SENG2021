@@ -29,7 +29,7 @@ describe('PUT /api/v1/invoice/:id - Invoice Update Endpoint', () => {
 
 
         const res = await request(app)
-            .put(`/api/v1/invoice/${invoiceId}`)
+            .put(`/api/v1/invoice/update/${invoiceId}`)
             .set('sessionid', sessionId)
             .send({ toUpdate: 'PayableAmount', newData: 1000 });
 
@@ -41,7 +41,7 @@ describe('PUT /api/v1/invoice/:id - Invoice Update Endpoint', () => {
 
     it('should return 400 if sessionId is missing', async () => {
         const res = await request(app)
-            .put(`/api/v1/invoice/${invoiceId}`)
+            .put(`/api/v1/invoice/update/${invoiceId}`)
             .send({ toUpdate: 'PayableAmount', newData: 1000 });
 
 
@@ -52,7 +52,7 @@ describe('PUT /api/v1/invoice/:id - Invoice Update Endpoint', () => {
 
     it('should return 400 if sessionId is not a number', async () => {
         const res = await request(app)
-            .put(`/api/v1/invoice/${invoiceId}`)
+            .put(`/api/v1/invoice/update/${invoiceId}`)
             .set('sessionid', 'abc')
             .send({ toUpdate: 'PayableAmount', newData: 1000 });
 
@@ -69,7 +69,7 @@ describe('PUT /api/v1/invoice/:id - Invoice Update Endpoint', () => {
 
 
         const res = await request(app)
-            .put(`/api/v1/invoice/${invoiceId}`)
+            .put(`/api/v1/invoice/update/${invoiceId}`)
             .set('sessionid', sessionId)
             .send({ toUpdate: 'invalidField', newData: 'someValue' });
 
@@ -86,7 +86,7 @@ describe('PUT /api/v1/invoice/:id - Invoice Update Endpoint', () => {
 
 
         const res = await request(app)
-            .put(`/api/v1/invoice/${invoiceId}`)
+            .put(`/api/v1/invoice/update/${invoiceId}`)
             .set('sessionid', sessionId)
             .send({ toUpdate: 'PayableAmount' });
 
@@ -106,7 +106,7 @@ describe('PUT /api/v1/invoice/:id - Invoice Update Endpoint', () => {
 
 
         const res = await request(app)
-            .put(`/api/v1/invoice/${invoiceId}`)
+            .put(`/api/v1/invoice/update/${invoiceId}`)
             .set('sessionid', sessionId)
             .send({ toUpdate: 'PayableAmount', newData: 2500 });
 
@@ -115,18 +115,15 @@ describe('PUT /api/v1/invoice/:id - Invoice Update Endpoint', () => {
         expect(res.body).toEqual({ message: 'Invoice updated successfully.' });
     });
 
-
     it('should return 400 if update affects no rows', async () => {
         sessionHelper.getUserBySessionId.mockImplementation((sid, cb) =>
             cb(null, { userId: 1, company: 'ABC Corp' })
         );
 
-
         db.query.mockResolvedValueOnce({ rowCount: 0 });
 
-
         const res = await request(app)
-            .put(`/api/v1/invoice/${invoiceId}`)
+            .put(`/api/v1/invoice/update/${invoiceId}`)
             .set('sessionid', sessionId)
             .send({ toUpdate: 'PayableAmount', newData: 2500 });
 
@@ -134,7 +131,6 @@ describe('PUT /api/v1/invoice/:id - Invoice Update Endpoint', () => {
         expect(res.status).toBe(400);
         expect(res.body).toHaveProperty('error', 'Invoice not found or update failed.');
     });
-
 
     it('should return 400 if db throws an error', async () => {
         sessionHelper.getUserBySessionId.mockImplementation((sid, cb) =>
@@ -146,7 +142,7 @@ describe('PUT /api/v1/invoice/:id - Invoice Update Endpoint', () => {
 
 
         const res = await request(app)
-            .put(`/api/v1/invoice/${invoiceId}`)
+            .put(`/api/v1/invoice/update/${invoiceId}`)
             .set('sessionid', sessionId)
             .send({ toUpdate: 'PayableAmount', newData: 2500 });
 

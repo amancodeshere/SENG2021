@@ -29,9 +29,10 @@ function passwordErrorCheck(password) {
 /**
  * @description Creates a user resource in the database with given details and
  * return a sessionId to authorise the user.
- * @param {string} companyName 
- * @param {string} email 
- * @param {string} password 
+ * @param {string} companyName
+ * @param {string} email
+ * @param {string} password
+ * @param callback
  * @returns {{ sessionId: number }}
  */
 export function adminRegister(email, password, companyName, callback) {
