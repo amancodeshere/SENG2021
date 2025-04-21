@@ -87,6 +87,37 @@ const schema = [
          CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
          VALID BOOLEAN NOT NULL,
          FOREIGN KEY (UserID) REFERENCES users(UserID) ON DELETE CASCADE
+        );`,
+
+    `CREATE TABLE IF NOT EXISTS shipments (
+          id SERIAL PRIMARY KEY,
+          order_id TEXT,
+          tracking_number TEXT UNIQUE NOT NULL,
+          tracking_provider TEXT,
+          shipping_service TEXT,
+          last_event_time TIMESTAMP,
+          est_delivery_date DATE,
+          origin_country TEXT,
+          destination_country TEXT,
+          delivery_number TEXT,
+          delivery_provider TEXT,
+          tracking_event_status TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );`,
+
+    `CREATE TABLE IF NOT EXISTS shipment_events (
+          id SERIAL PRIMARY KEY,
+          shipment_id INTEGER NOT NULL REFERENCES shipments(id) ON DELETE CASCADE,
+          status TEXT,
+          status_detail TEXT,
+          message TEXT,
+          description TEXT,
+          event_time TIMESTAMP,
+          source TEXT,
+          location_city TEXT,
+          location_state TEXT,
+          location_country TEXT,
+          location_zip TEXT
         );`
 ];
 

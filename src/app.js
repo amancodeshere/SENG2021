@@ -21,6 +21,7 @@ import {
 import { getUserBySessionId } from "./UsersToDB.js";
 import { handlePostInvoice } from './invoice.js';
 import { healthCheck } from './health.js';
+import {syncShipment} from "./trackship.js";
 
 export const app = express();
 
@@ -166,25 +167,26 @@ app.post('/api/v1/invoice/validate', (req, res) => {
 
 });
 
-// View an list of invoices by partyNameBuyer
-// app.get('/api/v2/invoices/list', (req, res) => {
-//     const sessionId = parseInt(req.headers.sessionid);
-//     const partyNameBuyer = req.query.partyNameBuyer
-//
-//     getUserBySessionId(sessionId, (sessionErr, user) => {
-//         if (sessionErr) {
-//             return res.status(401).json({ error: sessionErr.message });
-//         }
-//
-//         listInvoices(partyNameBuyer, (err, result) => {
-//             if (err) {
-//                 return res.status(400).json({ error: err.message });
-//             }
-//             res.status(200).json(result);
-//         });
-//     });
-// });
 app.get('/api/v2/invoice/list', handleListInvoices);
+
+app.post('/api/v2/shipment/sync', async (req, res) => {
+    const { trackingNumber, trackingProvider } = req.body;
+    if (!trackingNumber || !trackingProvider) {
+        return res
+          .status(400)
+          .json({ error: 'trackingNumber and trackingProvider are required' });
+    }
+
+    try {
+        const shipmentId = await syncShipment(trackingNumber, trackingProvider);
+        return res.json({ shipmentId });
+    } catch (err) {
+        console.error('Error syncing shipment:', err.message);
+        return res
+          .status(500)
+          .json({ error: 'Failed to sync shipment' });
+    }
+});
 
 
 app.get('/', (req, res) => {
