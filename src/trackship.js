@@ -3,7 +3,7 @@ import { db } from './connect.js';
 
 
 /**
- * Fetches the latest tracking info from TrackShip and upserts
+ * Gets the latest tracking info from TrackShip and updates
  * both the shipment row and its event history.
  *
  * @param {string} trackingNumber
