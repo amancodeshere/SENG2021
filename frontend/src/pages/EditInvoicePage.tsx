@@ -19,7 +19,7 @@ export default function EditInvoicePage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
 
-  const sessionId = localStorage.getItem("sessionId")
+  const sessionId = localStorage.getItem("token")
 
   useEffect(() => {
     const fetchInvoice = async () => {
@@ -30,7 +30,7 @@ export default function EditInvoicePage() {
       
       setIsLoading(true)
       try {
-        const res = await fetch(`/v2/invoice/${invoiceId}`, {
+        const res = await fetch(`/api/v2/invoice/${invoiceId}`, {
           headers: {
             sessionid: sessionId,
           },

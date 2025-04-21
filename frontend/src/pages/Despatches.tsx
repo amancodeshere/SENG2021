@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import { Eye, Download, Plus, Trash2 } from 'lucide-react'
+import { Eye, Download, Trash2 } from 'lucide-react'
 import "../css/DespatchesPage.css"
 import CreateDespatchForm from "../components/CreateDespatchForm"
 
@@ -12,13 +12,13 @@ interface DespatchAdvice {
   status: string;
 }
 
-export default function DespatchesPage() {
+export default function Despatches() {
   const [activeTab, setActiveTab] = useState("despatch-list")
   const [despatches, setDespatches] = useState<DespatchAdvice[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
 
-  const sessionId = localStorage.getItem("sessionId")
+  const sessionId = localStorage.getItem("token")
   const navigate = useNavigate()
 
   const fetchDespatches = async () => {
