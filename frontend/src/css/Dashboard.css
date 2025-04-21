@@ -11,10 +11,10 @@
     align-items: center;
   }
   
-  .dashboard-title {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #3b82f6; /* Changed to blue-500 for better contrast on white */
+  .header-logo {
+    width: 140px;
+    height: 50px;
+    object-fit: contain;
   }
   
   .logout-button {
@@ -35,7 +35,7 @@
   }
   
   .dashboard-main {
-    max-width: 1024px;
+    max-width: 900px;
     width: 100%;
     margin: 0 auto;
     padding: 1rem;
@@ -49,42 +49,49 @@
     box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
     overflow: hidden;
     width: 100%;
-    height: 600px; /* Fixed height */
+    height: auto; /* Changed from fixed height to auto */
+    min-height: 380px; /* Set minimum height instead */
   }
   
   .dashboard-content {
-    padding: 2rem;
+    padding: 1.5rem;
     display: flex;
     flex-direction: column;
     align-items: center;
     height: 100%;
-    justify-content: space-between;
   }
   
   .dashboard-logo-section {
     margin-bottom: 2rem;
     text-align: center;
-    flex: 0 0 auto; /* Don't allow this to flex/shrink */
   }
   
   .dashboard-logo {
-    width: 180px;
-    height: 80px;
+    width: 160px;
+    height: 70px;
     object-fit: contain;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
   }
   
   .dashboard-subtitle {
-    font-size: 2.25rem;
+    font-size: 2rem;
     font-weight: bold;
+  }
+  
+  .dashboard-description {
+    color: #4b5563; /* gray-600 */
+    font-size: 1.1rem;
+    max-width: 600px;
+    margin: 1rem auto 0;
+    text-align: center;
   }
   
   .dashboard-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 2rem;
+    gap: 1.5rem;
     width: 100%;
-    flex: 1 0 auto; /* Take available space but don't shrink */
+    margin-bottom: 1rem;
   }
   
   @media (min-width: 768px) {
@@ -94,8 +101,8 @@
   }
   
   .dashboard-button {
-    height: 150px; /* Fixed height */
-    font-size: 1.5rem;
+    height: 120px; /* Reduced height from 150px */
+    font-size: 1.25rem;
     background-color: #14274e;
     color: white;
     border-radius: 0.75rem;
@@ -109,5 +116,224 @@
   .dashboard-button:hover {
     background-color: #1e3a6d;
     transform: scale(1.02);
+  }
+  
+  /* New Features Section Styles */
+  .features-section {
+    margin-top: 6rem;
+    width: 100%;
+    max-width: 1200px;
+    margin: 6rem auto 0;
+    padding: 0 1rem;
+  }
+  
+  .features-title {
+    font-size: 1.8rem;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 1rem;
+    color: #14274e;
+  }
+  
+  .features-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    margin-top: 3rem;
+  }
+  
+  @media (min-width: 768px) {
+    .features-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  
+  .feature-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 1.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    transition: all 0.3s ease;
+    background-color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+  }
+  
+  .feature-card:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+    transform: translateY(-5px);
+  }
+  
+  .feature-icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 9999px;
+    background-color: #dbeafe;
+    margin-bottom: 1rem;
+  }
+  
+  .feature-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    color: #3b82f6;
+  }
+  
+  .feature-title {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+  }
+  
+  .feature-description {
+    color: #6b7280;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  /* Footer Styles */
+  .dashboard-footer {
+    margin-top: 4rem;
+    background-color: #14274e; /* Dark blue for ocean theme */
+    color: white;
+    border-top: 1px solid #1e3a6d;
+  }
+  
+  .footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+  }
+  
+  .footer-content {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 2rem;
+  }
+  
+  @media (min-width: 1024px) {
+    .footer-content {
+      flex-direction: row;
+      gap: 3rem;
+    }
+  }
+  
+  .footer-brand {
+    margin-bottom: 2rem;
+  }
+  
+  @media (min-width: 1024px) {
+    .footer-brand {
+      max-width: 20rem;
+      margin-bottom: 0;
+    }
+  }
+  
+  .footer-logo {
+    height: 2.5rem;
+    width: auto;
+    margin-bottom: 0.75rem;
+  }
+  
+  .footer-description {
+    font-size: 0.875rem;
+    color: #bdd4fb; /* Light blue color for ocean theme */
+    line-height: 1.5;
+  }
+  
+  .footer-links-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+    flex-grow: 1;
+  }
+  
+  @media (min-width: 640px) {
+    .footer-links-container {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+  
+  .footer-column-title {
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.75rem;
+  }
+  
+  .footer-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .footer-link {
+    font-size: 0.875rem;
+    color: #bdd4fb; /* Light blue color for ocean theme */
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  
+  .footer-link:hover {
+    color: white;
+  }
+  
+  .footer-bottom {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    border-top: 1px solid #1e3a6d;
+    padding-top: 1.5rem;
+  }
+  
+  @media (min-width: 768px) {
+    .footer-bottom {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+  }
+  
+  .footer-copyright {
+    font-size: 0.75rem;
+    color: #bdd4fb; /* Light blue color for ocean theme */
+  }
+  
+  .footer-social {
+    display: flex;
+    gap: 1rem;
+  }
+  
+  .social-link {
+    display: inline-flex;
+    color: #bdd4fb; /* Light blue color for ocean theme */
+    transition: color 0.2s;
+  }
+  
+  .social-link:hover {
+    color: white;
+  }
+  
+  .social-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+  
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
   }
   

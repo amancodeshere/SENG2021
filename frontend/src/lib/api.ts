@@ -1,6 +1,37 @@
+<<<<<<< HEAD
 export async function logout(sessionId: string) {
   const res = await fetch('/api/v1/admin/logout', {
     method: "POST",
+=======
+const API_URL = "https://seng2021-production.up.railway.app/api";
+
+export async function logout(sessionId: number) {
+  const res = await fetch(`${API_URL}/v1/admin/logout`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sessionId }),
+  });
+  return res.json();
+}
+
+export async function fetchInvoices(sessionId: number, buyerName = "") {
+  const res = await fetch(`${API_URL}/v2/invoices/list?partyNameBuyer=${encodeURIComponent(buyerName)}`, {
+    headers: { sessionid: sessionId.toString() },
+  });
+  return res.json();
+}
+
+export async function fetchInvoiceDetails(sessionId: number, invoiceId: number) {
+  const res = await fetch(`${API_URL}/v2/invoice/${invoiceId}`, {
+    headers: { sessionid: sessionId.toString() },
+  });
+  return res.json();
+}
+
+export async function updateInvoice(sessionId: number, invoiceId: number, payableAmount: string) {
+  const res = await fetch(`${API_URL}/v1/invoice/${invoiceId}`, {
+    method: "PUT",
+>>>>>>> 32b862a (Frontend changes)
     headers: {
       "sessionid": sessionId.toString(),
     }

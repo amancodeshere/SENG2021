@@ -22,7 +22,7 @@ export default function Register() {
             localStorage.setItem("token", res.data.sessionId)
             navigate("/dashboard")
         } catch (err: unknown) {
-            console.error("Register error:", err) // 👈 add this
+            console.error("Register error:", err)
             setError(
                 axios.isAxiosError(err) && err.response?.data?.error 
                     ? err.response.data.error 
