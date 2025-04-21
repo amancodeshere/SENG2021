@@ -74,45 +74,55 @@ export async function inputInvoice(SalesOrderID, callback) {
 
 
 /**
- * Retrieves full invoice details including items based on a given InvoiceID.
- *
- * @param {number} InvoiceID - The ID of the invoice to retrieve.
- * @param {function} callback - Callback to handle result or error.
+ * Fetch one invoice plus its line‑items
+ * @param {number} invoiceId
+ * @param {function(err, result)} callback
  */
-/**
- * Fetches an invoice and its items by InvoiceID.
- */
-export function getInvoiceByID(InvoiceID, callback) {
-    db.query(
-        `SELECT InvoiceID, IssueDate, PartyNameBuyer, PartyNameSeller, CurrencyCode, SalesOrderID
-         FROM invoices
-         WHERE InvoiceID = $1;`,
-        [InvoiceID]
-    )
-        .then(invRes => {
-            if (invRes.rows.length === 0) {
-                return callback(new CustomInputError("Invoice not found."));
-            }
-            const invoice = invRes.rows[0];
+export function getInvoiceByID(invoiceId, callback) {
+    // 1) Fetch the invoice header
+    const invoiceSql = `
+    SELECT
+      invoiceid,
+      issuedate,
+      partynamebuyer,
+      currencycode
+    FROM invoices
+    WHERE invoiceid = $1
+  `;
 
-            return db.query(
-                `SELECT InvoiceItemName, ItemDescription, SellersItemIdentification,
-                ItemPrice, ItemQuantity, ItemUnitCode
-                FROM invoice_items
-                WHERE InvoiceID = $1;`,
-                [InvoiceID]
-            )
-                .then(itemRes => {
-                    callback(null, { ...invoice, Items: itemRes.rows });
-                })
-                .catch(err => {
-                    console.error("Fetch invoice items error:", err.message);
-                    callback(new CustomInputError("Database error while fetching invoice items."));
+    db.query(invoiceSql, [invoiceId])
+        .then(invRes => {
+            if (invRes.rowCount === 0) {
+                return callback(new CustomInputError('Invoice not found.'));
+            }
+            const header = invRes.rows[0];
+            const itemsSql = `
+        SELECT
+          invoiceitemid AS invoiceitemid,
+          invoiceitemname AS invoiceitemname,
+          itemdescription AS itemdescription,
+          itemprice AS itemprice,
+          itemquantity AS itemquantity,
+          itemunitcode AS itemunitcode
+        FROM invoice_items
+        WHERE invoiceid = $1
+      `;
+
+
+            return db.query(itemsSql, [invoiceId])
+                .then(itemsRes => {
+                    callback(null, {
+                        invoiceid: header.invoiceid,
+                        issuedate: header.issuedate,
+                        partynamebuyer: header.partynamebuyer,
+                        currencycode: header.currencycode,
+                        Items: itemsRes.rows
+                    });
                 });
         })
         .catch(err => {
-            console.error("Fetch invoice error:", err.message);
-            callback(new CustomInputError("Database error while fetching invoice."));
+            console.error('Fetch invoice error:', err.message);
+            callback(new CustomInputError('Database error while fetching invoice.'));
         });
 }
 

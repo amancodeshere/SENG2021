@@ -141,6 +141,69 @@ async function createInvoiceFromDocument(document, sellerCompany) {
 // ===========================================================================
 
 /**
+ * GET /api/v2/invoices/list
+ *
+ * - sessionid header must be a valid session
+ * - query.partyNameBuyer is trimmed + un‑quoted + validated
+ * - calls your existing listInvoices(partyNameBuyer, callback)
+ */
+export async function handleListInvoices(req, res) {
+    const sessionId = parseInt(req.headers['sessionid'], 10);
+    if (isNaN(sessionId)) {
+        return res.status(401).json({ error: 'Invalid session ID' });
+    }
+
+    let sellerCompany;
+    try {
+        const { rows } = await db.query(
+            `SELECT u.companyname
+         FROM sessions s
+         JOIN users    u ON s.userid = u.userid
+        WHERE s.sessionid = $1`,
+            [sessionId]
+        );
+        if (rows.length === 0) {
+            return res.status(401).json({ error: 'Invalid session ID' });
+        }
+        sellerCompany = rows[0].companyname;
+    } catch (err) {
+        console.error('Session/user lookup error:', err);
+        return res
+            .status(500)
+            .json({ error: 'Internal session/user validation error' });
+    }
+
+    let buyer = req.query.partyNameBuyer;
+    if (!buyer) {
+        return res.status(400).json({ error: 'Missing partyNameBuyer parameter' });
+    }
+    buyer = buyer.trim();
+    if (buyer.startsWith('"') && buyer.endsWith('"')) {
+        buyer = buyer.slice(1, -1);
+    }
+    if (!isValidPartyName(buyer)) {
+        return res
+            .status(400)
+            .json({ error: 'partyNameBuyer contains invalid characters.' });
+    }
+
+    try {
+        listInvoices(buyer, (err, invoices) => {
+            if (err) {
+                console.error('List invoices DB error:', err);
+                return res
+                    .status(400)
+                    .json({ error: 'Database error while listing invoices.' });
+            }
+            return res.status(200).json(invoices);
+        });
+    } catch (err) {
+        console.error('Unexpected error in listInvoices handler:', err);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+}
+
+/**
  * @description Converts invoice with the given invoiceid to UBL 2.1 XML format and returns it.
  * @param {number} invoiceId 
  * @param {string} companyName 
