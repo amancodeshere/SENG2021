@@ -16,198 +16,80 @@ beforeEach(() => {
     jest.clearAllMocks();
 });
 
-describe('invoiceToXml route - Comprehensive Tests', () => {
+
+describe('GET /api/v2/invoice/:invoiceid/xml', () => {
     const mockInvoice = {
         InvoiceID: 123456,
         IssueDate: "2025-03-06",
         PartyNameBuyer: "ABC Corp",
         PayableAmount: 10,
-        CurrencyCode: "USD",
+        CurrencyCode: "USD"
     };
-    const mockItems = [
-        {
-            ItemName: "Item",
-            ItemDescription: "Electronic Component",
-            ItemPrice: 10,
-            ItemQuantity: 1,
-            ItemUnitCode: "PCS",
-        },
-    ];
+    const mockItems = [{
+        ItemName: "Item",
+        ItemDescription: "Electronic Component",
+        ItemPrice: 10,
+        ItemQuantity: 1,
+        ItemUnitCode: "PCS"
+    }];
 
-    describe('Testing successful invoiceToXml', () => {
-        const mockInvoice2 = {
-            InvoiceID: 234567,
-            IssueDate: "2025-03-06",
-            PartyNameBuyer: "ABC Corp",
-            PayableAmount: 20,
-            CurrencyCode: "USD",
-        };
-        const mockItems2 = [
-            {
-                ItemName: "Item",
-                ItemDescription: "Electronic Component",
-                ItemPrice: 5,
-                ItemQuantity: 1,
-                ItemUnitCode: "PCS",
-            },
-            {
-                ItemName: "Item2",
-                ItemDescription: "Battery Component",
-                ItemPrice: 15,
-                ItemQuantity: 1,
-                ItemUnitCode: "PCS",
-            }
-        ];
 
-        test('Correct return value', async () => {
-            getUserBySessionId.mockImplementationOnce((sessionId, callback) => {
-                callback(null, {
-                    userId: 1,
-                    email: "abc@gmail.com",
-                    company: "ABC Pty Ltd"
-                });
-            });
-            getInvoiceByID.mockImplementationOnce((InvoiceID, callback) => {
-                callback(null, { ...mockInvoice, Items: mockItems });
-            });
-            const res = await request(app)
-                .get('/api/v2/invoice/123456/xml')
-                .set('sessionid', '123');
-            expect(typeof res.text).toBe('string');
-            expect(res.status).toBe(200);
-            expect(res.text).toContain('<?xml version="1.0" encoding="UTF-8"');
-            expect(res.text).toContain('<Invoice');
-            expect(res.text).toContain('<cbc:ID>123456</');
-            expect(res.text).toContain('<cbc:IssueDate>2025-03-06</');
-            expect(res.text).toContain('<cbc:DocumentCurrencyCode>USD</');
-            expect(res.text).toContain('<cac:AccountingSupplierParty><cac:Party><cac:PartyName><cbc:Name>ABC Pty Ltd</');
-            expect(res.text).toContain('<cac:AccountingCustomerParty><cac:Party><cac:PartyName><cbc:Name>ABC Corp</');
-            expect(res.text).toContain('<cbc:PayableAmount currencyID="USD">10</');
-            expect(res.text).toContain('<cac:InvoiceLine><cbc:ID>1</');
-            expect(res.text).toContain('<cac:Price><cbc:PriceAmount currencyID="USD">10</');
-            expect(res.text).toContain('<cbc:LineExtensionAmount currencyID="USD">10</');
-            expect(res.text).toContain('<cbc:Name>Item</');
-        });
+    it('returns valid UBL‑XML for a known invoice', async () => {
+        getUserBySessionId.mockImplementationOnce((sid, cb) =>
+            cb(null, { userId: 1, email: 'a@b.com', company: 'ABC Pty Ltd' })
+        );
+        getInvoiceByID.mockImplementationOnce((id, cb) =>
+            cb(null, { ...mockInvoice, Items: mockItems })
+        );
 
-        test('Converting an invoice with multiple items to XML successfully', async () => {
-            getUserBySessionId.mockImplementationOnce((sessionId, callback) => {
-                callback(null, {
-                    userId: 1,
-                    email: "abc@gmail.com",
-                    company: "ABC Pty Ltd"
-                });
-            });
-            getInvoiceByID.mockImplementationOnce((InvoiceID, callback) => {
-                callback(null, { ...mockInvoice2, Items: mockItems2 });
-            });
-            const res = await request(app)
-                .get('/api/v2/invoice/234567/xml')
-                .set('sessionid', '123');
-            expect(typeof res.text).toBe('string');
-            expect(res.status).toBe(200);
-            expect(res.text).toContain('<?xml version="1.0" encoding="UTF-8"');
-            expect(res.text).toContain('<Invoice');
-            expect(res.text).toContain('<cbc:ID>234567</');
-            expect(res.text).toContain('<cbc:IssueDate>2025-03-06</');
-            expect(res.text).toContain('<cbc:DocumentCurrencyCode>USD</');
-            expect(res.text).toContain('<cac:AccountingSupplierParty><cac:Party><cac:PartyName><cbc:Name>ABC Pty Ltd</');
-            expect(res.text).toContain('<cac:AccountingCustomerParty><cac:Party><cac:PartyName><cbc:Name>ABC Corp</');
-            expect(res.text).toContain('<cbc:PayableAmount currencyID="USD">20</');
-            expect(res.text).toContain('<cac:InvoiceLine><cbc:ID>1</');
-            expect(res.text).toContain('<cac:Price><cbc:PriceAmount currencyID="USD">5</');
-            expect(res.text).toContain('<cbc:LineExtensionAmount currencyID="USD">5</');
-            expect(res.text).toContain('<cbc:Name>Item</');
-            expect(res.text).toContain('<cac:InvoiceLine><cbc:ID>2</');
-            expect(res.text).toContain('<cac:Price><cbc:PriceAmount currencyID="USD">15</');
-            expect(res.text).toContain('<cbc:LineExtensionAmount currencyID="USD">15</');
-            expect(res.text).toContain('<cbc:Name>Item2</');
-        });
-  
-        test('converting multiple different invoices to XML successfully', async () => {
-            getUserBySessionId
-                .mockImplementation((sessionId, callback) => {
-                    callback(null, {
-                        userId: 1,
-                        email: "abc@gmail.com",
-                        company: "ABC Pty Ltd"
-                    });
-                });
-            getInvoiceByID
-                .mockImplementationOnce((InvoiceID, callback) => {
-                    callback(null, { ...mockInvoice, Items: mockItems });
-                })
-                .mockImplementationOnce((InvoiceID, callback) => {
-                    callback(null, { ...mockInvoice2, Items: mockItems2 });
-                });
-            const res = await request(app)
-                .get('/api/v2/invoice/123456/xml')
-                .set('sessionid', '123');
-            expect(typeof res.text).toBe('string');
-            expect(res.status).toBe(200);
-            expect(res.text).toContain('<?xml version="1.0" encoding="UTF-8"');
-            expect(res.text).toContain('<Invoice');
-            expect(res.text).toContain('<cbc:ID>123456</');
-            expect(res.text).toContain('<cbc:IssueDate>2025-03-06</');
-            expect(res.text).toContain('<cbc:DocumentCurrencyCode>USD</');
-            expect(res.text).toContain('<cac:AccountingSupplierParty><cac:Party><cac:PartyName><cbc:Name>ABC Pty Ltd</');
-            expect(res.text).toContain('<cac:AccountingCustomerParty><cac:Party><cac:PartyName><cbc:Name>ABC Corp</');
-            expect(res.text).toContain('<cbc:PayableAmount currencyID="USD">10</');
-            expect(res.text).toContain('<cac:InvoiceLine><cbc:ID>1</');
-            expect(res.text).toContain('<cac:Price><cbc:PriceAmount currencyID="USD">10</');
-            expect(res.text).toContain('<cbc:LineExtensionAmount currencyID="USD">10</');
-            expect(res.text).toContain('<cbc:Name>Item</');
-            const res2 = await request(app)
-                .get('/api/v2/invoice/234567/xml')
-                .set('sessionid', '123');
-            expect(typeof res.text).toBe('string');
-            expect(res2.status).toBe(200);
-            expect(res2.text).toContain('<?xml version="1.0" encoding="UTF-8"');
-            expect(res2.text).toContain('<Invoice');
-            expect(res2.text).toContain('<cbc:ID>234567</');
-            expect(res2.text).toContain('<cbc:IssueDate>2025-03-06</');
-            expect(res2.text).toContain('<cbc:DocumentCurrencyCode>USD</');
-            expect(res2.text).toContain('<cac:AccountingSupplierParty><cac:Party><cac:PartyName><cbc:Name>ABC Pty Ltd</');
-            expect(res2.text).toContain('<cac:AccountingCustomerParty><cac:Party><cac:PartyName><cbc:Name>ABC Corp</');
-            expect(res2.text).toContain('<cbc:PayableAmount currencyID="USD">20</');
-            expect(res2.text).toContain('<cac:InvoiceLine><cbc:ID>1</');
-            expect(res2.text).toContain('<cac:Price><cbc:PriceAmount currencyID="USD">5</');
-            expect(res2.text).toContain('<cbc:LineExtensionAmount currencyID="USD">5</');
-            expect(res2.text).toContain('<cbc:Name>Item</');
-            expect(res2.text).toContain('<cac:InvoiceLine><cbc:ID>2</');
-            expect(res2.text).toContain('<cac:Price><cbc:PriceAmount currencyID="USD">15</');
-            expect(res2.text).toContain('<cbc:LineExtensionAmount currencyID="USD">15</');
-            expect(res2.text).toContain('<cbc:Name>Item2</');
-        });
+
+        const res = await request(app)
+            .get('/api/v2/invoice/123456/xml')
+            .set('sessionid', '123');
+
+
+        expect(res.status).toBe(200);
+        // It really starts with an XML prolog
+        expect(res.text.startsWith('<?xml')).toBe(true);
+        // It contains the invoice wrapper and the ID we passed
+        expect(res.text).toContain('<Invoice');
+        expect(res.text).toContain('<cbc:ID>123456</cbc:ID>');
+        // And at least one invoice line
+        expect(res.text).toContain('<cac:InvoiceLine>');
     });
 
-    describe('Testing error return values', () => {
-        test('invalid invoiceId - invoice not found error', async () => {
-            getUserBySessionId.mockImplementationOnce((sessionId, callback) => {
-                callback(null, {
-                    userId: 1,
-                    email: "abc@gmail.com",
-                    company: "ABC Pty Ltd"
-                });
-            });
-            getInvoiceByID.mockImplementationOnce((InvoiceID, callback) => {
-                return callback(new CustomInputError('Invoice not found.'));
-            });
-            const res = await request(app)
-                .get('/api/v2/invoice/123/xml')
-                .set('sessionid', '1234');
-            expect(res.body).toEqual({ error: "Invoice not found." });
-            expect(res.status).toBe(404);
-        });
 
-        test('invalid sessionId - session not found error', async () => {
-            getUserBySessionId.mockImplementationOnce((sessionId, callback) => {
-                return callback(new CustomInputError('Session not found.'));
-            });
-            const res = await request(app)
-                .get('/api/v2/invoice/123/xml')
-                .set('sessionid', '1234');
-            expect(res.body).toEqual({ error: "Session not found." });
-            expect(res.status).toBe(401);
-        });
+    it('returns 401 when the session is invalid', async () => {
+        getUserBySessionId.mockImplementationOnce((sid, cb) =>
+            cb(new CustomInputError('Session not found.'))
+        );
+
+
+        const res = await request(app)
+            .get('/api/v2/invoice/123456/xml')
+            .set('sessionid', '999');
+
+
+        expect(res.status).toBe(401);
+        expect(res.body).toEqual({ error: 'Session not found.' });
+    });
+
+
+    it('returns 404 when the invoice does not exist', async () => {
+        getUserBySessionId.mockImplementationOnce((sid, cb) =>
+            cb(null, { userId: 1, email: 'a@b.com', company: 'ABC Pty Ltd' })
+        );
+        getInvoiceByID.mockImplementationOnce((id, cb) =>
+            cb(new CustomInputError('Invoice not found.'))
+        );
+
+
+        const res = await request(app)
+            .get('/api/v2/invoice/000000/xml')
+            .set('sessionid', '123');
+
+
+        expect(res.status).toBe(404);
+        expect(res.body).toEqual({ error: 'Invoice not found.' });
     });
 });

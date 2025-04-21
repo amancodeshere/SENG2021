@@ -222,47 +222,41 @@ export function viewInvoice(invoiceId, callback) {
     getInvoiceByID(invoiceId, (err, invoiceData) => {
         if (err) return callback(err);
 
-        // Build line‑items for JSON
-        const items = invoiceData.Items.map(it => ({
-            name:        it.invoiceitemname,
-            description: it.itemdescription,
-            price:       `${invoiceData.currencycode} ${it.itemprice}`,
-            quantity:    `${it.itemquantity} ${it.itemunitcode}`
-        }));
+        const currency= invoiceData.CurrencyCode ?? invoiceData.currencycode;
+        const rawPayable= invoiceData.PayableAmount ?? invoiceData.payableamount;
+        const lines = invoiceData.Items ?? [];
 
-        // Compute total payable
-        const total = invoiceData.Items
-            .reduce((sum, it) => sum + Number(it.itemprice) * Number(it.itemquantity), 0);
+        const items = lines.map(it => {
+            const priceVal = it.ItemPrice ?? it.itemprice;
+            const qtyVal = it.ItemQuantity ?? it.itemquantity;
+            const unitCode = it.ItemUnitCode ?? it.itemunitcode;
 
-        return callback(null, {
-            invoiceId:      invoiceData.invoiceid,
-            issueDate:      invoiceData.issuedate,
-            partyNameBuyer: invoiceData.partynamebuyer,
-            payableAmount:  `${invoiceData.currencycode} ${total}`,
-            items
+            return {
+                name:        it.ItemName        ?? it.invoiceitemname,
+                description: it.ItemDescription ?? it.itemdescription,
+                price:       `${currency} ${priceVal}`,
+                quantity:    `${qtyVal} ${unitCode}`,
+            };
+        });
+
+        const total = rawPayable != null
+            ? rawPayable
+            : lines.reduce((sum, it) => {
+                const p = Number(it.ItemPrice ?? it.itemprice);
+                const q = Number(it.ItemQuantity ?? it.itemquantity);
+                return sum + (p * q);
+            }, 0);
+
+        callback(null, {
+            invoiceId:      invoiceData.InvoiceID  ?? invoiceData.invoiceid,
+            issueDate:      invoiceData.IssueDate  ?? invoiceData.issuedate,
+            partyNameBuyer: invoiceData.PartyNameBuyer ?? invoiceData.partynamebuyer,
+            payableAmount:  `${currency} ${total}`,
+            items,
         });
     });
 }
 
-/**
- * @description Submits an invoice for validation. Validates that invoice in XML matches UBL formatting and schema.
- * @param {String} invoice - The XML invoice to validate
- * @param {Function} callback - Callback function to handle the result.
- */
-export async function validateInvoice(invoice, callback) {
-    try {
-        //Validates against the UBL Invoice XSD schema
-        await xsdValidator.validateXML(invoice, 'schemas/ubl/xsd/maindoc/UBL-Invoice-2.1.xsd');
-        // Validates against the AUNZ-PEPPOL schematron
-        await validate(invoice, 'schemas/ANZ-PEPPOL/AUNZ-PEPPOL-validation.sch');
-    } catch (err) {
-        console.error(err.messages)
-        return callback({ validated: false, message: err.messages[0]});
-    }
-
-    return callback({ validated: true, message: "Valid invoice"});
-
-}
 
 /**
  * @decsription Find a list of invoices for partyNameBuyer and return it.
@@ -276,10 +270,10 @@ export function listInvoices(partyNameBuyer, callback) {
 
     const sql = `
     SELECT
-      i.invoiceid       AS invoiceid,
-      i.issuedate       AS issuedate,
-      i.partynamebuyer  AS partynamebuyer,
-      o.payableamount   AS payableamount,
+      i.invoiceid AS invoiceid,
+      i.issuedate AS issuedate,
+      i.partynamebuyer AS partynamebuyer,
+      o.payableamount AS payableamount,
       o.payablecurrencycode AS payablecurrencycode
     FROM invoices i
     JOIN orders o
@@ -290,10 +284,10 @@ export function listInvoices(partyNameBuyer, callback) {
     db.query(sql, [partyNameBuyer])
         .then(result => {
             const invoicesList = result.rows.map(row => ({
-                invoiceId:      row.invoiceid,
-                issueDate:      row.issuedate,
+                invoiceId: row.invoiceid,
+                issueDate: row.issuedate,
                 partyNameBuyer: row.partynamebuyer,
-                payableAmount:  `${row.payablecurrencycode} ${row.payableamount}`,
+                payableAmount: `${row.payablecurrencycode} ${row.payableamount}`,
             }));
             callback(null, invoicesList);
         })
@@ -360,6 +354,25 @@ export async function handlePostInvoice(req, res) {
     }
 }
 
+/**
+ * @description Submits an invoice for validation. Validates that invoice in XML matches UBL formatting and schema.
+ * @param {String} invoice - The XML invoice to validate
+ * @param {Function} callback - Callback function to handle the result.
+ */
+export async function validateInvoice(invoice, callback) {
+    try {
+        //Validates against the UBL Invoice XSD schema
+        await xsdValidator.validateXML(invoice, 'schemas/ubl/xsd/maindoc/UBL-Invoice-2.1.xsd');
+        // Validates against the AUNZ-PEPPOL schematron
+        await validate(invoice, 'schemas/ANZ-PEPPOL/AUNZ-PEPPOL-validation.sch');
+    } catch (err) {
+        console.error(err.messages)
+        return callback({ validated: false, message: err.messages[0]});
+    }
+
+    return callback({ validated: true, message: "Valid invoice"});
+
+}
 
 // ===========================================================================
 // ========================== outdated v1 helpers ============================
