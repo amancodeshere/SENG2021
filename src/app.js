@@ -16,7 +16,7 @@ import {
     v1invoiceToXml,
     v1listInvoices,
     v1handlePostInvoice,
-    updateInvoice
+    updateInvoice, handleListInvoices
 } from './invoice.js';
 import { getUserBySessionId } from "./UsersToDB.js";
 import { handlePostInvoice } from './invoice.js';
@@ -131,7 +131,7 @@ app.get('/api/v2/invoice/:invoiceid/xml', (req, res) => {
 });
 
 // update an invoice
-app.put('/api/v1/invoice/:id', (req, res) => {
+app.put('/api/v1/invoice/update/:id', (req, res) => {
     const sessionId = parseInt(req.headers.sessionid, 10);
     const invoiceId = parseInt(req.params.id, 10);
     const { toUpdate, newData } = req.body;
@@ -167,23 +167,25 @@ app.post('/api/v1/invoice/validate', (req, res) => {
 });
 
 // View an list of invoices by partyNameBuyer
-app.get('/api/v2/invoices/list', (req, res) => {
-    const sessionId = parseInt(req.headers.sessionid);
-    const partyNameBuyer = req.query.partyNameBuyer
+// app.get('/api/v2/invoices/list', (req, res) => {
+//     const sessionId = parseInt(req.headers.sessionid);
+//     const partyNameBuyer = req.query.partyNameBuyer
+//
+//     getUserBySessionId(sessionId, (sessionErr, user) => {
+//         if (sessionErr) {
+//             return res.status(401).json({ error: sessionErr.message });
+//         }
+//
+//         listInvoices(partyNameBuyer, (err, result) => {
+//             if (err) {
+//                 return res.status(400).json({ error: err.message });
+//             }
+//             res.status(200).json(result);
+//         });
+//     });
+// });
+app.get('/api/v2/invoice/list', handleListInvoices);
 
-    getUserBySessionId(sessionId, (sessionErr, user) => {
-        if (sessionErr) {
-            return res.status(401).json({ error: sessionErr.message });
-        }
-
-        listInvoices(partyNameBuyer, (err, result) => {
-            if (err) {
-                return res.status(400).json({ error: err.message });
-            }
-            res.status(200).json(result);
-        });
-    });
-});
 
 app.get('/', (req, res) => {
     res.send('🚀 Server is running!');
