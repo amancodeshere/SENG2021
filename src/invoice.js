@@ -123,11 +123,11 @@ async function createInvoiceFromDocument(document, sellerCompany) {
             PayableCurrencyCode,
             Items,
             (orderErr, orderRes) => {
-                if (orderErr) return reject(new Error("Order creation failed: " + orderErr.message));
+                if (orderErr) return reject(new Error("Order creation failed"));
                 inputInvoice(
                     SalesOrderID,
                     (invErr, invRes) => {
-                        if (invErr) return reject(new Error("Invoice creation failed: " + invErr.message));
+                        if (invErr) return reject(new Error("Invoice creation failed"));
                         resolve(invRes.InvoiceID);
                     }
                 );
@@ -367,31 +367,7 @@ export function listInvoices(partyNameBuyer, callback) {
  *    • content-type: application/xml
  * - body: a UBL `<Order>` XML string or equivalent JSON
  */
-export async function handlePostInvoice(req, res) {
-    const sessionId = parseInt(req.headers.sessionid, 10);
-    if (isNaN(sessionId)) {
-        return res.status(401).json({ error: 'Invalid session ID' });
-    }
-
-    // load session & user & company in one go
-    let userCompany;
-    try {
-        const { rows } = await db.query(`
-      SELECT u.companyname
-        FROM sessions s
-        JOIN users u ON s.userid = u.userid
-       WHERE s.sessionid = $1
-    `, [ sessionId ]);
-
-        if (rows.length === 0) {
-            return res.status(401).json({ error: 'Invalid session ID' });
-        }
-        userCompany = rows[0].companyname;
-    } catch (err) {
-        console.error('Session/user lookup error:', err);
-        return res.status(500).json({ error: 'Internal session/user validation error' });
-    }
-
+export async function handlePostInvoice(req, company, callback) {
     let document;
     const ct = req.headers['content-type'];
     try {
@@ -400,20 +376,20 @@ export async function handlePostInvoice(req, res) {
         } else if (ct === 'application/json') {
             document = req.body;
             if (!document.IssueDate || !document.PartyName || !document.PayableAmount || !document.CurrencyCode || !Array.isArray(document.Items)) {
-                throw new CustomInputError('Missing required fields in JSON payload');
+                return callback(new CustomInputError('Missing required fields in JSON payload'));
             }
         } else {
-            return res.status(400).json({ error: 'Invalid content type' });
+            return callback( new Error('Invalid content type'));
         }
     } catch (err) {
-        return res.status(400).json({ error: err.message });
+        return callback(new Error("error parsing document"));
     }
 
     try {
-        const invoiceId = await createInvoiceFromDocument(document, userCompany);
-        return res.status(200).json({ invoiceId });
+        const invoiceId = await createInvoiceFromDocument(document, company);
+        return callback(null, { invoiceId });
     } catch (err) {
-        return res.status(400).json({ error: err.message });
+        return callback(err);
     }
 }
 

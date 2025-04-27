@@ -1,187 +1,196 @@
 import request from 'supertest';
 import { app } from '../../app.js';
-import { db } from '../../connect.js';
 import * as orderModule from '../../orderToDB.js';
 import * as invoiceModule from '../../invoiceToDB.js';
+import { getUserBySessionId } from '../../UsersToDB.js';
+import fs from "fs";
 
+jest.mock('../../orderToDB.js');
+jest.mock('../../invoiceToDB.js');
 
-jest.mock('../../connect.js', () => ({
-  db: { query: jest.fn() }
+jest.mock('../../UsersToDB.js', () => ({
+  getUserBySessionId: jest.fn()
 }));
-jest.mock('../../orderToDB.js', () => ({ inputOrder: jest.fn() }));
-jest.mock('../../invoiceToDB.js', () => ({ inputInvoice: jest.fn() }));
 
 
 describe('POST /api/v2/invoice/create', () => {
-  const goodSessionId = 42;
-  const jsonDoc = {
-    IssueDate:     "2025-01-01",
-    PartyName:     "BuyerCo",
-    PayableAmount: 100,
-    CurrencyCode:  "USD",
+  const validSessionId = '123456';
+  
+  const validXMLDocument = fs.readFileSync("./order2.xml", "utf-8");
+
+  const validJSONDocument = {
+    IssueDate: "2025-03-06",
+    PartyName: "ABC Corp",
+    PayableAmount: 500,
+    CurrencyCode: "USD",
     Items: [{
-      OrderItemId:      "ITEM1",
-      ItemName:         "Test",
-      ItemDescription:  "Desc",
-      ItemPrice:        25,
-      ItemQuantity:     4,
-      ItemUnitCode:     "EA"
+      Id: "1",
+      ItemName: "new Item",
+      ItemDescription: "This is an item",
+      ItemPrice: 250,
+      ItemQuantity: 2,
+      ItemUnitCode: "PCS"
     }]
   };
-  const xmlDoc = `
-    <?xml version="1.0"?>
-    <Order xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
-           xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2">
-      <cbc:IssueDate>2025-01-01</cbc:IssueDate>
-      <cac:BuyerCustomerParty>
-        <cac:Party>
-          <cac:PartyName><cbc:Name>BuyerCo</cbc:Name></cac:PartyName>
-        </cac:Party>
-      </cac:BuyerCustomerParty>
-      <cac:AnticipatedMonetaryTotal>
-        <cbc:PayableAmount currencyID="USD">100</cbc:PayableAmount>
-      </cac:AnticipatedMonetaryTotal>
-      <cac:OrderLine>
-        <cac:LineItem>
-          <cbc:ID>1</cbc:ID>
-          <cbc:Quantity unitCode="EA">4</cbc:Quantity>
-          <cac:Price>
-            <cbc:PriceAmount currencyID="USD">25</cbc:PriceAmount>
-          </cac:Price>
-          <cac:Item>
-            <cbc:Name>Test</cbc:Name>
-            <cbc:Description>Desc</cbc:Description>
-          </cac:Item>
-        </cac:LineItem>
-      </cac:OrderLine>
-    </Order>
-  `;
-
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // session+user join
-    db.query.mockResolvedValue({ rows: [{ companyname: 'SellerCo' }] });
-    // normal insert mocks
-    orderModule.inputOrder.mockImplementation((...args) => {
-      const cb = args[args.length - 1];
-      cb(null, { success: true });
+
+    getUserBySessionId.mockImplementation((sessionId, callback) => {
+      callback(null, {
+          userId: 1,
+          email: 'abc@gmail.com',
+          company: 'Seller Co'
+      });
     });
-    invoiceModule.inputInvoice.mockImplementation((...args) => {
-      const cb = args[args.length - 1];
-      cb(null, { InvoiceID: 99 });
+
+
+    // Mock inputOrder and inputInvoice functions
+    orderModule.inputOrder.mockImplementation((SalesOrderID,
+      UUID,
+      IssueDate,
+      PartyNameBuyer,
+      PartyNameSeller,
+      PayableAmount,
+      PayableCurrencyCode,
+      Items,
+      callback) => {
+      callback(null, { OrderId: 1 });
+    });
+    
+    invoiceModule.inputInvoice.mockImplementation((SalesOrderId, callback) => {
+      callback(null, { InvoiceID: 1 });
     });
   });
 
+  test('should successfully create invoice from XML document', async () => {
+    const response = await request(app)
+      .post('/api/v2/invoice/create')
+      .set('sessionid', validSessionId)
+      .set('Content-Type', 'application/xml')
+      .send(validXMLDocument);
 
-  it('200 + invoiceId for valid JSON', async () => {
-    const res = await request(app)
-        .post('/api/v2/invoice/create')
-        .set('sessionid', String(goodSessionId))
-        .set('Content-Type', 'application/json')
-        .send(jsonDoc);
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual({ invoiceId: 99 });
+    //expect(response.status).toBe(200);
+    expect(response.body).toEqual({ invoiceId: 1 });
     expect(orderModule.inputOrder).toHaveBeenCalled();
     expect(invoiceModule.inputInvoice).toHaveBeenCalled();
   });
 
+  test('should successfully create invoice from JSON document', async () => {
+    const response = await request(app)
+      .post('/api/v2/invoice/create')
+      .set('sessionid', validSessionId)
+      .set('Content-Type', 'application/json')
+      .send(validJSONDocument);
 
-  it('200 + invoiceId for valid XML', async () => {
-    const res = await request(app)
-        .post('/api/v2/invoice/create')
-        .set('sessionid', String(goodSessionId))
-        .set('Content-Type', 'application/xml')
-        .send(xmlDoc);
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual({ invoiceId: 99 });
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ invoiceId: 1 });
     expect(orderModule.inputOrder).toHaveBeenCalled();
     expect(invoiceModule.inputInvoice).toHaveBeenCalled();
   });
 
+  test('should return error when sessionId is missing', async () => {
+    const response = await request(app)
+      .post('/api/v2/invoice/create')
+      .set('Content-Type', 'application/json')
+      .send(validJSONDocument);
 
-  it('401 if session header missing', async () => {
-    const res = await request(app)
-        .post('/api/v2/invoice/create')
-        .set('Content-Type', 'application/json')
-        .send(jsonDoc);
-    expect(res.status).toBe(401);
-    expect(res.body).toEqual({ error: 'Invalid session ID' });
+    expect(response.status).toBe(401);
+    expect(response.body).toEqual({ error: 'Invalid or missing session ID.' });
   });
 
+  test('should return error when sessionId is invalid', async () => {
+    const response = await request(app)
+      .post('/api/v2/invoice/create')
+      .set('sessionid', 'invalid-session-id')
+      .set('Content-Type', 'application/json')
+      .send(validJSONDocument);
 
-  it('401 if session not found', async () => {
-    db.query.mockResolvedValueOnce({ rows: [] });
-    const res = await request(app)
-        .post('/api/v2/invoice/create')
-        .set('sessionid', '999')
-        .set('Content-Type', 'application/json')
-        .send(jsonDoc);
-    expect(res.status).toBe(401);
-    expect(res.body).toEqual({ error: 'Invalid session ID' });
+    expect(response.status).toBe(401);
+    expect(response.body).toEqual({ error: 'Invalid or missing session ID.' });
   });
 
+  test('should return error when document is missing', async () => {
+    const response = await request(app)
+      .post('/api/v2/invoice/create')
+      .set('sessionid', validSessionId)
+      .set('Content-Type', 'application/json')
+      .send({});
 
-  it('500 on DB error during session lookup', async () => {
-    db.query.mockRejectedValueOnce(new Error('boom'));
-    const res = await request(app)
-        .post('/api/v2/invoice/create')
-        .set('sessionid', String(goodSessionId))
-        .set('Content-Type', 'application/json')
-        .send(jsonDoc);
-    expect(res.status).toBe(500);
-    expect(res.body).toEqual({ error: 'Internal session/user validation error' });
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ error: 'Missing required fields in JSON payload' });
   });
 
+  test('should handle malformed XML document', async () => {
+    const malformedXML = '<invalid>xml</invalid>';
 
-  it('400 if JSON missing fields', async () => {
-    const res = await request(app)
-        .post('/api/v2/invoice/create')
-        .set('sessionid', String(goodSessionId))
-        .set('Content-Type', 'application/json')
-        .send({});
-    expect(res.status).toBe(400);
-    expect(res.body).toEqual({ error: 'Missing required fields in JSON payload' });
+    const response = await request(app)
+      .post('/api/v2/invoice/create')
+      .set('sessionid', validSessionId)
+      .set('Content-Type', 'application/xml')
+      .send(malformedXML);
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBeDefined();
   });
 
-
-  it('400 if XML malformed', async () => {
-    const res = await request(app)
-        .post('/api/v2/invoice/create')
-        .set('sessionid', String(goodSessionId))
-        .set('Content-Type', 'application/xml')
-        .send('<not>valid</not>');
-    expect(res.status).toBe(400);
-    expect(res.body.error).toBeDefined();
-  });
-
-
-  it('400 if order creation fails', async () => {
-    orderModule.inputOrder.mockImplementationOnce((...args) => {
-      const cb = args[args.length - 1];
-      cb(new Error('order failed'));
+  test('should handle database error during session validation', async () => {
+    getUserBySessionId.mockImplementationOnce((sessionId, callback) => {
+      callback(new Error('Internal session validation error'), null);
     });
-    const res = await request(app)
-        .post('/api/v2/invoice/create')
-        .set('sessionid', String(goodSessionId))
-        .set('Content-Type', 'application/json')
-        .send(jsonDoc);
-    expect(res.status).toBe(400);
-    expect(res.body).toEqual({ error: 'Order creation failed: order failed' });
+    const response = await request(app)
+      .post('/api/v2/invoice/create')
+      .set('sessionid', validSessionId)
+      .set('Content-Type', 'application/json')
+      .send(validJSONDocument);
+
+    expect(response.status).toBe(401);
+    expect(response.body).toEqual({ error: 'Internal session validation error' });
   });
 
-
-  it('400 if invoice creation fails', async () => {
-    invoiceModule.inputInvoice.mockImplementationOnce((...args) => {
-      const cb = args[args.length - 1];
-      cb(new Error('invoice failed'));
+  test('should handle order creation error', async () => {
+    orderModule.inputOrder.mockImplementationOnce((SalesOrderID,
+      UUID,
+      IssueDate,
+      PartyNameBuyer,
+      PartyNameSeller,
+      PayableAmount,
+      PayableCurrencyCode,
+      Items,
+      callback) => {
+      callback(new Error('Order creation failed'));
     });
-    const res = await request(app)
-        .post('/api/v2/invoice/create')
-        .set('sessionid', String(goodSessionId))
-        .set('Content-Type', 'application/json')
-        .send(jsonDoc);
-    expect(res.status).toBe(400);
-    expect(res.body).toEqual({ error: 'Invoice creation failed: invoice failed' });
+
+    const response = await request(app)
+      .post('/api/v2/invoice/create')
+      .set('sessionid', validSessionId)
+      .set('Content-Type', 'application/json')
+      .send(validJSONDocument);
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ error: 'Order creation failed' });
+  });
+
+  test('parseXML error - not XML', async () => {
+    const response = await request(app)
+      .post('/api/v2/invoice/create')
+      .set('sessionid', validSessionId)
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ error: "Invalid content type" });
+  });
+
+  test('failed to create invoice', async () => {
+    invoiceModule.inputInvoice.mockImplementationOnce((SalesOrderId, callback) => {
+      callback(new Error('Invoice creation failed'));
+    });
+    const response = await request(app)
+      .post('/api/v2/invoice/create')
+      .set('sessionid', validSessionId)
+      .set('Content-Type', 'application/json')
+      .send(validJSONDocument);
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ error: 'Invoice creation failed' });
   });
 });

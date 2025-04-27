@@ -88,7 +88,24 @@ app.post('/api/v1/admin/logout', (req, res) => {
 
 // Create new invoice
 app.post('/api/v2/invoice/create', (req, res) => {
-    handlePostInvoice(req, res);
+    const sessionId = parseInt(req.headers.sessionid, 10);
+
+    if (!sessionId || isNaN(sessionId)) {
+        return res.status(401).json({ error: 'Invalid or missing session ID.' });
+    }
+
+    getUserBySessionId(sessionId, (sessionErr, user) => {
+        if (sessionErr) {
+            return res.status(401).json({ error: sessionErr.message });
+        }
+
+        handlePostInvoice(req, user.company, (err, result) => {
+            if (err) {
+                return res.status(400).json({ error: err.message });
+            }
+            res.status(200).json(result);
+        });
+    });
 });
 
 // view an invoice
