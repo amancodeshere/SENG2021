@@ -1,17 +1,15 @@
-jest.mock('../../UsersToDB.js', () => ({
-    getUserBySessionId: jest.fn()
-}));
-jest.mock('../../invoiceToDB.js', () => ({
-    getInvoiceByID: jest.fn()
-}));
-
-
 import request from 'supertest';
 import { app } from '../../app.js';
 import { getUserBySessionId } from '../../UsersToDB.js';
 import { getInvoiceByID } from '../../invoiceToDB.js';
 import { CustomInputError } from '../../errors.js';
 
+jest.mock('../../UsersToDB.js', () => ({
+    getUserBySessionId: jest.fn()
+}));
+jest.mock('../../invoiceToDB.js', () => ({
+    getInvoiceByID: jest.fn()
+}));
 
 beforeEach(() => {
     jest.clearAllMocks();
@@ -22,17 +20,13 @@ describe('View invoice route - Comprehensive Tests', () => {
         invoiceid: 123456,
         issuedate: '2025-03-06',
         partynamebuyer: 'Buyer Pty',
-        partynameseller: 'Seller Co',
-        currencycode: 'USD',
-        salesorderid: 123456
+        currencycode: 'USD'
     };
 
     const mockItems = [
         {
             invoiceitemname: 'Item 1',
             itemdescription: 'Electronic Component',
-            buyersitemidentification: 1,
-            sellersitemidentification: 2,
             itemprice: 10,
             itemquantity: 50,
             itemunitcode: 'EA'
@@ -49,10 +43,17 @@ describe('View invoice route - Comprehensive Tests', () => {
                 });
             });
 
+            getInvoiceByID.mockImplementationOnce((invoiceId, callback) => {
+                callback(null, {
+                    ...mockInvoice,
+                    Items: mockItems
+                });
+            });
+
 
             const res = await request(app)
                 .get('/api/v2/invoice/42')
-                .set(sessionHeader, '999');
+                .set('sessionId', '999');
 
 
             expect(res.status).toBe(200);
@@ -77,9 +78,7 @@ describe('View invoice route - Comprehensive Tests', () => {
                 invoiceid: 234567,
                 issuedate: "2025-03-06",
                 partynamebuyer: 'Buyer Pty',
-                partynameseller: 'Seller Co',
                 currencycode: 'USD',
-                salesorderid: 234567 
             };
             const mockItems2 = [
                 {
@@ -111,9 +110,17 @@ describe('View invoice route - Comprehensive Tests', () => {
             });
 
 
+            getInvoiceByID.mockImplementationOnce((invoiceId, callback) => {
+                callback(null, {
+                    ...mockInvoice2,
+                    Items: mockItems2
+                });
+            });
+
+
             const res = await request(app)
-                .get('/api/v2/invoice/99')
-                .set(sessionHeader, '1000');
+                .get('/api/v2/invoice/42')
+                .set('sessionId', '999');
 
 
             expect(res.status).toBe(200);
@@ -142,15 +149,15 @@ describe('View invoice route - Comprehensive Tests', () => {
 
 
     describe('🚨 Error paths', () => {
-        it('401 when session is invalid', async () => {
+        test('401 when session is invalid', async () => {
             getUserBySessionId.mockImplementation((sid, cb) => {
                 cb(new CustomInputError('Session not found.'));
             });
 
 
             const res = await request(app)
-                .get('/api/v2/invoice/1')
-                .set(sessionHeader, '1234');
+                .get('/api/v2/invoice/42')
+                .set('sessionId', '999');
 
 
             expect(res.status).toBe(401);
@@ -158,18 +165,20 @@ describe('View invoice route - Comprehensive Tests', () => {
         });
 
 
-        it('404 when invoice lookup fails', async () => {
+        test('404 when invoice lookup fails', async () => {
+            jest.clearAllMocks();
+
             getUserBySessionId.mockImplementation((sid, cb) => {
                 cb(null, { userId: 2, email: 'y@y.com', company: 'Beta LLC' });
             });
-            getInvoiceByID.mockImplementation((id, cb) => {
-                cb(new CustomInputError('Invoice not found.'));
+
+            getInvoiceByID.mockImplementationOnce((invoiceId, callback) => {
+                callback(new CustomInputError('Invoice not found.'));
             });
 
-
             const res = await request(app)
-                .get('/api/v2/invoice/7')
-                .set(sessionHeader, '555');
+                .get('/api/v2/invoice/1')
+                .set('sessionId', '999');
 
 
             expect(res.status).toBe(404);
