@@ -11,12 +11,12 @@ import {
     invoiceToXml,
     viewInvoice,
     validateInvoice,
-    listInvoices,
+    handleListInvoices,
     v1viewInvoice,
     v1invoiceToXml,
     v1listInvoices,
     v1handlePostInvoice,
-    updateInvoice, handleListInvoices
+    updateInvoice
 } from './invoice.js';
 import { getUserBySessionId } from "./UsersToDB.js";
 import { handlePostInvoice } from './invoice.js';
@@ -184,7 +184,31 @@ app.post('/api/v1/invoice/validate', (req, res) => {
 
 });
 
-app.get('/api/v2/invoice/list', handleListInvoices);
+app.get('/api/v2/invoices/list', (req, res) => {
+    const sessionId = parseInt(req.headers.sessionid, 10);
+    const partyNameBuyer = req.query.partyNameBuyer;
+
+    if (!sessionId || isNaN(sessionId)) {
+        return res.status(401).json({ error: 'Invalid or missing session ID.' });
+    }
+    if (!partyNameBuyer) {
+        return res.status(400).json({ error: "missing partyNameBuyer"});
+    }
+
+    getUserBySessionId(sessionId, (sessionErr, user) => {
+        if (sessionErr) {
+            return res.status(401).json({ error: sessionErr.message });
+        }
+
+        handleListInvoices(partyNameBuyer, (err, result) => {
+            if (err) {
+                return res.status(400).json({ error: err.message });
+            }
+            res.status(200).json(result);
+        });
+    });
+});
+
 
 app.post('/api/v2/shipment/sync', async (req, res) => {
     const { trackingNumber, trackingProvider } = req.body;

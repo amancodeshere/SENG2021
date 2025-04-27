@@ -1,6 +1,5 @@
 import request from 'supertest';
 import { app } from '../../app.js';
-import { getInvoicesByCompanyName } from '../../invoiceToDB.js';
 import { listInvoices } from '../../invoice.js';
 import { getUserBySessionId } from '../../UsersToDB.js';
 import { CustomInputError } from '../../errors.js';
@@ -42,8 +41,8 @@ describe('listInvoices route - Comprehensive Tests', () => {
 
             const res = await request(app)
                 .get('/api/v2/invoices/list')
-                .set('sessionid', '123')
-                .query({ partyNameBuyer: 'ABC Corp' });
+                .query({ partyNameBuyer: 'ABC Corp' })
+                .set('sessionid', '123');
             expect(res.status).toBe(200);
             expect(res.body).toEqual(mockInvoicesList);
         });
@@ -114,14 +113,20 @@ describe('listInvoices route - Comprehensive Tests', () => {
                     company: "ABC Pty Ltd"
                 });
             });
-            listInvoices.mockImplementationOnce((partyNameBuyer, callback) => {
-                callback(new CustomInputError("partyNameBuyer contains invalid characters."));
-            });
+
             const res = await request(app)
                 .get('/api/v2/invoices/list')
                 .set('sessionid', '123')
                 .query({ partyNameBuyer: '@BC Corp' });
             expect(res.body).toEqual({ error: "partyNameBuyer contains invalid characters." });
+            expect(res.status).toBe(400);
+        });
+        test('missing partyNameBuyer', async () => {
+
+            const res = await request(app)
+                .get('/api/v2/invoices/list')
+                .set('sessionid', '123')
+            expect(res.body).toEqual({ error: "missing partyNameBuyer" });
             expect(res.status).toBe(400);
         });
 
