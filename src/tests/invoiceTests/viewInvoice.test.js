@@ -17,35 +17,35 @@ beforeEach(() => {
     jest.clearAllMocks();
 });
 
+describe('View invoice route - Comprehensive Tests', () => {
+    const mockInvoice = {
+        invoiceid: 123456,
+        issuedate: '2025-03-06',
+        partynamebuyer: 'Buyer Pty',
+        partynameseller: 'Seller Co',
+        currencycode: 'USD',
+        salesorderid: 123456
+    };
 
-describe('GET /api/v2/invoice/:invoiceid', () => {
-    const sessionHeader = 'sessionid';
+    const mockItems = [
+        {
+            invoiceitemname: 'Item 1',
+            itemdescription: 'Electronic Component',
+            buyersitemidentification: 1,
+            sellersitemidentification: 2,
+            itemprice: 10,
+            itemquantity: 50,
+            itemunitcode: 'EA'
+        },
+    ];
 
-
-    describe('✅ Successful fetch', () => {
-        const baseInvoice = {
-            InvoiceID: 42,
-            IssueDate: '2025-03-06',
-            PartyNameBuyer: 'Acme Corp',
-            PayableAmount: 123.45,
-            CurrencyCode: 'USD'
-        };
-
-
-        it('returns one item correctly', async () => {
-            getUserBySessionId.mockImplementation((sid, cb) => {
-                cb(null, { userId: 1, email: 'x@x.com', company: 'Acme Corp' });
-            });
-            getInvoiceByID.mockImplementation((id, cb) => {
-                cb(null, {
-                    ...baseInvoice,
-                    Items: [{
-                        ItemName:        'Widget',
-                        ItemDescription: 'Useful',
-                        ItemPrice:       10,
-                        ItemQuantity:    3,
-                        ItemUnitCode:    'PCS'
-                    }]
+    describe('Testing successful viewInvoice', () => {
+        test('Correct return value', async () => {
+            getUserBySessionId.mockImplementationOnce((sessionId, callback) => {
+                callback(null, {
+                    userId: 1,
+                    email: 'abc@gmail.com',
+                    company: 'Seller Co'
                 });
             });
 
@@ -57,31 +57,56 @@ describe('GET /api/v2/invoice/:invoiceid', () => {
 
             expect(res.status).toBe(200);
             expect(res.body).toEqual({
-                invoiceId:       42,
-                issueDate:       '2025-03-06',
-                partyNameBuyer:  'Acme Corp',
-                payableAmount:   'USD 123.45',
-                items: [{
-                    name:        'Widget',
-                    description: 'Useful',
-                    price:       'USD 10',
-                    quantity:    '3 PCS'
-                }]
+                invoiceId: 123456,
+                issueDate: '2025-03-06',
+                partyNameBuyer: 'Buyer Pty',
+                payableAmount: 'USD 500',
+                items: [
+                    {
+                        name: 'Item 1',
+                        description: 'Electronic Component',
+                        price: 'USD 10',
+                        quantity: '50 EA'
+                    }
+                ]
             });
         });
 
+        test('Viewing an invoice with multiple items successfully', async () => {
+            const mockInvoice2 = {
+                invoiceid: 234567,
+                issuedate: "2025-03-06",
+                partynamebuyer: 'Buyer Pty',
+                partynameseller: 'Seller Co',
+                currencycode: 'USD',
+                salesorderid: 234567 
+            };
+            const mockItems2 = [
+                {
+                    invoiceitemname: 'New Item',
+                    itemdescription: 'Electronic Component',
+                    buyersitemidentification: 1,
+                    sellersitemidentification: 2,
+                    itemprice: 10,
+                    itemquantity: 10,
+                    itemunitcode: 'PCS',
+                },
+                {
+                    invoiceitemname: 'Other Item',
+                    itemdescription: "Battery Component",
+                    buyersitemidentification: 1,
+                    sellersitemidentification: 2,
+                    itemprice: 20,
+                    itemquantity: 20,
+                    itemunitcode: 'PCS',
+                }
+            ];
 
-        it('returns multiple items correctly', async () => {
-            getUserBySessionId.mockImplementation((sid, cb) => {
-                cb(null, { userId: 1, email: 'x@x.com', company: 'Acme Corp' });
-            });
-            getInvoiceByID.mockImplementation((id, cb) => {
-                cb(null, {
-                    ...baseInvoice,
-                    Items: [
-                        { ItemName:'A', ItemDescription:'Desc A', ItemPrice:5,  ItemQuantity:1, ItemUnitCode:'EA' },
-                        { ItemName:'B', ItemDescription:'Desc B', ItemPrice:7.5,ItemQuantity:2, ItemUnitCode:'EA' }
-                    ]
+            getUserBySessionId.mockImplementationOnce((sessionId, callback) => {
+                callback(null, {
+                    userId: 1,
+                    email: 'abc@gmail.com',
+                    company: 'Seller Co'
                 });
             });
 
@@ -93,13 +118,23 @@ describe('GET /api/v2/invoice/:invoiceid', () => {
 
             expect(res.status).toBe(200);
             expect(res.body).toEqual({
-                invoiceId:      42,
-                issueDate:      '2025-03-06',
-                partyNameBuyer: 'Acme Corp',
-                payableAmount:  'USD 123.45',
+                invoiceId: 234567,
+                issueDate: '2025-03-06',
+                partyNameBuyer: 'Buyer Pty',
+                payableAmount: 'USD 500',
                 items: [
-                    { name:'A', description:'Desc A', price:'USD 5',  quantity:'1 EA' },
-                    { name:'B', description:'Desc B', price:'USD 7.5',quantity:'2 EA' }
+                    {
+                        name: 'New Item',
+                        description: 'Electronic Component',
+                        price: 'USD 10',
+                        quantity: '10 PCS'
+                    },
+                    {
+                        name: 'Other Item',
+                        description: 'Battery Component',
+                        price: 'USD 20',
+                        quantity: '20 PCS'
+                    }
                 ]
             });
         });
