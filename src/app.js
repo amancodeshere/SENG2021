@@ -90,7 +90,7 @@ app.post('/api/v2/invoice/create', (req, res) => {
     const sessionId = parseInt(req.headers.sessionid, 10);
 
     if (!sessionId || isNaN(sessionId)) {
-        return res.status(400).json({ error: 'Invalid or missing session ID.' });
+        return res.status(401).json({ error: 'Invalid or missing session ID.' });
     }
 
     getUserBySessionId(sessionId, (sessionErr, user) => {

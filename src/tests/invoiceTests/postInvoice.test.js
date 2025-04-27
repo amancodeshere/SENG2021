@@ -55,7 +55,15 @@ describe('POST /api/v2/invoice/create', () => {
 
 
     // Mock inputOrder and inputInvoice functions
-    orderModule.inputOrder.mockImplementation((UUID, IssueDate, PartyName, PayableAmount, PayableCurrencyCode, Items, callback) => {
+    orderModule.inputOrder.mockImplementation((SalesOrderID,
+      UUID,
+      IssueDate,
+      PartyNameBuyer,
+      PartyNameSeller,
+      PayableAmount,
+      PayableCurrencyCode,
+      Items,
+      callback) => {
       callback(null, { OrderId: 1 });
     });
     
@@ -97,7 +105,7 @@ describe('POST /api/v2/invoice/create', () => {
       .send(validJSONDocument);
 
     expect(response.status).toBe(401);
-    expect(response.body).toEqual({ error: 'Invalid session ID' });
+    expect(response.body).toEqual({ error: 'Invalid or missing session ID.' });
   });
 
   test('should return error when sessionId is invalid', async () => {
@@ -108,7 +116,7 @@ describe('POST /api/v2/invoice/create', () => {
       .send(validJSONDocument);
 
     expect(response.status).toBe(401);
-    expect(response.body).toEqual({ error: 'Invalid session ID' });
+    expect(response.body).toEqual({ error: 'Invalid or missing session ID.' });
   });
 
   test('should return error when document is missing', async () => {
@@ -119,7 +127,7 @@ describe('POST /api/v2/invoice/create', () => {
       .send({});
 
     expect(response.status).toBe(400);
-    expect(response.body).toEqual({ error: 'Missing required fields in document' });
+    expect(response.body).toEqual({ error: 'Missing required fields in JSON payload' });
   });
 
   test('should handle malformed XML document', async () => {

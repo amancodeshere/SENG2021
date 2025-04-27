@@ -361,10 +361,10 @@ export async function handlePostInvoice(req, company, callback) {
     }
 
     try {
-        const invoiceId = await createInvoiceFromDocument(document, userCompany);
-        return res.status(200).json({ invoiceId });
+        const invoiceId = await createInvoiceFromDocument(document, company);
+        return callback(null, { invoiceId });
     } catch (err) {
-        return res.status(400).json({ error: err.message });
+        return callback(err);
     }
 }
 
