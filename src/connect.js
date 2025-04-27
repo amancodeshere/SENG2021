@@ -125,8 +125,10 @@ const schema = [
 async function initializeSchema() {
     for (const query of schema) {
         try {
-            await pool.query(query);
-            if (!isTestEnv) console.log('Table ensured/created.');
+            if (!isTestEnv) {
+                await pool.query(query);
+                console.log('Table ensured/created.');
+            } 
         } catch (err) {
             console.error('Error creating table:', err.message);
         }

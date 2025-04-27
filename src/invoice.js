@@ -24,14 +24,6 @@ import { UdtAmount } from 'ubl-builder/lib/ubl21/types/UnqualifiedDataTypes/UdtA
 // ===========================================================================
 
 /**
- * Validates the required fields in the document
- */
-function validateDocument(document) {
-    const requiredFields = ['IssueDate', 'PartyName', 'PayableAmount', 'CurrencyCode', 'Items'];
-    return requiredFields.every(field => document[field] !== undefined);
-}
-
-/**
  * Parses XML document using UBL standard
  */
 function parseXMLDocument(xmlString) {
