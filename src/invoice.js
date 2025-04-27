@@ -18,6 +18,7 @@ import { XMLParser } from 'fast-xml-parser';
 import { Price } from 'ubl-builder/lib/ubl21/CommonAggregateComponents/PriceTypeGroup.js';
 import { UdtQuantity } from 'ubl-builder/lib/ubl21/types/UnqualifiedDataTypes/UdtQuantity.js';
 import { UdtAmount } from 'ubl-builder/lib/ubl21/types/UnqualifiedDataTypes/UdtAmount.js';
+import { getUserBySessionId } from './UsersToDB.js';
 
 // ===========================================================================
 // ============== local helper functions only used in invoice.js =============
@@ -310,30 +311,37 @@ export function listInvoices(partyNameBuyer, callback) {
  *    • content-type: application/xml
  * - body: a UBL `<Order>` XML string or equivalent JSON
  */
-export async function handlePostInvoice(req, res) {
-    const sessionId = parseInt(req.headers.sessionid, 10);
-    if (isNaN(sessionId)) {
-        return res.status(401).json({ error: 'Invalid session ID' });
-    }
+export async function handlePostInvoice(req, company, callback) {
+    // const sessionId = parseInt(req.headers.sessionid, 10);
+    // if (isNaN(sessionId)) {
+    //     return res.status(401).json({ error: 'Invalid session ID' });
+    // }
 
-    // load session & user & company in one go
-    let userCompany;
-    try {
-        const { rows } = await db.query(`
-      SELECT u.companyname
-        FROM sessions s
-        JOIN users u ON s.userid = u.userid
-       WHERE s.sessionid = $1
-    `, [ sessionId ]);
+    // // load session & user & company in one go
+    // let userCompany;
+    // getUserBySessionId(sessionId, (sessionErr, user) => {
+    //     if (sessionErr) {
+    //         return res.status(401).json({ error: sessionErr.message });
+    //     }
 
-        if (rows.length === 0) {
-            return res.status(401).json({ error: 'Invalid session ID' });
-        }
-        userCompany = rows[0].companyname;
-    } catch (err) {
-        console.error('Session/user lookup error:', err);
-        return res.status(500).json({ error: 'Internal session/user validation error' });
-    }
+    //     userCompany = user.company;
+    // });
+    // try {
+    //     const { rows } = await db.query(`
+    //   SELECT u.companyname
+    //     FROM sessions s
+    //     JOIN users u ON s.userid = u.userid
+    //    WHERE s.sessionid = $1
+    // `, [ sessionId ]);
+
+    //     if (rows.length === 0) {
+    //         return res.status(401).json({ error: 'Invalid session ID' });
+    //     }
+    //     userCompany = rows[0].companyname;
+    // } catch (err) {
+    //     console.error('Session/user lookup error:', err);
+    //     return res.status(500).json({ error: 'Internal session/user validation error' });
+    // }
 
     let document;
     const ct = req.headers['content-type'];
@@ -343,13 +351,13 @@ export async function handlePostInvoice(req, res) {
         } else if (ct === 'application/json') {
             document = req.body;
             if (!document.IssueDate || !document.PartyName || !document.PayableAmount || !document.CurrencyCode || !Array.isArray(document.Items)) {
-                throw new CustomInputError('Missing required fields in JSON payload');
+                return callback(new CustomInputError('Missing required fields in JSON payload'));
             }
         } else {
-            return res.status(400).json({ error: 'Invalid content type' });
+            return callback( new Error('Invalid content type'));
         }
     } catch (err) {
-        return res.status(400).json({ error: err.message });
+        return callback(err);
     }
 
     try {
